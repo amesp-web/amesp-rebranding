@@ -9,6 +9,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { LogIn, Mail, Lock, ArrowLeft, Fish, Shield, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { checkTemporaryPassword } from "@/lib/auth-helpers"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -52,6 +53,15 @@ export default function LoginPage() {
       }
 
       if (data.user) {
+        // Verificar se é senha temporária
+        const isTemporaryPassword = password.length === 8 && password === password.toUpperCase() && /^[A-Z0-9]+$/.test(password)
+        
+        if (isTemporaryPassword) {
+          // Redirecionar para redefinição de senha
+          router.push(`/reset-password?email=${encodeURIComponent(email)}`)
+          return
+        }
+
         // Check if user is admin
         const { data: adminProfile } = await supabase
           .from("admin_profiles")

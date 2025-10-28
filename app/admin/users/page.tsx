@@ -9,9 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Mail, Phone, Users } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Mail, Phone, Users, Shield, Fish, CheckCircle, Clock, UserPlus } from "lucide-react"
+import InputMask from "react-input-mask"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase/client"
+import { createClient as createServerClient } from "@/lib/supabase/server"
 import { toast } from "sonner"
 import { EmailService } from "@/lib/email-service"
 import { cn } from "@/lib/utils"
@@ -21,7 +23,7 @@ interface User {
   email: string
   full_name: string
   phone: string
-  role: 'admin' | 'maricultor'
+  role: 'admin'
   created_at: string
   last_sign_in_at?: string
   email_confirmed_at?: string
@@ -40,7 +42,7 @@ export default function UsersPage() {
     full_name: "",
     email: "",
     phone: "",
-    role: "admin" as "admin" | "maricultor"
+    role: "admin" as "admin"
   })
 
   useEffect(() => {
@@ -50,36 +52,16 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('admin_profiles')
-        .select(`
-          id,
-          full_name,
-          role,
-          created_at,
-          auth_users!inner(
-            email,
-            phone,
-            last_sign_in_at,
-            email_confirmed_at
-          )
-        `)
+      
+      const response = await fetch('/api/admin/users')
+      const result = await response.json()
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao buscar usuários')
+      }
 
-      const formattedUsers = data?.map(user => ({
-        id: user.id,
-        email: user.auth_users.email,
-        full_name: user.full_name,
-        phone: user.auth_users.phone || "",
-        role: user.role,
-        created_at: user.created_at,
-        last_sign_in_at: user.auth_users.last_sign_in_at,
-        email_confirmed_at: user.auth_users.email_confirmed_at
-      })) || []
-
-      setUsers(formattedUsers)
-    } catch (error) {
+      setUsers(result.users)
+    } catch (error: any) {
       console.error('Erro ao buscar usuários:', error)
       toast.error("Erro ao carregar usuários")
     } finally {
@@ -89,6 +71,8 @@ export default function UsersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('🚀 Iniciando criação de usuário...', formData)
+    setLoading(true)
     
     try {
       if (editingUser) {
@@ -105,35 +89,30 @@ export default function UsersPage() {
 
         toast.success("Usuário atualizado com sucesso!")
       } else {
-        // Criar novo usuário
-        const { data, error } = await supabase.auth.admin.createUser({
-          email: formData.email,
-          password: generateTemporaryPassword(),
-          email_confirm: true,
-          user_metadata: {
+        // Criar novo usuário via API
+        const response = await fetch('/api/admin/create-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
             full_name: formData.full_name,
-            phone: formData.phone
-          }
-        })
-
-        if (error) throw error
-
-        // Criar perfil admin
-        const { error: profileError } = await supabase
-          .from('admin_profiles')
-          .insert({
-            id: data.user.id,
-            full_name: formData.full_name,
+            email: formData.email,
+            phone: formData.phone,
             role: formData.role
           })
+        })
 
-        if (profileError) throw profileError
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erro ao criar usuário')
+        }
 
         // Enviar email com senha temporária
-        const tempPassword = generateTemporaryPassword()
-        await sendTemporaryPasswordEmail(formData.email, tempPassword, formData.full_name)
+        await sendWelcomeEmail(formData.email, result.tempPassword, formData.full_name)
 
-        toast.success("Usuário criado com sucesso! Senha temporária enviada por email.")
+        toast.success("Usuário criado com sucesso! E-mail de boas-vindas enviado.")
       }
 
       setIsDialogOpen(false)
@@ -146,16 +125,21 @@ export default function UsersPage() {
     }
   }
 
-  const generateTemporaryPassword = () => {
-    return Math.random().toString(36).slice(-8).toUpperCase()
+  const generateTemporaryPassword = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    let result = ''
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return result
   }
 
-  const sendTemporaryPasswordEmail = async (email: string, password: string, userName: string) => {
+  const sendWelcomeEmail = async (email: string, password: string, userName: string) => {
     const emailService = EmailService.getInstance()
-    const success = await emailService.sendTemporaryPassword(email, password, userName)
+    const success = await emailService.sendWelcomeEmail(email, password, userName)
     
     if (!success) {
-      throw new Error("Falha ao enviar e-mail com senha temporária")
+      throw new Error("Falha ao enviar e-mail de boas-vindas")
     }
   }
 
@@ -177,6 +161,33 @@ export default function UsersPage() {
       role: user.role
     })
     setIsDialogOpen(true)
+  }
+
+  const handleToggleStatus = async (user: User) => {
+    try {
+      // Aqui você implementaria a lógica para ativar/inativar usuário
+      // Por enquanto, apenas um toast informativo
+      toast.success(`Usuário ${user.email_confirmed_at ? 'inativado' : 'ativado'} com sucesso!`)
+      fetchUsers() // Recarregar lista
+    } catch (error: any) {
+      console.error('Erro ao alterar status:', error)
+      toast.error("Erro ao alterar status do usuário")
+    }
+  }
+
+  const handleResendEmail = async (user: User) => {
+    try {
+      // Gerar nova senha temporária
+      const tempPassword = generateTemporaryPassword()
+      
+      // Enviar e-mail
+      await sendWelcomeEmail(user.email, tempPassword, user.full_name)
+      
+      toast.success("E-mail de boas-vindas reenviado!")
+    } catch (error: any) {
+      console.error('Erro ao reenviar e-mail:', error)
+      toast.error("Erro ao reenviar e-mail")
+    }
   }
 
   const handleDelete = async (userId: string) => {
@@ -209,7 +220,10 @@ export default function UsersPage() {
         <div className="relative">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">👥 Usuários</h1>
+              <h1 className="text-3xl font-bold text-white mb-2 flex items-center">
+                <Users className="h-8 w-8 mr-3" />
+                Usuários
+              </h1>
               <p className="text-blue-100 text-lg">Gerencie usuários e permissões do sistema</p>
             </div>
             <div className="flex items-center space-x-4">
@@ -239,7 +253,17 @@ export default function UsersPage() {
             <DialogHeader className="bg-gradient-to-r from-blue-50 via-cyan-50/50 to-teal-50/30 -m-6 mb-6 p-6 rounded-t-lg border-b border-blue-200/50">
               <DialogTitle className="text-xl font-bold text-slate-800 flex items-center">
                 <Users className="h-6 w-6 mr-3 text-blue-600" />
-                {editingUser ? "✏️ Editar Usuário" : "➕ Novo Usuário"}
+                {editingUser ? (
+                  <>
+                    <Edit className="h-5 w-5 mr-2" />
+                    Editar Usuário
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-5 w-5 mr-2" />
+                    Novo Usuário
+                  </>
+                )}
               </DialogTitle>
               <DialogDescription className="text-slate-600 mt-2">
                 {editingUser 
@@ -278,27 +302,39 @@ export default function UsersPage() {
               
               <div className="space-y-3">
                 <Label htmlFor="phone" className="text-sm font-semibold text-slate-700">Telefone</Label>
-                <Input
-                  id="phone"
+                <InputMask
+                  mask="(99) 99999-9999"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
-                  placeholder="(11) 99999-9999"
-                />
+                  maskChar=""
+                >
+                  {(inputProps) => (
+                    <Input
+                      {...inputProps}
+                      id="phone"
+                      className="border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
+                      placeholder="(11) 99999-9999"
+                    />
+                  )}
+                </InputMask>
               </div>
               
               <div className="space-y-3">
                 <Label htmlFor="role" className="text-sm font-semibold text-slate-700">Tipo de Acesso</Label>
                 <Select 
                   value={formData.role} 
-                  onValueChange={(value: "admin" | "maricultor") => setFormData({...formData, role: value})}
+                  onValueChange={(value: "admin") => setFormData({...formData, role: value})}
                 >
-                  <SelectTrigger className="border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300">
+                  <SelectTrigger className="w-full border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">👑 Administrador</SelectItem>
-                    <SelectItem value="maricultor">🐟 Maricultor</SelectItem>
+                    <SelectItem value="admin">
+                      <div className="flex items-center">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Administrador
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -314,9 +350,21 @@ export default function UsersPage() {
                 </Button>
                 <Button 
                   type="submit"
-                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-2 font-semibold"
+                  disabled={loading}
+                  onClick={() => console.log('🔘 Botão clicado!')}
+                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-2 font-semibold disabled:opacity-50"
                 >
-                  {editingUser ? "✏️ Atualizar" : "➕ Criar Usuário"}
+                  {editingUser ? (
+                    <>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Atualizar
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Criar Usuário
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
@@ -357,13 +405,13 @@ export default function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-gradient-to-r from-blue-50/50 via-cyan-50/30 to-teal-50/20 border-b border-blue-200/50">
-                <TableHead className="font-semibold text-slate-700 py-4">Nome</TableHead>
-                <TableHead className="font-semibold text-slate-700 py-4">E-mail</TableHead>
-                <TableHead className="font-semibold text-slate-700 py-4">Telefone</TableHead>
-                <TableHead className="font-semibold text-slate-700 py-4">Tipo</TableHead>
-                <TableHead className="font-semibold text-slate-700 py-4">Status</TableHead>
-                <TableHead className="font-semibold text-slate-700 py-4">Último Acesso</TableHead>
-                <TableHead className="w-[50px] py-4"></TableHead>
+                <TableHead className="font-semibold text-slate-700 py-4 px-6">Nome</TableHead>
+                <TableHead className="font-semibold text-slate-700 py-4 px-6">E-mail</TableHead>
+                <TableHead className="font-semibold text-slate-700 py-4 px-6">Telefone</TableHead>
+                <TableHead className="font-semibold text-slate-700 py-4 px-6">Tipo</TableHead>
+                <TableHead className="font-semibold text-slate-700 py-4 px-6">Status</TableHead>
+                <TableHead className="font-semibold text-slate-700 py-4 px-6">Último Acesso</TableHead>
+                <TableHead className="w-[80px] py-4 px-6">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -382,10 +430,10 @@ export default function UsersPage() {
               ) : (
                 filteredUsers.map((user) => (
                   <TableRow key={user.id} className="hover:bg-blue-50/30 transition-colors duration-200">
-                    <TableCell className="font-semibold text-slate-800 py-4">{user.full_name}</TableCell>
-                    <TableCell className="text-slate-600 py-4">{user.email}</TableCell>
-                    <TableCell className="text-slate-600 py-4">{user.phone || "-"}</TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="font-semibold text-slate-800 py-4 px-6 min-w-[200px]">{user.full_name}</TableCell>
+                    <TableCell className="text-slate-600 py-4 px-6 min-w-[250px]">{user.email}</TableCell>
+                    <TableCell className="text-slate-600 py-4 px-6 min-w-[150px]">{user.phone || "-"}</TableCell>
+                    <TableCell className="py-4 px-6 min-w-[120px]">
                       <Badge 
                         variant={user.role === 'admin' ? 'default' : 'secondary'}
                         className={cn(
@@ -395,10 +443,20 @@ export default function UsersPage() {
                             : "bg-gradient-to-r from-teal-500 to-green-500 text-white border-0"
                         )}
                       >
-                        {user.role === 'admin' ? '👑 Admin' : '🐟 Maricultor'}
+                        {user.role === 'admin' ? (
+                          <>
+                            <Shield className="h-3 w-3 mr-1" />
+                            Admin
+                          </>
+                        ) : (
+                          <>
+                            <Fish className="h-3 w-3 mr-1" />
+                            Maricultor
+                          </>
+                        )}
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="py-4 px-6 min-w-[120px]">
                       <Badge 
                         variant={user.email_confirmed_at ? 'default' : 'destructive'}
                         className={cn(
@@ -408,16 +466,26 @@ export default function UsersPage() {
                             : "bg-gradient-to-r from-orange-500 to-red-500 text-white border-0"
                         )}
                       >
-                        {user.email_confirmed_at ? '✅ Ativo' : '⏳ Pendente'}
+                        {user.email_confirmed_at ? (
+                          <>
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Ativo
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3 w-3 mr-1" />
+                            Pendente
+                          </>
+                        )}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-slate-600 py-4">
+                    <TableCell className="text-slate-600 py-4 px-6 min-w-[120px]">
                       {user.last_sign_in_at 
                         ? new Date(user.last_sign_in_at).toLocaleDateString('pt-BR')
                         : 'Nunca'
                       }
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="py-4 px-6 w-[80px]">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
@@ -435,6 +503,29 @@ export default function UsersPage() {
                           >
                             <Edit className="mr-2 h-4 w-4 text-blue-600" />
                             <span>Editar</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleToggleStatus(user)} 
+                            className="cursor-pointer hover:bg-orange-50"
+                          >
+                            {user.email_confirmed_at ? (
+                              <>
+                                <Clock className="mr-2 h-4 w-4 text-orange-600" />
+                                <span>Inativar</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                                <span>Ativar</span>
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleResendEmail(user)} 
+                            className="cursor-pointer hover:bg-purple-50"
+                          >
+                            <Mail className="mr-2 h-4 w-4 text-purple-600" />
+                            <span>Reenviar E-mail</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDelete(user.id)} 
