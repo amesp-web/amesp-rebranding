@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
+import { SidebarProvider } from "@/contexts/sidebar-context"
+import { AdminMainContent } from "@/components/admin/admin-main-content"
 
 export default async function AdminLayout({
   children,
@@ -26,12 +28,30 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <SidebarProvider>
+      <AdminLayoutWrapper user={data.user} adminProfile={adminProfile}>
+        {children}
+      </AdminLayoutWrapper>
+    </SidebarProvider>
+  )
+}
+
+function AdminLayoutWrapper({ 
+  children, 
+  user, 
+  adminProfile 
+}: { 
+  children: React.ReactNode
+  user: any
+  adminProfile: any
+}) {
+  return (
+    <div className="min-h-screen bg-gray-50">
       <AdminSidebar />
-      <div className="lg:pl-64">
-        <AdminHeader user={data.user} adminProfile={adminProfile} />
-        <main className="p-6">{children}</main>
-      </div>
+      <AdminMainContent user={user} adminProfile={adminProfile}>
+        {children}
+      </AdminMainContent>
     </div>
   )
 }
+
