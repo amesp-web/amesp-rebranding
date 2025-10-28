@@ -1,0 +1,61 @@
+Oi [Nome da Cunhada]!
+
+Como estão as configurações?
+
+Preciso da sua ajuda para publicar o site na internet. Deixa eu explicar:
+
+## 🏠 Por que não podemos usar o Hostinger:
+
+O Hostinger não suporta projetos modernos em React/Next.js como o que estamos fazendo. Ele funciona bem para WordPress, mas não tem o ambiente necessário para o nosso tipo de site.
+
+## 🚀 A solução (gratuita):
+
+Vou usar duas ferramentas GRATUITAS e muito usadas no mundo inteiro:
+
+### **GitHub** - Para armazenar o código
+- O que é: Serviço para guardar e compartilhar código do site
+- Por que: Torna fácil atualizar e manter o site no futuro
+- Custo: Gratuito
+- Empresas que usam: Microsoft, Google, Netflix, etc.
+
+### **Vercel** - Para hospedar o site
+- O que é: Plataforma para manter o site no ar e acessível
+- Por que: Oferece deploy rápido e seguro para aplicativos modernos
+- Custo: Gratuito para projetos pessoais
+- Empresas que usam: Netflix, GitHub, Airbnb, etc.
+
+## 📋 O que preciso de você:
+
+### 1. Criar conta no GitHub (5 minutos)
+- Acesse: https://github.com/signup
+- Use o mesmo email do Supabase
+- Username: escolha algo simples (ex: amesp-2024)
+- Crie uma senha e anote
+- Me envie: username, email e senha
+
+### 2. Criar conta no Vercel (5 minutos)
+- Acesse: https://vercel.com/signup
+- Clique em "Sign up with GitHub"
+- Use o mesmo email do Supabase
+- Me envie: email e senha (se não usar o GitHub)
+
+## ⏰ Tempo total:
+
+~10 minutos para criar as duas contas.
+
+## 🔐 Depois que eu receber:
+
+Vou conectar tudo e deixar o site no ar. Você testará e verá que tudo funciona.
+
+## ✅ Vantagens desta solução:
+
+- Gratuito
+- Mais rápido e seguro que o Hostinger
+- Fácil de atualizar e manter
+- Se precisarem, qualquer empresa consegue dar continuidade
+- Mesmas empresas grandes do mercado usam
+
+Qualquer dúvida, me chama! 😊
+
+Abs,
+[SEU_NOME]
