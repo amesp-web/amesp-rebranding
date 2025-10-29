@@ -7,25 +7,32 @@ import Link from "next/link"
 export default async function AdminDashboard() {
   const supabase = await createClient()
 
-  // Get statistics
-  const [newsCount, producersCount, galleryCount, publishedNewsCount] = await Promise.all([
+  // Otimizar queries com Promise.all para carregamento paralelo
+  const [
+    newsCountResult,
+    producersCountResult, 
+    galleryCountResult,
+    publishedNewsCountResult,
+    recentNewsResult,
+    viewsDataResult
+  ] = await Promise.all([
     supabase.from("news").select("id", { count: "exact" }),
     supabase.from("producers").select("id", { count: "exact" }),
     supabase.from("gallery").select("id", { count: "exact" }),
     supabase.from("news").select("id", { count: "exact" }).eq("published", true),
+    supabase.from("news").select("id, title, created_at, published, views").order("created_at", { ascending: false }).limit(5),
+    supabase.from("news").select("views")
   ])
 
-  // Get recent news
-  const { data: recentNews } = await supabase
-    .from("news")
-    .select("id, title, created_at, published, views")
-    .order("created_at", { ascending: false })
-    .limit(5)
+  // Extrair dados dos resultados
+  const newsCount = newsCountResult.count || 0
+  const producersCount = producersCountResult.count || 0
+  const galleryCount = galleryCountResult.count || 0
+  const publishedNewsCount = publishedNewsCountResult.count || 0
+  const recentNews = recentNewsResult.data || []
+  const viewsData = viewsDataResult.data || []
 
-  // Get total views
-  const { data: viewsData } = await supabase.from("news").select("views")
-
-  const totalViews = viewsData?.reduce((sum, item) => sum + (item.views || 0), 0) || 0
+  const totalViews = viewsData.reduce((sum, item) => sum + (item.views || 0), 0)
 
   return (
     <div className="space-y-8">
@@ -74,13 +81,13 @@ export default async function AdminDashboard() {
                 </div>
               </div>
               <div className="flex items-baseline space-x-2">
-                <span className="text-4xl font-bold text-primary">{newsCount.count || 0}</span>
+                <span className="text-4xl font-bold text-primary">{newsCount}</span>
                 <ArrowUpRight className="h-4 w-4 text-primary/60" />
               </div>
             </CardHeader>
             <CardContent className="relative z-10">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">{publishedNewsCount.count || 0} publicadas</p>
+                <p className="text-xs text-muted-foreground">{publishedNewsCount} publicadas</p>
                 <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
                   Ativas
                 </Badge>
@@ -101,7 +108,7 @@ export default async function AdminDashboard() {
                 </div>
               </div>
               <div className="flex items-baseline space-x-2">
-                <span className="text-4xl font-bold text-accent">{producersCount.count || 0}</span>
+                <span className="text-4xl font-bold text-accent">{producersCount}</span>
                 <ArrowUpRight className="h-4 w-4 text-accent/60" />
               </div>
             </CardHeader>
@@ -128,7 +135,7 @@ export default async function AdminDashboard() {
                 </div>
               </div>
               <div className="flex items-baseline space-x-2">
-                <span className="text-4xl font-bold text-primary">{galleryCount.count || 0}</span>
+                <span className="text-4xl font-bold text-primary">{galleryCount}</span>
                 <ArrowUpRight className="h-4 w-4 text-primary/60" />
               </div>
             </CardHeader>

@@ -13,15 +13,26 @@ export default async function AdminLayout({
 }) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.getUser()
+  // Carregar dados do usuário e perfil em paralelo para melhor performance
+  const [userResult, adminProfileResult] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from("admin_profiles").select("*").limit(1) // Cache query
+  ])
+  
+  const { data: userData, error: userError } = userResult
+  const { data: adminData, error: adminError } = adminProfileResult
   
   // Em desenvolvimento, se não há usuário, redireciona para login de desenvolvimento
-  if (error || !data?.user) {
+  if (userError || !userData?.user) {
     redirect("/login/dev")
   }
 
-  // Check if user is admin
-  const { data: adminProfile } = await supabase.from("admin_profiles").select("*").eq("id", data.user.id).single()
+  // Buscar perfil específico do usuário logado
+  const { data: adminProfile } = await supabase
+    .from("admin_profiles")
+    .select("*")
+    .eq("id", userData.user.id)
+    .single()
 
   if (!adminProfile) {
     redirect("/login/dev")
@@ -29,7 +40,7 @@ export default async function AdminLayout({
 
   return (
     <SidebarProvider>
-      <AdminLayoutWrapper user={data.user} adminProfile={adminProfile}>
+      <AdminLayoutWrapper user={userData.user} adminProfile={adminProfile}>
         {children}
       </AdminLayoutWrapper>
     </SidebarProvider>
