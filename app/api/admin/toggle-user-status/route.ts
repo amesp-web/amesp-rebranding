@@ -43,6 +43,22 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Usuário atualizado no auth:', authData?.user?.email)
 
+    // Atualizar também na tabela admin_profiles para manter consistência
+    const { error: profileError } = await supabase
+      .from('admin_profiles')
+      .update({ 
+        email_confirmed_at: emailConfirmedAt,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+
+    if (profileError) {
+      console.error('❌ Erro ao atualizar admin_profiles:', profileError)
+      return NextResponse.json({ error: profileError.message }, { status: 400 })
+    }
+
+    console.log('✅ Perfil admin atualizado:', userId)
+
     return NextResponse.json({ 
       success: true, 
       user: authData?.user,
