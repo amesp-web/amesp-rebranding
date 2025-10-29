@@ -64,28 +64,42 @@ export default function UsersPage() {
     try {
       setLoading(true)
       
+      // Limpar estado ANTES de buscar para evitar mostrar dados antigos
+      setUsers([])
+      
       const timestamp = Date.now()
-      const url = `/api/admin/users?t=${timestamp}&r=${Math.random()}`
+      const random = Math.random().toString(36).substring(7)
+      const url = `/api/admin/users?t=${timestamp}&r=${random}&v=${Math.random()}`
       
       const response = await fetch(url, {
         cache: 'no-store',
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
+          'Expires': '0',
         }
       })
 
-      const result = await response.json()
-
       if (!response.ok) {
-        throw new Error(result.error || 'Erro ao buscar usuários')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Erro ao buscar usuários')
+      }
+
+      const result = await response.json()
+      
+      // Verificar se result.users existe e é array
+      if (!result.users || !Array.isArray(result.users)) {
+        throw new Error('Resposta inválida da API')
       }
       
-      setUsers(result.users || [])
+      // FORÇAR atualização do estado - criar novo array para garantir re-render
+      setUsers([...result.users])
       
     } catch (error: any) {
       toast.error("Erro ao carregar usuários")
+      // Em caso de erro, garantir que o estado esteja vazio
+      setUsers([])
     } finally {
       setLoading(false)
     }
