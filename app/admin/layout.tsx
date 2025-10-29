@@ -38,6 +38,12 @@ export default async function AdminLayout({
     redirect("/login/dev")
   }
 
+  // Verificar se o usuário está ativo
+  if (adminProfile.is_active === false) {
+    console.log('🚫 Usuário inativo tentando acessar:', adminProfile.email)
+    redirect("/login?error=account_inactive")
+  }
+
   return (
     <SidebarProvider>
       <AdminLayoutWrapper user={userData.user} adminProfile={adminProfile}>

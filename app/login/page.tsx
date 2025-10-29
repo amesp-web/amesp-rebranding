@@ -11,6 +11,7 @@ import { LogIn, Mail, Lock, ArrowLeft, Fish, Shield, Users, Eye, EyeOff } from "
 import { useRouter } from "next/navigation"
 import { checkTemporaryPassword } from "@/lib/auth-helpers"
 import { FishLoading } from "@/components/ui/fish-loading"
+import { useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,6 +21,15 @@ export default function LoginPage() {
   const [userType, setUserType] = useState<"admin" | "maricultor" | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Verificar se há erro de conta inativa
+  React.useEffect(() => {
+    const errorParam = searchParams.get('error')
+    if (errorParam === 'account_inactive') {
+      setError("Sua conta foi inativada. Entre em contato com o administrador.")
+    }
+  }, [searchParams])
 
   const getSupabaseClient = () => {
     try {
