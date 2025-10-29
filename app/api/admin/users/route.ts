@@ -49,14 +49,26 @@ export async function GET() {
     const normalized = (data || []).map((u: any) => {
       const raw = u.last_sign_in_at as string | null
       const iso = raw ? raw.replace(' ', 'T') : null
-      return {
+      const result = {
         ...u,
         last_sign_in_at: iso,
         has_logged_in: Boolean(raw),
       }
+      
+      // Log específico para Grah Duetes
+      if (u.email === 'graziely@gobi.consulting') {
+        console.log('🔍 NORMALIZAÇÃO GRAH DUETES:')
+        console.log('  - Raw last_sign_in_at:', raw)
+        console.log('  - ISO last_sign_in_at:', iso)
+        console.log('  - has_logged_in:', Boolean(raw))
+        console.log('  - Resultado final:', result)
+      }
+      
+      return result
     })
 
     console.log('✅ Retornando usuários:', normalized.length)
+    console.log('📋 Dados normalizados finais:', normalized)
     return NextResponse.json(
       { users: normalized },
       {
