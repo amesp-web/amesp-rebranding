@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { FishTableLoading, FishLoading } from "@/components/ui/fish-loading"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Mail, Phone, Users, Shield, Fish, CheckCircle, Clock, UserPlus, UserX } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Mail, Phone, Users, Shield, Fish, CheckCircle, Clock, UserPlus, UserX, RefreshCw } from "lucide-react"
 import InputMask from "react-input-mask"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase/client"
@@ -64,12 +64,22 @@ export default function UsersPage() {
       setLoading(true)
       console.log('🔄 Buscando usuários...')
       
-      const response = await fetch(`/api/admin/users?t=${Date.now()}&r=${Math.random()}`, {
+      // Cache-busting mais agressivo
+      const timestamp = Date.now()
+      const random = Math.random()
+      const version = Math.floor(Math.random() * 1000)
+      const url = `/api/admin/users?t=${timestamp}&r=${random}&v=${version}&bust=${Math.random()}`
+      
+      console.log('🌐 URL da requisição:', url)
+      
+      const response = await fetch(url, {
         cache: 'no-store',
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'If-None-Match': '*'
         }
       })
 
@@ -80,6 +90,7 @@ export default function UsersPage() {
       }
 
       console.log('📊 Usuários recebidos da API:', result.users?.length || 0)
+      console.log('📋 Dados detalhados:', result.users)
       console.log('📋 Dados:', result.users)
       
       // ATUALIZAR ESTADO DIRETAMENTE
@@ -566,9 +577,21 @@ export default function UsersPage() {
                 {filteredUsers.length} usuário(s) encontrado(s)
               </CardDescription>
             </div>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
-              {users.filter(u => u.is_active).length} Ativos
-            </Badge>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchUsers}
+                disabled={loading}
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>Atualizar</span>
+              </Button>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
+                {users.filter(u => u.is_active).length} Ativos
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
