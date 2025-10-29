@@ -45,16 +45,24 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
-            <div style="text-align: center; padding: 20px 0;">
-              <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; max-width: 300px; margin: 0 auto; display: inline-block;">
-                <div style="font-size: 32px; font-weight: bold; color: #0ea5e9; text-align: center; letter-spacing: 2px;">
-                  AMESP
-                </div>
-                <div style="font-size: 12px; color: #64748b; text-align: center; margin-top: 4px;">
-                  Associação dos Maricultores do Estado de São Paulo
-                </div>
-              </div>
-            </div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+              <tr>
+                <td style="text-align: center; padding: 20px 0;">
+                  <table cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 0 auto;">
+                    <tr>
+                      <td style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; max-width: 300px;">
+                        <div style="font-size: 32px; font-weight: bold; color: #0ea5e9; text-align: center; letter-spacing: 2px;">
+                          AMESP
+                        </div>
+                        <div style="font-size: 12px; color: #64748b; text-align: center; margin-top: 4px;">
+                          Associação dos Maricultores do Estado de São Paulo
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
           </div>
           <div class="content">
             <h2>Bem-vindo, ${userName}!</h2>
