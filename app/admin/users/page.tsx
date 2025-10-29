@@ -19,7 +19,6 @@ import { createClient as createServerClient } from "@/lib/supabase/server"
 import { toast } from "sonner"
 import { EmailService } from "@/lib/email-service"
 import { cn } from "@/lib/utils"
-import { FishTableLoading } from "@/components/ui/fish-loading"
 
 interface User {
   id: string
