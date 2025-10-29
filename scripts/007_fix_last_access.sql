@@ -1,8 +1,9 @@
 -- Script para verificar e corrigir o último acesso do usuário Grah Duetes
--- Execute este script no Supabase SQL Editor
+-- Execute este script completo no Supabase SQL Editor
 
--- 1. Verificar o estado atual
+-- 1. Verificar o estado atual ANTES da atualização
 SELECT 
+  'ANTES' as status,
   id, 
   full_name, 
   email, 
@@ -19,8 +20,9 @@ SET
   updated_at = NOW()
 WHERE email = 'graziely@gobi.consulting';
 
--- 3. Verificar se foi atualizado
+-- 3. Verificar o estado APÓS a atualização
 SELECT 
+  'DEPOIS' as status,
   id, 
   full_name, 
   email, 
@@ -30,8 +32,9 @@ SELECT
 FROM admin_profiles 
 WHERE email = 'graziely@gobi.consulting';
 
--- 4. Verificar todos os usuários para comparação
+-- 4. Mostrar todos os usuários para comparação
 SELECT 
+  'TODOS' as status,
   id, 
   full_name, 
   email, 
