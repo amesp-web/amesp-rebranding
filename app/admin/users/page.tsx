@@ -37,6 +37,7 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [buttonClicked, setButtonClicked] = useState(false)
   
   // Estados para modais de confirmação
   const [deleteConfirm, setDeleteConfirm] = useState<{isOpen: boolean, user: User | null}>({isOpen: false, user: null})
@@ -501,8 +502,16 @@ export default function UsersPage() {
                 <Button 
                   type="submit"
                   disabled={loading}
-                  onClick={() => console.log('🔘 Botão clicado!')}
-                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 active:scale-95 active:shadow-md text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl px-6 py-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  onClick={() => {
+                    console.log('🔘 Botão clicado!')
+                    setButtonClicked(true)
+                    setTimeout(() => setButtonClicked(false), 200)
+                  }}
+                  className={`bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-150 rounded-xl px-6 py-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
+                    buttonClicked 
+                      ? 'scale-[0.95] brightness-110 shadow-sm' 
+                      : 'hover:scale-[1.02] active:scale-[0.98] active:brightness-110 active:shadow-sm'
+                  }`}
                 >
                   {loading ? (
                     <div className="flex items-center space-x-2">
