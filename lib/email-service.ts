@@ -28,7 +28,7 @@ export class EmailService {
         },
         body: JSON.stringify({
           email,
-          password,
+          tempPassword: password,
           userName
         })
       })
