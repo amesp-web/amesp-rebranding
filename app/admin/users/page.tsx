@@ -175,7 +175,12 @@ export default function UsersPage() {
 
   const hasUserLoggedIn = (user: User) => {
     // Se o usuário tem last_sign_in_at, significa que já fez login
-    return user.last_sign_in_at !== null && user.last_sign_in_at !== undefined
+    const hasLoggedIn = user.last_sign_in_at !== null && user.last_sign_in_at !== undefined
+    console.log(`🔍 Verificando se ${user.full_name} já fez login:`, {
+      last_sign_in_at: user.last_sign_in_at,
+      hasLoggedIn
+    })
+    return hasLoggedIn
   }
 
   const sendWelcomeEmail = async (email: string, password: string, userName: string) => {

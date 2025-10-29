@@ -112,16 +112,23 @@ export default function LoginPage() {
           
           // Atualizar último acesso na tabela admin_profiles
           try {
-            await supabase
+            console.log('🔄 Atualizando último acesso para user ID:', data.user.id)
+            const { data: updateResult, error: updateError } = await supabase
               .from("admin_profiles")
               .update({ 
                 last_sign_in_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })
               .eq("id", data.user.id)
-            console.log('✅ Último acesso atualizado para:', email)
+              .select('id, full_name, email, last_sign_in_at')
+            
+            if (updateError) {
+              console.error('❌ Erro ao atualizar último acesso:', updateError)
+            } else {
+              console.log('✅ Último acesso atualizado com sucesso:', updateResult)
+            }
           } catch (updateError) {
-            console.warn('⚠️ Erro ao atualizar último acesso:', updateError)
+            console.error('❌ Erro geral ao atualizar último acesso:', updateError)
             // Não bloquear o login por causa deste erro
           }
           

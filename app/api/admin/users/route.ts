@@ -25,6 +25,20 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     console.log('📊 Resultado:', { data: data?.length || 0, error: error?.message || 'none' })
+    
+    // Log detalhado dos dados retornados
+    if (data && data.length > 0) {
+      console.log('📋 Dados detalhados dos usuários:')
+      data.forEach((user, index) => {
+        console.log(`👤 Usuário ${index + 1}:`, {
+          id: user.id,
+          full_name: user.full_name,
+          email: user.email,
+          last_sign_in_at: user.last_sign_in_at,
+          is_active: user.is_active
+        })
+      })
+    }
 
     if (error) {
       console.error('❌ Erro na query:', error)
