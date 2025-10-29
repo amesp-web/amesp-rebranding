@@ -590,6 +590,24 @@ export default function UsersPage() {
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 <span>Atualizar</span>
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/debug-users')
+                    const data = await response.json()
+                    console.log('🔍 DEBUG API Response:', data)
+                    toast.info("Dados de debug logados no console")
+                  } catch (error) {
+                    console.error('❌ Erro no debug:', error)
+                    toast.error("Erro ao buscar dados de debug")
+                  }
+                }}
+                className="flex items-center space-x-2 bg-yellow-100 hover:bg-yellow-200"
+              >
+                <span>🐛 Debug</span>
+              </Button>
               <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
                 {users.filter(u => u.is_active).length} Ativos
               </Badge>
