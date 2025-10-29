@@ -18,6 +18,9 @@ export default function MaricultorCadastroPage() {
     confirmPassword: "",
     phone: "",
     location: "",
+    logradouro: "",
+    cidade: "",
+    estado: "",
     company: "",
     specialties: "",
   })
@@ -85,6 +88,28 @@ export default function MaricultorCadastroPage() {
       if (error) {
         setError(error.message)
       } else {
+        // Persistir perfil do maricultor
+        const userId = data.user?.id
+        if (userId) {
+          try {
+            await fetch('/api/maricultor/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: userId,
+                full_name: formData.name,
+                phone: formData.phone,
+                logradouro: formData.logradouro,
+                cidade: formData.cidade,
+                estado: formData.estado,
+                company: formData.company,
+                specialties: formData.specialties,
+              })
+            })
+          } catch (e) {
+            // mantém fluxo mesmo se a criação do perfil falhar; pode ser reprocessado posteriormente
+          }
+        }
         setSuccess(true)
       }
     } catch (err) {
@@ -241,18 +266,44 @@ export default function MaricultorCadastroPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-foreground">Localização</label>
+                  <label className="text-sm font-semibold text-foreground">Logradouro</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                       type="text"
-                      name="location"
-                      value={formData.location}
+                      name="logradouro"
+                      value={formData.logradouro}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                      placeholder="Cidade - Estado"
+                      placeholder="Rua, número e complemento"
                     />
                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-foreground">Cidade</label>
+                  <input
+                    type="text"
+                    name="cidade"
+                    value={formData.cidade}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                    placeholder="Ex: Ubatuba"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-foreground">Estado</label>
+                  <input
+                    type="text"
+                    name="estado"
+                    value={formData.estado}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                    placeholder="Ex: SP"
+                  />
                 </div>
               </div>
 
