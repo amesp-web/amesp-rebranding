@@ -18,10 +18,10 @@ export async function GET() {
     )
 
     console.log('📋 Executando query...')
-    // Query direta SEM RPC
+    // Query direta SEM RPC - selecionando campos específicos incluindo is_active
     const { data, error } = await supabase
       .from('admin_profiles')
-      .select('*')
+      .select('id, full_name, email, phone, role, is_active, email_confirmed_at, last_sign_in_at, created_at, updated_at')
       .order('created_at', { ascending: false })
 
     console.log('📊 Resultado:', { data: data?.length || 0, error: error?.message || 'none' })
