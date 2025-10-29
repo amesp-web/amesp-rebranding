@@ -110,6 +110,21 @@ export default function LoginPage() {
             return
           }
           
+          // Atualizar último acesso na tabela admin_profiles
+          try {
+            await supabase
+              .from("admin_profiles")
+              .update({ 
+                last_sign_in_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", data.user.id)
+            console.log('✅ Último acesso atualizado para:', email)
+          } catch (updateError) {
+            console.warn('⚠️ Erro ao atualizar último acesso:', updateError)
+            // Não bloquear o login por causa deste erro
+          }
+          
           setUserType("admin")
           // Redirect to admin dashboard
           setTimeout(() => {
