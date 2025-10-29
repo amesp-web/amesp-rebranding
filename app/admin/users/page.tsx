@@ -95,23 +95,33 @@ export default function UsersPage() {
         throw new Error(result.error || 'Erro ao buscar usuários')
       }
 
-      console.log('📊 Usuários recebidos da API:', result.users?.length || 0)
-      console.log('📋 Dados detalhados:', result.users)
+      console.log('═══════════════════════════════════════════════════════════')
+      console.log('📊 RESPOSTA COMPLETA DA API /api/admin/users')
+      console.log('═══════════════════════════════════════════════════════════')
+      console.log('📋 Total de usuários:', result.users?.length || 0)
+      console.log('📋 Resposta completa:', JSON.stringify(result, null, 2))
+      console.log('═══════════════════════════════════════════════════════════')
       
       // Log específico para Grah Duetes
       const grahUser = result.users?.find((u: User) => u.email === 'graziely@gobi.consulting')
       if (grahUser) {
-        console.log('🔍 GRAH DUETES NO FRONTEND:')
+        console.log('🔍 GRAH DUETES NA RESPOSTA DA API:')
+        console.log('  ✅ Usuário encontrado!')
+        console.log('  - Email:', grahUser.email)
+        console.log('  - Nome:', grahUser.full_name)
         console.log('  - last_sign_in_at:', grahUser.last_sign_in_at)
-        console.log('  - has_logged_in:', grahUser.has_logged_in)
-        console.log('  - is_active:', grahUser.is_active)
-        console.log('  - Tipo de last_sign_in_at:', typeof grahUser.last_sign_in_at)
+        console.log('  - Tipo:', typeof grahUser.last_sign_in_at)
         console.log('  - É null?', grahUser.last_sign_in_at === null)
         console.log('  - É undefined?', grahUser.last_sign_in_at === undefined)
-        console.log('  - Usuário completo:', grahUser)
+        console.log('  - has_logged_in:', grahUser.has_logged_in)
+        console.log('  - is_active:', grahUser.is_active)
+        console.log('  - Objeto completo:', JSON.stringify(grahUser, null, 2))
+        console.log('═══════════════════════════════════════════════════════════')
       } else {
-        console.warn('⚠️ GRAH DUETES NÃO ENCONTRADO NA RESPOSTA DA API!')
-        console.log('📋 Todos os emails na resposta:', result.users?.map((u: User) => u.email))
+        console.error('⚠️ GRAH DUETES NÃO ENCONTRADO NA RESPOSTA DA API!')
+        console.log('📋 Emails na resposta:', result.users?.map((u: User) => u.email))
+        console.log('📋 Total de usuários:', result.users?.length)
+        console.log('═══════════════════════════════════════════════════════════')
       }
       
       // ATUALIZAR ESTADO DIRETAMENTE
