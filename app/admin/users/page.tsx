@@ -133,14 +133,19 @@ export default function UsersPage() {
         await sendWelcomeEmail(formData.email, result.tempPassword, formData.full_name)
 
         toast.success("Usuário criado com sucesso! E-mail de boas-vindas enviado.")
+        
+        // Se o usuário foi criado com sucesso, recarregar lista ANTES de fechar modal
+        await fetchUsers()
       }
 
       setIsDialogOpen(false)
       setEditingUser(null)
       resetForm()
       
-      // ATUALIZAR LISTAGEM IMEDIATAMENTE
-      await fetchUsers()
+      // Se foi atualização, recarregar lista
+      if (editingUser) {
+        await fetchUsers()
+      }
     } catch (error: any) {
       console.error('Erro ao salvar usuário:', error)
       toast.error(error.message || "Erro ao salvar usuário")
@@ -219,8 +224,25 @@ export default function UsersPage() {
 
       await response.json()
       
-      toast.success(`Usuário ${statusConfirm.user.is_active ? 'inativado' : 'ativado'} com sucesso!`)
-      await fetchUsers() // Recarregar lista
+      // Salvar dados antes de fechar modal
+      const userId = statusConfirm.user.id
+      const wasActive = statusConfirm.user.is_active
+      const newStatus = !wasActive
+      
+      // Fechar modal imediatamente
+      setStatusConfirm({isOpen: false, user: null})
+      
+      // ATUALIZAR ESTADO DIRETAMENTE para feedback imediato
+      setUsers(prevUsers => 
+        prevUsers.map(u => 
+          u.id === userId ? { ...u, is_active: newStatus } : u
+        )
+      )
+      
+      toast.success(`Usuário ${wasActive ? 'inativado' : 'ativado'} com sucesso!`)
+      
+      // ATUALIZAR LISTAGEM DO BANCO para garantir sincronização
+      await fetchUsers()
     } catch (error: any) {
       console.error('❌ Erro ao alterar status:', error)
       toast.error(error.message || "Erro ao alterar status do usuário")
@@ -294,15 +316,16 @@ export default function UsersPage() {
   const confirmDelete = async () => {
     if (!deleteConfirm.user) return
     
+    const userIdToDelete = deleteConfirm.user.id
+    
     try {
-      
       // Usar API para excluir usuário
       const response = await fetch('/api/admin/delete-user', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: deleteConfirm.user.id })
+        body: JSON.stringify({ userId: userIdToDelete })
       })
 
       if (!response.ok) {
@@ -310,15 +333,16 @@ export default function UsersPage() {
         throw new Error(error.error || 'Erro ao excluir usuário')
       }
 
-      await response.json()
-      
-      // Fechar modal primeiro
+      // Fechar modal imediatamente
       setDeleteConfirm({isOpen: false, user: null})
+      
+      // REMOVER DO ESTADO DIRETAMENTE para atualização imediata
+      setUsers(prevUsers => prevUsers.filter(u => u.id !== userIdToDelete))
       
       // Mostrar toast
       toast.success("Usuário excluído com sucesso!")
       
-      // ATUALIZAR LISTAGEM IMEDIATAMENTE
+      // ATUALIZAR LISTAGEM DO BANCO para garantir sincronização
       await fetchUsers()
       
     } catch (error: any) {
