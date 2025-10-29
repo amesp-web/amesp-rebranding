@@ -57,8 +57,12 @@ export default function UsersPage() {
   })
 
   useEffect(() => {
+    // Forçar busca inicial com timestamp único
     fetchUsers()
   }, [])
+
+  // Key único para forçar re-render quando necessário
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const fetchUsers = async () => {
     try {
@@ -94,7 +98,11 @@ export default function UsersPage() {
       }
       
       // FORÇAR atualização do estado - criar novo array para garantir re-render
-      setUsers([...result.users])
+      const newUsers = [...result.users]
+      setUsers(newUsers)
+      
+      // Forçar re-render completo do componente
+      setRefreshKey(prev => prev + 1)
       
     } catch (error: any) {
       toast.error("Erro ao carregar usuários")
@@ -362,7 +370,12 @@ export default function UsersPage() {
       setDeleteConfirm({isOpen: false, user: null})
       
       // REMOVER DO ESTADO DIRETAMENTE para atualização imediata
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userIdToDelete))
+      setUsers(prevUsers => {
+        const filtered = prevUsers.filter(u => u.id !== userIdToDelete)
+        // Forçar re-render
+        setRefreshKey(prev => prev + 1)
+        return filtered
+      })
       
       // Mostrar toast
       toast.success("Usuário excluído com sucesso!")
@@ -618,7 +631,7 @@ export default function UsersPage() {
                 </TableRow>
               ) : (
                 filteredUsers.map((user) => (
-                  <TableRow key={user.id} className="hover:bg-blue-50/30 transition-colors duration-200 border-b border-gray-100/50">
+                  <TableRow key={`${user.id}-${refreshKey}`} className="hover:bg-blue-50/30 transition-colors duration-200 border-b border-gray-100/50">
                     <TableCell className="font-semibold text-slate-800 py-4 px-6 min-w-[200px]">{user.full_name}</TableCell>
                     <TableCell className="text-slate-600 py-4 px-6 min-w-[250px]">{user.email}</TableCell>
                     <TableCell className="text-slate-600 py-4 px-6 min-w-[150px]">{user.phone || "-"}</TableCell>
