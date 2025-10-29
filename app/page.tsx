@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
+import dynamic from "next/dynamic"
 import {
   Waves,
   Heart,
@@ -681,20 +682,12 @@ export default async function HomePage() {
             <Card className="overflow-hidden border-0 shadow-xl">
               <CardContent className="p-0">
                 <div className="relative h-96 bg-gradient-to-br from-primary/10 to-accent/10">
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d58916.89594066253!2d-45.13891!3d-23.43394!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94cd53b88c6f0d3b%3A0x1c1c1c1c1c1c1c1c!2sUbatuba%2C%20SP!5e0!3m2!1spt!2sbr!4v1234567890"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    className="w-full h-full"
-                  />
+                  {/* Mapa MapLibre */}
+                  {dynamic(() => import("@/components/public/HomeMap"), { ssr: false })({})}
                   <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-md rounded-lg p-3 shadow-lg">
                     <div className="flex items-center space-x-2">
                       <MapPin className="h-5 w-5 text-primary" />
-                      <span className="font-medium text-sm">{producers?.length || 0} produtores cadastrados</span>
+                      <span className="font-medium text-sm">Mapa interativo</span>
                     </div>
                   </div>
                 </div>
