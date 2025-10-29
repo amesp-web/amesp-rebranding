@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { FishTableLoading, FishLoading } from "@/components/ui/fish-loading"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Mail, Phone, Users, Shield, Fish, CheckCircle, Clock, UserPlus } from "lucide-react"
 import InputMask from "react-input-mask"
@@ -502,9 +503,14 @@ export default function UsersPage() {
                   type="submit"
                   disabled={loading}
                   onClick={() => console.log('🔘 Botão clicado!')}
-                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-2 font-semibold disabled:opacity-50"
+                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 active:scale-95 active:shadow-md text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl px-6 py-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  {editingUser ? (
+                  {loading ? (
+                    <div className="flex items-center space-x-2">
+                      <FishLoading size="sm" text="" />
+                      <span>{editingUser ? 'Atualizando...' : 'Criando...'}</span>
+                    </div>
+                  ) : editingUser ? (
                     <>
                       <Edit className="h-4 w-4 mr-2" />
                       Atualizar
