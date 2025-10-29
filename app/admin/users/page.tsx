@@ -134,16 +134,24 @@ export default function UsersPage() {
 
         toast.success("Usuário criado com sucesso! E-mail de boas-vindas enviado.")
         
-        // Se o usuário foi criado com sucesso, recarregar lista ANTES de fechar modal
+        // Fechar modal antes de recarregar
+        setIsDialogOpen(false)
+        setEditingUser(null)
+        resetForm()
+        
+        // Aguardar um pouco para garantir que criação foi persistida
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
+        // Recarregar lista após criação
         await fetchUsers()
-      }
-
-      setIsDialogOpen(false)
-      setEditingUser(null)
-      resetForm()
-      
-      // Se foi atualização, recarregar lista
-      if (editingUser) {
+      } else {
+        // Se foi atualização
+        setIsDialogOpen(false)
+        setEditingUser(null)
+        resetForm()
+        
+        // Aguardar um pouco e recarregar lista
+        await new Promise(resolve => setTimeout(resolve, 300))
         await fetchUsers()
       }
     } catch (error: any) {
@@ -240,6 +248,9 @@ export default function UsersPage() {
       )
       
       toast.success(`Usuário ${wasActive ? 'inativado' : 'ativado'} com sucesso!`)
+      
+      // Aguardar um pouco para garantir que mudança foi persistida
+      await new Promise(resolve => setTimeout(resolve, 300))
       
       // ATUALIZAR LISTAGEM DO BANCO para garantir sincronização
       await fetchUsers()
@@ -341,6 +352,9 @@ export default function UsersPage() {
       
       // Mostrar toast
       toast.success("Usuário excluído com sucesso!")
+      
+      // Aguardar um pouco para garantir que exclusão foi persistida
+      await new Promise(resolve => setTimeout(resolve, 300))
       
       // ATUALIZAR LISTAGEM DO BANCO para garantir sincronização
       await fetchUsers()
