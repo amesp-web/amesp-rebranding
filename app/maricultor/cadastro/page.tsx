@@ -60,25 +60,16 @@ export default function MaricultorCadastroPage() {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       try {
-        const params = new URLSearchParams({
-          q: formData.logradouro,
-          format: 'json',
-          addressdetails: '1',
-          countrycodes: 'br',
-          limit: '5',
-          email: 'contato@amesp.org.br'
-        })
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
-          headers: { 'Accept-Language': 'pt-BR' }
-        })
-        const data = await res.json()
-        setSuggestions(Array.isArray(data) ? data : [])
+        const hint = [formData.cidade, formData.estado].filter(Boolean).join(' ')
+        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(formData.logradouro)}&hint=${encodeURIComponent(hint)}`, { cache: 'no-store' })
+        const { results } = await res.json()
+        setSuggestions(Array.isArray(results) ? results : [])
         setShowSuggestions(true)
       } catch {
         setSuggestions([])
         setShowSuggestions(false)
       }
-    }, 400)
+    }, 250)
   }, [formData.logradouro])
 
   const handleSelectSuggestion = (item: any) => {
