@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
@@ -10,8 +10,11 @@ import { createClient } from "@/lib/supabase/client"
 import { LogIn, Mail, Lock, ArrowLeft, Fish, Shield, Users, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { checkTemporaryPassword } from "@/lib/auth-helpers"
-import { FishLoading } from "@/components/ui/fish-loading"
 import { useSearchParams } from "next/navigation"
+import { lazy, Suspense } from "react"
+
+// Lazy load do FishLoading para melhor performance
+const LazyFishLoading = lazy(() => import("@/components/ui/fish-loading").then(module => ({ default: module.FishLoading })))
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -32,16 +35,16 @@ export default function LoginPage() {
     // Não limpar o erro automaticamente para não interferir com outros erros
   }, [searchParams])
 
-  const getSupabaseClient = () => {
+  const getSupabaseClient = useCallback(() => {
     try {
       return createClient()
     } catch (err) {
       setError("Erro de configuração. Tente novamente mais tarde.")
       return null
     }
-  }
+  }, [])
 
-  const translateErrorMessage = (errorMessage: string): string => {
+  const translateErrorMessage = useCallback((errorMessage: string): string => {
     const translations: { [key: string]: string } = {
       "Invalid login credentials": "Credenciais de login inválidas",
       "Email not confirmed": "E-mail não confirmado",
@@ -55,9 +58,9 @@ export default function LoginPage() {
     }
     
     return translations[errorMessage] || errorMessage
-  }
+  }, [])
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
@@ -91,17 +94,17 @@ export default function LoginPage() {
           return
         }
 
-        // Check if user is admin
+        // Check if user is admin - query otimizada apenas com campos necessários
         const { data: adminProfile } = await supabase
           .from("admin_profiles")
-          .select("id, full_name, email, phone, role, is_active, email_confirmed_at, last_sign_in_at, created_at, updated_at")
+          .select("id, is_active")
           .eq("id", data.user.id)
           .single()
 
         if (adminProfile) {
           // Verificar se o usuário está ativo ANTES de permitir login
           if (adminProfile.is_active === false) {
-            console.log('🚫 Usuário inativo tentando fazer login:', adminProfile.email)
+            console.log('🚫 Usuário inativo tentando fazer login:', email)
             setError("Sua conta foi inativada. Entre em contato com o administrador.")
             setLoading(false)
             return
@@ -125,7 +128,81 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [email, password, router, getSupabaseClient, translateErrorMessage])
+
+  // Memoizar componentes para evitar re-renders desnecessários
+  const EmailInput = useMemo(() => (
+    <div className="relative">
+      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+        placeholder="seu@email.com"
+        required
+        disabled={loading}
+      />
+    </div>
+  ), [email, loading])
+
+  const PasswordInput = useMemo(() => (
+    <div className="relative">
+      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <input
+        type={showPassword ? "text" : "password"}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="w-full pl-10 pr-12 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+        placeholder="Digite sua senha"
+        required
+        disabled={loading}
+      />
+      <button
+        type="button"
+        className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted/50 rounded-md flex items-center justify-center transition-colors"
+        onClick={() => setShowPassword(!showPassword)}
+        disabled={loading}
+      >
+        {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+      </button>
+    </div>
+  ), [password, showPassword, loading])
+
+  // Memoizar componente de erro para evitar re-renders
+  const ErrorMessage = useMemo(() => {
+    if (!error) return null
+    return (
+      <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+        {error}
+      </div>
+    )
+  }, [error])
+
+  // Memoizar componente de sucesso para evitar re-renders
+  const SuccessMessage = useMemo(() => {
+    if (!userType) return null
+    return (
+      <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-primary text-center">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          {userType === "admin" ? (
+            <Shield className="h-5 w-5" />
+          ) : (
+            <Users className="h-5 w-5" />
+          )}
+          <span className="font-semibold">
+            {userType === "admin" ? "Administrador" : "Maricultor"}
+          </span>
+        </div>
+        <p className="text-sm">
+          {userType === "admin" 
+            ? "Redirecionando para o painel administrativo..." 
+            : "Redirecionando para o painel do maricultor..."
+          }
+        </p>
+      </div>
+    )
+  }, [userType])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12] flex items-center justify-center p-4">
@@ -160,72 +237,19 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-                {error}
-              </div>
-            )}
+            {ErrorMessage}
 
-            {userType && (
-              <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-primary text-center">
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  {userType === "admin" ? (
-                    <Shield className="h-5 w-5" />
-                  ) : (
-                    <Users className="h-5 w-5" />
-                  )}
-                  <span className="font-semibold">
-                    {userType === "admin" ? "Administrador" : "Maricultor"}
-                  </span>
-                </div>
-                <p className="text-sm">
-                  {userType === "admin" 
-                    ? "Redirecionando para área administrativa..." 
-                    : "Redirecionando para sua área pessoal..."
-                  }
-                </p>
-              </div>
-            )}
+            {SuccessMessage}
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground">E-mail</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                    placeholder="seu@email.com"
-                    required
-                    disabled={loading}
-                  />
-                </div>
+                {EmailInput}
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground">Senha</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                    placeholder="Digite sua senha"
-                    required
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted/50 rounded-md flex items-center justify-center transition-colors"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={loading}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-                  </button>
-                </div>
+                {PasswordInput}
               </div>
 
               <div className="flex items-center justify-between text-sm">
@@ -248,7 +272,9 @@ export default function LoginPage() {
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
-                    <FishLoading size="sm" text="" />
+                    <Suspense fallback={<div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />}>
+                      <LazyFishLoading size="sm" text="" />
+                    </Suspense>
                     <span>Entrando...</span>
                   </div>
                 ) : (
