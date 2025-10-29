@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { LogIn, Mail, Lock, ArrowLeft, Fish, Shield, Users } from "lucide-react"
+import { LogIn, Mail, Lock, ArrowLeft, Fish, Shield, Users, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { checkTemporaryPassword } from "@/lib/auth-helpers"
+import { FishLoading } from "@/components/ui/fish-loading"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [userType, setUserType] = useState<"admin" | "maricultor" | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   const getSupabaseClient = () => {
@@ -188,14 +190,22 @@ export default function LoginPage() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                    className="w-full pl-10 pr-12 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
                     placeholder="Digite sua senha"
                     required
                     disabled={loading}
                   />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted/50 rounded-md flex items-center justify-center transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                  </button>
                 </div>
               </div>
 
@@ -219,7 +229,7 @@ export default function LoginPage() {
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    <FishLoading size="sm" text="" />
                     <span>Entrando...</span>
                   </div>
                 ) : (
