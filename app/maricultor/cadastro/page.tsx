@@ -51,7 +51,7 @@ export default function MaricultorCadastroPage() {
 
   // Autocomplete com Nominatim (OpenStreetMap) - gratuito
   useEffect(() => {
-    if (!formData.logradouro || formData.logradouro.trim().length < 3) {
+    if (!formData.logradouro || formData.logradouro.trim().length < 2) {
       setSuggestions([])
       setShowSuggestions(false)
       return
@@ -69,7 +69,7 @@ export default function MaricultorCadastroPage() {
         setSuggestions([])
         setShowSuggestions(false)
       }
-    }, 250)
+    }, 200)
   }, [formData.logradouro])
 
   const handleSelectSuggestion = (item: any) => {
@@ -333,9 +333,11 @@ export default function MaricultorCadastroPage() {
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                   />
                 </div>
-                {showSuggestions && suggestions.length > 0 && (
+                {showSuggestions && (
                   <div className="absolute z-20 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
-                    {suggestions.map((item, idx) => {
+                    {suggestions.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">Nenhuma sugestão encontrada</div>
+                    ) : suggestions.map((item, idx) => {
                       const addr = item.address || {}
                       const primary = [addr.road || addr.pedestrian || addr.footway || addr.path, addr.house_number]
                         .filter(Boolean)
