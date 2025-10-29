@@ -108,6 +108,15 @@ export default function UsersPage() {
         if (error) throw error
 
         toast.success("Usuário atualizado com sucesso!")
+        
+        // Fechar modal e recarregar após atualização
+        setIsDialogOpen(false)
+        setEditingUser(null)
+        resetForm()
+        
+        // Aguardar um pouco e recarregar lista
+        await new Promise(resolve => setTimeout(resolve, 300))
+        await fetchUsers()
       } else {
         // Criar novo usuário via API
         const response = await fetch('/api/admin/create-user', {
@@ -143,15 +152,6 @@ export default function UsersPage() {
         await new Promise(resolve => setTimeout(resolve, 300))
         
         // Recarregar lista após criação
-        await fetchUsers()
-      } else {
-        // Se foi atualização
-        setIsDialogOpen(false)
-        setEditingUser(null)
-        resetForm()
-        
-        // Aguardar um pouco e recarregar lista
-        await new Promise(resolve => setTimeout(resolve, 300))
         await fetchUsers()
       }
     } catch (error: any) {
