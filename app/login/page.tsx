@@ -94,11 +94,19 @@ export default function LoginPage() {
         // Check if user is admin
         const { data: adminProfile } = await supabase
           .from("admin_profiles")
-          .select("*")
+          .select("id, full_name, email, phone, role, is_active, email_confirmed_at, last_sign_in_at, created_at, updated_at")
           .eq("id", data.user.id)
           .single()
 
         if (adminProfile) {
+          // Verificar se o usuário está ativo ANTES de permitir login
+          if (adminProfile.is_active === false) {
+            console.log('🚫 Usuário inativo tentando fazer login:', adminProfile.email)
+            setError("Sua conta foi inativada. Entre em contato com o administrador.")
+            setLoading(false)
+            return
+          }
+          
           setUserType("admin")
           // Redirect to admin dashboard
           setTimeout(() => {
