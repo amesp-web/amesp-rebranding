@@ -63,29 +63,16 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      console.log('🔄 Buscando usuários...')
       
-      // Cache-busting ULTRA agressivo
       const timestamp = Date.now()
-      const random1 = Math.random()
-      const random2 = Math.random()
-      const random3 = Math.random()
-      const version = Math.floor(Math.random() * 10000)
-      const bust = Math.random().toString(36).substring(7)
-      const url = `/api/admin/users?t=${timestamp}&r1=${random1}&r2=${random2}&r3=${random3}&v=${version}&bust=${bust}&force=${Date.now()}&nocache=${Math.random()}`
-      
-      console.log('🌐 URL da requisição:', url)
+      const url = `/api/admin/users?t=${timestamp}&r=${Math.random()}`
       
       const response = await fetch(url, {
         cache: 'no-store',
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
-          'Expires': '0',
-          'If-None-Match': '*',
-          'If-Modified-Since': '0',
-          'X-Requested-With': 'XMLHttpRequest'
         }
       })
 
@@ -94,43 +81,10 @@ export default function UsersPage() {
       if (!response.ok) {
         throw new Error(result.error || 'Erro ao buscar usuários')
       }
-
-      console.log('═══════════════════════════════════════════════════════════')
-      console.log('📊 RESPOSTA COMPLETA DA API /api/admin/users')
-      console.log('═══════════════════════════════════════════════════════════')
-      console.log('📋 Total de usuários:', result.users?.length || 0)
-      console.log('📋 Resposta completa:', JSON.stringify(result, null, 2))
-      console.log('═══════════════════════════════════════════════════════════')
       
-      // Log específico para Grah Duetes
-      const grahUser = result.users?.find((u: User) => u.email === 'graziely@gobi.consulting')
-      if (grahUser) {
-        console.log('🔍 GRAH DUETES NA RESPOSTA DA API:')
-        console.log('  ✅ Usuário encontrado!')
-        console.log('  - Email:', grahUser.email)
-        console.log('  - Nome:', grahUser.full_name)
-        console.log('  - last_sign_in_at:', grahUser.last_sign_in_at)
-        console.log('  - Tipo:', typeof grahUser.last_sign_in_at)
-        console.log('  - É null?', grahUser.last_sign_in_at === null)
-        console.log('  - É undefined?', grahUser.last_sign_in_at === undefined)
-        console.log('  - has_logged_in:', grahUser.has_logged_in)
-        console.log('  - is_active:', grahUser.is_active)
-        console.log('  - Objeto completo:', JSON.stringify(grahUser, null, 2))
-        console.log('═══════════════════════════════════════════════════════════')
-      } else {
-        console.error('⚠️ GRAH DUETES NÃO ENCONTRADO NA RESPOSTA DA API!')
-        console.log('📋 Emails na resposta:', result.users?.map((u: User) => u.email))
-        console.log('📋 Total de usuários:', result.users?.length)
-        console.log('═══════════════════════════════════════════════════════════')
-      }
-      
-      // ATUALIZAR ESTADO DIRETAMENTE
       setUsers(result.users || [])
       
-      console.log('✅ Estado atualizado com', result.users?.length || 0, 'usuários')
-      
     } catch (error: any) {
-      console.error('❌ Erro:', error)
       toast.error("Erro ao carregar usuários")
     } finally {
       setLoading(false)
@@ -139,7 +93,6 @@ export default function UsersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('🚀 Iniciando criação de usuário...', formData)
     
     try {
       if (editingUser) {
@@ -157,13 +110,6 @@ export default function UsersPage() {
         toast.success("Usuário atualizado com sucesso!")
       } else {
         // Criar novo usuário via API
-        console.log('📤 Enviando dados para API:', {
-          full_name: formData.full_name,
-          email: formData.email,
-          phone: formData.phone,
-          role: formData.role
-        })
-        
         const response = await fetch('/api/admin/create-user', {
           method: 'POST',
           headers: {
@@ -177,9 +123,7 @@ export default function UsersPage() {
           })
         })
 
-        console.log('📥 Resposta da API:', response.status, response.statusText)
         const result = await response.json()
-        console.log('📋 Resultado:', result)
 
         if (!response.ok) {
           throw new Error(result.error || 'Erro ao criar usuário')
@@ -197,7 +141,6 @@ export default function UsersPage() {
       
       // ATUALIZAR LISTAGEM IMEDIATAMENTE
       await fetchUsers()
-      console.log('✅ Usuários atualizados após criação')
     } catch (error: any) {
       console.error('Erro ao salvar usuário:', error)
       toast.error(error.message || "Erro ao salvar usuário")
@@ -216,14 +159,7 @@ export default function UsersPage() {
   }
 
   const hasUserLoggedIn = (user: User) => {
-    // Preferir flag do backend; fallback para checar string
-    const hasLoggedIn = Boolean(user.has_logged_in) || (user.last_sign_in_at !== null && user.last_sign_in_at !== undefined)
-    console.log(`🔍 Verificando se ${user.full_name} já fez login:`, {
-      last_sign_in_at: user.last_sign_in_at,
-      has_logged_in: user.has_logged_in,
-      hasLoggedIn
-    })
-    return hasLoggedIn
+    return Boolean(user.has_logged_in) || (user.last_sign_in_at !== null && user.last_sign_in_at !== undefined)
   }
 
   const sendWelcomeEmail = async (email: string, password: string, userName: string) => {
@@ -245,7 +181,6 @@ export default function UsersPage() {
   }
 
   const handleEdit = (user: User) => {
-    console.log('✏️ Editando usuário:', user.email)
     setEditingUser(user)
     setFormData({
       full_name: user.full_name,
@@ -257,7 +192,6 @@ export default function UsersPage() {
   }
 
   const handleToggleStatus = (user: User) => {
-    console.log('🔄 Solicitando alteração de status:', user.email)
     setStatusConfirm({isOpen: true, user})
   }
 
@@ -265,7 +199,6 @@ export default function UsersPage() {
     if (!statusConfirm.user) return
     
     try {
-      console.log('🔄 Alterando status do usuário:', statusConfirm.user.email)
       
       // Usar API para alterar status do usuário
       const response = await fetch('/api/admin/toggle-user-status', {
@@ -284,8 +217,7 @@ export default function UsersPage() {
         throw new Error(error.error || 'Erro ao alterar status')
       }
 
-      const result = await response.json()
-      console.log('✅ Status alterado:', result)
+      await response.json()
       
       toast.success(`Usuário ${statusConfirm.user.is_active ? 'inativado' : 'ativado'} com sucesso!`)
       await fetchUsers() // Recarregar lista
@@ -301,7 +233,6 @@ export default function UsersPage() {
       return
     }
     
-    console.log('📧 Solicitando reenvio de e-mail:', user.email)
     setEmailConfirm({isOpen: true, user})
   }
 
@@ -309,13 +240,10 @@ export default function UsersPage() {
     if (!emailConfirm.user) return
     
     try {
-      console.log('📧 Reenviando e-mail para:', emailConfirm.user.email)
-      
       // Gerar nova senha temporária
       const tempPassword = generateTemporaryPassword()
       
       // Primeiro, atualizar a senha do usuário no banco
-      console.log('🔑 Atualizando senha do usuário...')
       const passwordResponse = await fetch('/api/admin/reset-user-password', {
         method: 'POST',
         headers: {
@@ -350,7 +278,6 @@ export default function UsersPage() {
         throw new Error(error.error || 'Erro ao enviar e-mail')
       }
 
-      console.log('✅ E-mail reenviado com sucesso!')
       toast.success("E-mail de boas-vindas reenviado!")
     } catch (error: any) {
       console.error('❌ Erro ao reenviar e-mail:', error)
@@ -361,7 +288,6 @@ export default function UsersPage() {
   }
 
   const handleDelete = (user: User) => {
-    console.log('🗑️ Solicitando exclusão:', user.email)
     setDeleteConfirm({isOpen: true, user})
   }
 
@@ -369,7 +295,6 @@ export default function UsersPage() {
     if (!deleteConfirm.user) return
     
     try {
-      console.log('🗑️ Excluindo usuário:', deleteConfirm.user.id)
       
       // Usar API para excluir usuário
       const response = await fetch('/api/admin/delete-user', {
@@ -385,8 +310,7 @@ export default function UsersPage() {
         throw new Error(error.error || 'Erro ao excluir usuário')
       }
 
-      const result = await response.json()
-      console.log('✅ Usuário excluído:', result)
+      await response.json()
       
       // Fechar modal primeiro
       setDeleteConfirm({isOpen: false, user: null})
@@ -552,7 +476,6 @@ export default function UsersPage() {
                   type="submit"
                   disabled={loading}
                   onClick={() => {
-                    console.log('🔘 Botão clicado!')
                     setButtonClicked(true)
                     setTimeout(() => setButtonClicked(false), 200)
                   }}
@@ -610,106 +533,6 @@ export default function UsersPage() {
               </CardDescription>
             </div>
             <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchUsers}
-                disabled={loading}
-                className="flex items-center space-x-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>Atualizar</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/debug-users')
-                    const data = await response.json()
-                    console.log('🔍 DEBUG API Response:', data)
-                    toast.info("Dados de debug logados no console")
-                  } catch (error) {
-                    console.error('❌ Erro no debug:', error)
-                    toast.error("Erro ao buscar dados de debug")
-                  }
-                }}
-                className="flex items-center space-x-2 bg-yellow-100 hover:bg-yellow-200"
-              >
-                <span>🐛 Debug</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  console.log('🔄 Forçando reload completo da página...')
-                  window.location.reload()
-                }}
-                className="flex items-center space-x-2 bg-red-100 hover:bg-red-200"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span>Reload</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/test-grah')
-                    const data = await response.json()
-                    console.log('🧪 TESTE GRAH:', data)
-                    toast.info("Teste do Grah logado no console")
-                  } catch (error) {
-                    console.error('❌ Erro no teste:', error)
-                    toast.error("Erro no teste")
-                  }
-                }}
-                className="flex items-center space-x-2 bg-green-100 hover:bg-green-200"
-              >
-                <span>🧪 Teste</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    console.log('🔄 Atualizando último acesso do Grah Duetes...')
-                    const response = await fetch('/api/admin/update-last-access', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email: 'graziely@gobi.consulting' })
-                    })
-                    const data = await response.json()
-                    console.log('═══════════════════════════════════════════════════════════')
-                    console.log('🔄 RESPOSTA DA ATUALIZAÇÃO DE ÚLTIMO ACESSO')
-                    console.log('═══════════════════════════════════════════════════════════')
-                    console.log('📊 Estado ANTES:', data.before)
-                    console.log('📊 Estado DEPOIS:', data.after)
-                    console.log('👤 Usuário final:', data.user)
-                    console.log('✅ Sucesso:', data.success)
-                    console.log('📋 Resposta completa:', JSON.stringify(data, null, 2))
-                    console.log('═══════════════════════════════════════════════════════════')
-                    if (data.success) {
-                      const lastSignIn = data.user?.last_sign_in_at || data.after?.last_sign_in_at
-                      if (lastSignIn) {
-                        toast.success(`✅ Último acesso atualizado para: ${new Date(lastSignIn).toLocaleString('pt-BR')}`)
-                      } else {
-                        toast.warning("⚠️ Atualização retornou sucesso, mas last_sign_in_at ainda é null!")
-                      }
-                      // Recarregar lista após 1 segundo para dar tempo do banco atualizar
-                      setTimeout(() => fetchUsers(), 1000)
-                    } else {
-                      toast.error(data.error || "Erro ao atualizar")
-                    }
-                  } catch (error) {
-                    console.error('❌ Erro:', error)
-                    toast.error("Erro ao atualizar último acesso")
-                  }
-                }}
-                className="flex items-center space-x-2 bg-purple-100 hover:bg-purple-200"
-              >
-                <span>🔄 Atualizar Último Acesso</span>
-              </Button>
               <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
                 {users.filter(u => u.is_active).length} Ativos
               </Badge>
