@@ -725,20 +725,19 @@ export default function UsersPage() {
                 <TableHead className="font-semibold text-slate-700 py-4 px-6">Telefone</TableHead>
                 <TableHead className="font-semibold text-slate-700 py-4 px-6">Tipo</TableHead>
                 <TableHead className="font-semibold text-slate-700 py-4 px-6">Status</TableHead>
-                <TableHead className="font-semibold text-slate-700 py-4 px-6">Último Acesso</TableHead>
                 <TableHead className="w-[200px] py-4 px-6">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="p-0">
+                  <TableCell colSpan={6} className="p-0">
                     <FishTableLoading />
                   </TableCell>
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                     Nenhum usuário encontrado
                   </TableCell>
                 </TableRow>
@@ -793,18 +792,6 @@ export default function UsersPage() {
                           </>
                         )}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-slate-600 py-4 px-6 min-w-[140px]">
-                      {user.last_sign_in_at ? (
-                        (() => {
-                          // Garantir parsing em todos os navegadores
-                          const safe = user.last_sign_in_at.includes('T')
-                            ? user.last_sign_in_at
-                            : user.last_sign_in_at.replace(' ', 'T')
-                          const d = new Date(safe)
-                          return isNaN(d.getTime()) ? 'Nunca' : d.toLocaleDateString('pt-BR')
-                        })()
-                      ) : 'Nunca'}
                     </TableCell>
                     <TableCell className="py-4 px-6 w-[200px]">
                       <div className="flex items-center space-x-2">
