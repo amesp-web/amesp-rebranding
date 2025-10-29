@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
@@ -24,7 +24,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
 
   // Verificar se há erro de conta inativa
-  React.useEffect(() => {
+  useEffect(() => {
     const errorParam = searchParams.get('error')
     if (errorParam === 'account_inactive') {
       setError("Sua conta foi inativada. Entre em contato com o administrador.")
