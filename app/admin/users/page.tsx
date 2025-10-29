@@ -625,6 +625,24 @@ export default function UsersPage() {
                 <RefreshCw className="h-4 w-4" />
                 <span>Reload</span>
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/test-grah')
+                    const data = await response.json()
+                    console.log('🧪 TESTE GRAH:', data)
+                    toast.info("Teste do Grah logado no console")
+                  } catch (error) {
+                    console.error('❌ Erro no teste:', error)
+                    toast.error("Erro no teste")
+                  }
+                }}
+                className="flex items-center space-x-2 bg-green-100 hover:bg-green-200"
+              >
+                <span>🧪 Teste</span>
+              </Button>
               <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
                 {users.filter(u => u.is_active).length} Ativos
               </Badge>
