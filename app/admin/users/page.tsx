@@ -65,11 +65,14 @@ export default function UsersPage() {
       setLoading(true)
       console.log('🔄 Buscando usuários...')
       
-      // Cache-busting mais agressivo
+      // Cache-busting ULTRA agressivo
       const timestamp = Date.now()
-      const random = Math.random()
-      const version = Math.floor(Math.random() * 1000)
-      const url = `/api/admin/users?t=${timestamp}&r=${random}&v=${version}&bust=${Math.random()}`
+      const random1 = Math.random()
+      const random2 = Math.random()
+      const random3 = Math.random()
+      const version = Math.floor(Math.random() * 10000)
+      const bust = Math.random().toString(36).substring(7)
+      const url = `/api/admin/users?t=${timestamp}&r1=${random1}&r2=${random2}&r3=${random3}&v=${version}&bust=${bust}&force=${Date.now()}&nocache=${Math.random()}`
       
       console.log('🌐 URL da requisição:', url)
       
@@ -77,10 +80,12 @@ export default function UsersPage() {
         cache: 'no-store',
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
           'Expires': '0',
-          'If-None-Match': '*'
+          'If-None-Match': '*',
+          'If-Modified-Since': '0',
+          'X-Requested-With': 'XMLHttpRequest'
         }
       })
 
@@ -607,6 +612,18 @@ export default function UsersPage() {
                 className="flex items-center space-x-2 bg-yellow-100 hover:bg-yellow-200"
               >
                 <span>🐛 Debug</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.log('🔄 Forçando reload completo da página...')
+                  window.location.reload()
+                }}
+                className="flex items-center space-x-2 bg-red-100 hover:bg-red-200"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Reload</span>
               </Button>
               <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
                 {users.filter(u => u.is_active).length} Ativos
