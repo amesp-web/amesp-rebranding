@@ -29,6 +29,7 @@ export default function LoginPage() {
     if (errorParam === 'account_inactive') {
       setError("Sua conta foi inativada. Entre em contato com o administrador.")
     }
+    // Não limpar o erro automaticamente para não interferir com outros erros
   }, [searchParams])
 
   const getSupabaseClient = () => {
