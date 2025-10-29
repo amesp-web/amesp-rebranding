@@ -8,7 +8,8 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const q = searchParams.get('q') || ''
-    const hint = searchParams.get('hint') || ''
+    const city = (searchParams.get('city') || '').trim()
+    const state = (searchParams.get('state') || '').trim()
     if (!q || q.trim().length < 2) {
       return NextResponse.json({ results: [] })
     }
@@ -18,25 +19,14 @@ export async function GET(req: Request) {
       'Accept-Language': 'pt-BR,pt;q=0.9'
     } as const
 
-    // 1) Texto livre com hint
-    const paramsFree = new URLSearchParams({
-      q: hint ? `${q} ${hint}` : q,
-      format: 'json', addressdetails: '1', countrycodes: 'br', dedupe: '1', limit: '8', email: 'contato@amesp.org.br'
-    })
-    const resFree = await fetch(`https://nominatim.openstreetmap.org/search?${paramsFree.toString()}`, { headers: commonHeaders, cache: 'no-store' })
     let results: any[] = []
-    if (resFree.ok) {
-      const data = await resFree.json()
-      if (Array.isArray(data)) results = data
-    }
 
-    // 2) Se vazio, tenta consulta estruturada por rua/cidade/estado (quando houver hint)
-    if (results.length === 0) {
-      const [cityHint = '', stateHint = ''] = hint.split(/[,\s]+/).filter(Boolean)
+    // 1) Consulta estruturada (prioritária): rua + cidade + UF
+    if (city && state) {
       const paramsStruct = new URLSearchParams({
         street: q,
-        city: cityHint,
-        state: stateHint,
+        city,
+        state,
         country: 'BR',
         format: 'json', addressdetails: '1', dedupe: '1', limit: '8', email: 'contato@amesp.org.br'
       })
@@ -47,13 +37,22 @@ export async function GET(req: Request) {
       }
     }
 
-    // 3) Se ainda vazio, tenta limitar por "litoral norte de SP" (viewbox + bounded)
+    // 2) Se vazio, busca livre com city/UF anexados
     if (results.length === 0) {
-      // Aproximação: bbox da região Ubatuba/Caraguatatuba/Ilhabela/São Sebastião
-      // viewbox: lon_min,lat_min,lon_max,lat_max
-      const bbox = {
-        lonMin: '-46.9', latMin: '-24.2', lonMax: '-44.0', latMax: '-22.5'
+      const paramsFree = new URLSearchParams({
+        q: `${q} ${city || ''} ${state || ''}`.trim(),
+        format: 'json', addressdetails: '1', countrycodes: 'br', dedupe: '1', limit: '8', email: 'contato@amesp.org.br'
+      })
+      const resFree = await fetch(`https://nominatim.openstreetmap.org/search?${paramsFree.toString()}`, { headers: commonHeaders, cache: 'no-store' })
+      if (resFree.ok) {
+        const data = await resFree.json()
+        if (Array.isArray(data)) results = data
       }
+    }
+
+    // 3) Se ainda vazio, tenta limitar por litoral norte SP (viewbox + bounded)
+    if (results.length === 0) {
+      const bbox = { lonMin: '-46.9', latMin: '-24.2', lonMax: '-44.0', latMax: '-22.5' }
       const paramsBbox = new URLSearchParams({
         q,
         format: 'json', addressdetails: '1', countrycodes: 'br', dedupe: '1', limit: '8', bounded: '1',
@@ -64,6 +63,32 @@ export async function GET(req: Request) {
       if (resBbox.ok) {
         const data = await resBbox.json()
         if (Array.isArray(data)) results = data
+      }
+    }
+
+    // 4) Fallback final: Photon (fuzzy)
+    if (results.length === 0) {
+      const photon = `https://photon.komoot.io/api/?q=${encodeURIComponent(`${q} ${city || ''} ${state || ''}`.trim())}&lang=pt&limit=8&osm_tag=highway`
+      const r = await fetch(photon, { cache: 'no-store', headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' } })
+      if (r.ok) {
+        const data = await r.json()
+        if (data && Array.isArray(data.features)) {
+          results = data.features.map((f: any) => {
+            const p = f.properties || {}
+            const addr: any = {
+              road: p.street || p.name,
+              house_number: p.housenumber,
+              city: p.city || p.town || p.village,
+              state: p.state
+            }
+            return {
+              lat: f.geometry?.coordinates?.[1],
+              lon: f.geometry?.coordinates?.[0],
+              display_name: `${addr.road || ''} ${addr.house_number || ''}`.trim(),
+              address: addr
+            }
+          })
+        }
       }
     }
 

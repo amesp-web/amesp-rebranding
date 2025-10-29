@@ -51,6 +51,12 @@ export default function MaricultorCadastroPage() {
 
   // Autocomplete com Nominatim (OpenStreetMap) - gratuito
   useEffect(() => {
+    // Requer cidade e estado para busca assertiva
+    if (!formData.cidade || !formData.estado) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
     if (!formData.logradouro || formData.logradouro.trim().length < 2) {
       setSuggestions([])
       setShowSuggestions(false)
@@ -60,8 +66,7 @@ export default function MaricultorCadastroPage() {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       try {
-        const hint = [formData.cidade, formData.estado].filter(Boolean).join(' ')
-        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(formData.logradouro)}&hint=${encodeURIComponent(hint)}`, { cache: 'no-store' })
+        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(formData.logradouro)}&city=${encodeURIComponent(formData.cidade)}&state=${encodeURIComponent(formData.estado)}`, { cache: 'no-store' })
         const { results } = await res.json()
         setSuggestions(Array.isArray(results) ? results : [])
         setShowSuggestions(true)
@@ -333,6 +338,9 @@ export default function MaricultorCadastroPage() {
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                   />
                 </div>
+                {!formData.cidade || !formData.estado ? (
+                  <div className="text-xs text-muted-foreground">Preencha Cidade e Estado para buscar o endereço.</div>
+                ) : null}
                 {showSuggestions && (
                   <div className="absolute z-20 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
                     {suggestions.length === 0 ? (
@@ -378,15 +386,19 @@ export default function MaricultorCadastroPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-foreground">Estado</label>
-                  <input
-                    type="text"
+                  <label className="text-sm font-semibold text-foreground">Estado (UF)</label>
+                  <select
                     name="estado"
                     value={formData.estado}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                    placeholder="Ex: SP"
-                  />
+                    required
+                    className="w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
+                  >
+                    <option value="" disabled>Selecione</option>
+                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                      <option key={uf} value={uf}>{uf}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
