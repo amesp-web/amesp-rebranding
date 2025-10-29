@@ -680,11 +680,24 @@ export default function UsersPage() {
                       body: JSON.stringify({ email: 'graziely@gobi.consulting' })
                     })
                     const data = await response.json()
-                    console.log('✅ Resposta da atualização:', data)
+                    console.log('═══════════════════════════════════════════════════════════')
+                    console.log('🔄 RESPOSTA DA ATUALIZAÇÃO DE ÚLTIMO ACESSO')
+                    console.log('═══════════════════════════════════════════════════════════')
+                    console.log('📊 Estado ANTES:', data.before)
+                    console.log('📊 Estado DEPOIS:', data.after)
+                    console.log('👤 Usuário final:', data.user)
+                    console.log('✅ Sucesso:', data.success)
+                    console.log('📋 Resposta completa:', JSON.stringify(data, null, 2))
+                    console.log('═══════════════════════════════════════════════════════════')
                     if (data.success) {
-                      toast.success("Último acesso atualizado! Clique em 'Atualizar' para ver.")
-                      // Recarregar lista após 500ms
-                      setTimeout(() => fetchUsers(), 500)
+                      const lastSignIn = data.user?.last_sign_in_at || data.after?.last_sign_in_at
+                      if (lastSignIn) {
+                        toast.success(`✅ Último acesso atualizado para: ${new Date(lastSignIn).toLocaleString('pt-BR')}`)
+                      } else {
+                        toast.warning("⚠️ Atualização retornou sucesso, mas last_sign_in_at ainda é null!")
+                      }
+                      // Recarregar lista após 1 segundo para dar tempo do banco atualizar
+                      setTimeout(() => fetchUsers(), 1000)
                     } else {
                       toast.error(data.error || "Erro ao atualizar")
                     }

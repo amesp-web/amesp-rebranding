@@ -21,26 +21,56 @@ export async function POST(request: Request) {
       }
     )
 
-    // Atualizar diretamente
-    const { data, error } = await supabase
+    // Primeiro, buscar o usuário atual para ver o estado
+    const { data: beforeData } = await supabase
+      .from('admin_profiles')
+      .select('id, full_name, email, last_sign_in_at, is_active')
+      .eq('email', email)
+      .single()
+
+    console.log('📊 Estado ANTES da atualização:', beforeData)
+
+    // Atualizar diretamente com timestamp específico
+    const now = new Date().toISOString()
+    console.log('🕐 Timestamp a ser usado:', now)
+
+    const { data: updateData, error: updateError } = await supabase
       .from('admin_profiles')
       .update({ 
-        last_sign_in_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        last_sign_in_at: now,
+        updated_at: now
       })
       .eq('email', email)
       .select('id, full_name, email, last_sign_in_at, is_active')
 
-    if (error) {
-      console.error('❌ Erro ao atualizar:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (updateError) {
+      console.error('❌ Erro ao atualizar:', updateError)
+      return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    console.log('✅ Último acesso atualizado:', data)
+    console.log('✅ Dados após UPDATE:', updateData)
+
+    // Aguardar um pouco e buscar novamente para confirmar
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const { data: afterData, error: afterError } = await supabase
+      .from('admin_profiles')
+      .select('id, full_name, email, last_sign_in_at, is_active')
+      .eq('email', email)
+      .single()
+
+    console.log('✅ Estado APÓS atualização (verificação):', afterData)
+    console.log('❌ Erro na verificação:', afterError)
+
+    const finalUser = afterData || updateData?.[0]
+
+    console.log('✅ Último acesso atualizado. Dados finais:', finalUser)
 
     return NextResponse.json({ 
       success: true,
-      user: data?.[0],
+      user: finalUser,
+      before: beforeData,
+      after: afterData,
       message: 'Último acesso atualizado com sucesso'
     })
 
