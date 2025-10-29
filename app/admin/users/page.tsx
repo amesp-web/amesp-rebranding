@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Mail, Phone, Users, Shield, Fish, CheckCircle, Clock, UserPlus } from "lucide-react"
 import InputMask from "react-input-mask"
@@ -17,6 +18,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server"
 import { toast } from "sonner"
 import { EmailService } from "@/lib/email-service"
 import { cn } from "@/lib/utils"
+import { FishTableLoading } from "@/components/ui/fish-loading"
 
 interface User {
   id: string
@@ -35,6 +37,12 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  
+  // Estados para modais de confirmação
+  const [deleteConfirm, setDeleteConfirm] = useState<{isOpen: boolean, user: User | null}>({isOpen: false, user: null})
+  const [statusConfirm, setStatusConfirm] = useState<{isOpen: boolean, user: User | null}>({isOpen: false, user: null})
+  const [emailConfirm, setEmailConfirm] = useState<{isOpen: boolean, user: User | null}>({isOpen: false, user: null})
+  
   const supabase = createClient()
 
   // Form state
@@ -52,17 +60,33 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
+      console.log('🔄 Buscando usuários...')
       
-      const response = await fetch('/api/admin/users')
+      const response = await fetch(`/api/admin/users?t=${Date.now()}&r=${Math.random()}`, {
+        cache: 'no-store',
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
+
       const result = await response.json()
 
       if (!response.ok) {
         throw new Error(result.error || 'Erro ao buscar usuários')
       }
 
-      setUsers(result.users)
+      console.log('📊 Usuários recebidos da API:', result.users?.length || 0)
+      console.log('📋 Dados:', result.users)
+      
+      // ATUALIZAR ESTADO DIRETAMENTE
+      setUsers(result.users || [])
+      
+      console.log('✅ Estado atualizado com', result.users?.length || 0, 'usuários')
+      
     } catch (error: any) {
-      console.error('Erro ao buscar usuários:', error)
+      console.error('❌ Erro:', error)
       toast.error("Erro ao carregar usuários")
     } finally {
       setLoading(false)
@@ -72,7 +96,6 @@ export default function UsersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     console.log('🚀 Iniciando criação de usuário...', formData)
-    setLoading(true)
     
     try {
       if (editingUser) {
@@ -90,6 +113,13 @@ export default function UsersPage() {
         toast.success("Usuário atualizado com sucesso!")
       } else {
         // Criar novo usuário via API
+        console.log('📤 Enviando dados para API:', {
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone,
+          role: formData.role
+        })
+        
         const response = await fetch('/api/admin/create-user', {
           method: 'POST',
           headers: {
@@ -103,7 +133,9 @@ export default function UsersPage() {
           })
         })
 
+        console.log('📥 Resposta da API:', response.status, response.statusText)
         const result = await response.json()
+        console.log('📋 Resultado:', result)
 
         if (!response.ok) {
           throw new Error(result.error || 'Erro ao criar usuário')
@@ -118,10 +150,15 @@ export default function UsersPage() {
       setIsDialogOpen(false)
       setEditingUser(null)
       resetForm()
-      fetchUsers()
+      
+      // ATUALIZAR LISTAGEM IMEDIATAMENTE
+      await fetchUsers()
+      console.log('✅ Usuários atualizados após criação')
     } catch (error: any) {
       console.error('Erro ao salvar usuário:', error)
       toast.error(error.message || "Erro ao salvar usuário")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -132,6 +169,11 @@ export default function UsersPage() {
       result += chars.charAt(Math.floor(Math.random() * chars.length))
     }
     return result
+  }
+
+  const hasUserLoggedIn = (user: User) => {
+    // Se o usuário tem last_sign_in_at, significa que já fez login
+    return user.last_sign_in_at !== null && user.last_sign_in_at !== undefined
   }
 
   const sendWelcomeEmail = async (email: string, password: string, userName: string) => {
@@ -153,6 +195,7 @@ export default function UsersPage() {
   }
 
   const handleEdit = (user: User) => {
+    console.log('✏️ Editando usuário:', user.email)
     setEditingUser(user)
     setFormData({
       full_name: user.full_name,
@@ -163,51 +206,158 @@ export default function UsersPage() {
     setIsDialogOpen(true)
   }
 
-  const handleToggleStatus = async (user: User) => {
+  const handleToggleStatus = (user: User) => {
+    console.log('🔄 Solicitando alteração de status:', user.email)
+    setStatusConfirm({isOpen: true, user})
+  }
+
+  const confirmToggleStatus = async () => {
+    if (!statusConfirm.user) return
+    
     try {
-      // Aqui você implementaria a lógica para ativar/inativar usuário
-      // Por enquanto, apenas um toast informativo
-      toast.success(`Usuário ${user.email_confirmed_at ? 'inativado' : 'ativado'} com sucesso!`)
-      fetchUsers() // Recarregar lista
+      console.log('🔄 Alterando status do usuário:', statusConfirm.user.email)
+      
+      // Usar API para alterar status do usuário
+      const response = await fetch('/api/admin/toggle-user-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: statusConfirm.user.id,
+          currentStatus: statusConfirm.user.email_confirmed_at ? 'active' : 'inactive'
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Erro ao alterar status')
+      }
+
+      const result = await response.json()
+      console.log('✅ Status alterado:', result)
+      
+      toast.success(`Usuário ${statusConfirm.user.email_confirmed_at ? 'inativado' : 'ativado'} com sucesso!`)
+      await fetchUsers() // Recarregar lista
     } catch (error: any) {
-      console.error('Erro ao alterar status:', error)
-      toast.error("Erro ao alterar status do usuário")
+      console.error('❌ Erro ao alterar status:', error)
+      toast.error(error.message || "Erro ao alterar status do usuário")
     }
   }
 
-  const handleResendEmail = async (user: User) => {
+  const handleResendEmail = (user: User) => {
+    if (hasUserLoggedIn(user)) {
+      toast.warning("Este usuário já fez login e definiu uma senha permanente. Não é possível reenviar e-mail de boas-vindas.")
+      return
+    }
+    
+    console.log('📧 Solicitando reenvio de e-mail:', user.email)
+    setEmailConfirm({isOpen: true, user})
+  }
+
+  const confirmResendEmail = async () => {
+    if (!emailConfirm.user) return
+    
     try {
+      console.log('📧 Reenviando e-mail para:', emailConfirm.user.email)
+      
       // Gerar nova senha temporária
       const tempPassword = generateTemporaryPassword()
       
-      // Enviar e-mail
-      await sendWelcomeEmail(user.email, tempPassword, user.full_name)
-      
+      // Primeiro, atualizar a senha do usuário no banco
+      console.log('🔑 Atualizando senha do usuário...')
+      const passwordResponse = await fetch('/api/admin/reset-user-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: emailConfirm.user.id,
+          tempPassword: tempPassword
+        })
+      })
+
+      if (!passwordResponse.ok) {
+        const error = await passwordResponse.json()
+        throw new Error(error.error || 'Erro ao atualizar senha')
+      }
+
+      // Depois, enviar e-mail via API
+      const emailResponse = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: emailConfirm.user.email,
+          tempPassword: tempPassword,
+          userName: emailConfirm.user.full_name
+        })
+      })
+
+      if (!emailResponse.ok) {
+        const error = await emailResponse.json()
+        throw new Error(error.error || 'Erro ao enviar e-mail')
+      }
+
+      console.log('✅ E-mail reenviado com sucesso!')
       toast.success("E-mail de boas-vindas reenviado!")
     } catch (error: any) {
-      console.error('Erro ao reenviar e-mail:', error)
-      toast.error("Erro ao reenviar e-mail")
+      console.error('❌ Erro ao reenviar e-mail:', error)
+      toast.error(error.message || "Erro ao reenviar e-mail")
+    } finally {
+      setEmailConfirm({isOpen: false, user: null})
     }
   }
 
-  const handleDelete = async (userId: string) => {
-    if (!confirm("Tem certeza que deseja excluir este usuário?")) return
+  const handleDelete = (user: User) => {
+    console.log('🗑️ Solicitando exclusão:', user.email)
+    setDeleteConfirm({isOpen: true, user})
+  }
 
+  const confirmDelete = async () => {
+    if (!deleteConfirm.user) return
+    
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userId)
-      if (error) throw error
+      console.log('🗑️ Excluindo usuário:', deleteConfirm.user.id)
+      
+      // Usar API para excluir usuário
+      const response = await fetch('/api/admin/delete-user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: deleteConfirm.user.id })
+      })
 
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Erro ao excluir usuário')
+      }
+
+      const result = await response.json()
+      console.log('✅ Usuário excluído:', result)
+      
+      // Fechar modal primeiro
+      setDeleteConfirm({isOpen: false, user: null})
+      
+      // Mostrar toast
       toast.success("Usuário excluído com sucesso!")
-      fetchUsers()
+      
+      // ATUALIZAR LISTAGEM IMEDIATAMENTE
+      await fetchUsers()
+      
     } catch (error: any) {
-      console.error('Erro ao excluir usuário:', error)
-      toast.error("Erro ao excluir usuário")
+      console.error('❌ Erro ao excluir usuário:', error)
+      toast.error(error.message || "Erro ao excluir usuário")
+      // Fechar modal mesmo em caso de erro
+      setDeleteConfirm({isOpen: false, user: null})
     }
   }
 
   const filteredUsers = users.filter(user =>
     user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   return (
@@ -411,14 +561,14 @@ export default function UsersPage() {
                 <TableHead className="font-semibold text-slate-700 py-4 px-6">Tipo</TableHead>
                 <TableHead className="font-semibold text-slate-700 py-4 px-6">Status</TableHead>
                 <TableHead className="font-semibold text-slate-700 py-4 px-6">Último Acesso</TableHead>
-                <TableHead className="w-[80px] py-4 px-6">Ações</TableHead>
+                <TableHead className="w-[200px] py-4 px-6">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    Carregando usuários...
+                  <TableCell colSpan={7} className="p-0">
+                    <FishTableLoading />
                   </TableCell>
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
@@ -429,7 +579,7 @@ export default function UsersPage() {
                 </TableRow>
               ) : (
                 filteredUsers.map((user) => (
-                  <TableRow key={user.id} className="hover:bg-blue-50/30 transition-colors duration-200">
+                  <TableRow key={user.id} className="hover:bg-blue-50/30 transition-colors duration-200 border-b border-gray-100/50">
                     <TableCell className="font-semibold text-slate-800 py-4 px-6 min-w-[200px]">{user.full_name}</TableCell>
                     <TableCell className="text-slate-600 py-4 px-6 min-w-[250px]">{user.email}</TableCell>
                     <TableCell className="text-slate-600 py-4 px-6 min-w-[150px]">{user.phone || "-"}</TableCell>
@@ -485,57 +635,58 @@ export default function UsersPage() {
                         : 'Nunca'
                       }
                     </TableCell>
-                    <TableCell className="py-4 px-6 w-[80px]">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                          >
-                            <MoreHorizontal className="h-4 w-4 text-slate-600" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem 
-                            onClick={() => handleEdit(user)}
-                            className="cursor-pointer hover:bg-blue-50"
-                          >
-                            <Edit className="mr-2 h-4 w-4 text-blue-600" />
-                            <span>Editar</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleToggleStatus(user)} 
-                            className="cursor-pointer hover:bg-orange-50"
-                          >
-                            {user.email_confirmed_at ? (
-                              <>
-                                <Clock className="mr-2 h-4 w-4 text-orange-600" />
-                                <span>Inativar</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-                                <span>Ativar</span>
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleResendEmail(user)} 
-                            className="cursor-pointer hover:bg-purple-50"
-                          >
-                            <Mail className="mr-2 h-4 w-4 text-purple-600" />
-                            <span>Reenviar E-mail</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(user.id)} 
-                            className="cursor-pointer text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Excluir</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <TableCell className="py-4 px-6 w-[200px]">
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEdit(user)}
+                          className="hover:bg-blue-100 rounded-lg transition-colors duration-200 p-2"
+                          title="Editar usuário"
+                        >
+                          <Edit className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleToggleStatus(user)}
+                          className="hover:bg-orange-100 rounded-lg transition-colors duration-200 p-2"
+                          title={user.email_confirmed_at ? "Inativar usuário" : "Ativar usuário"}
+                        >
+                          {user.email_confirmed_at ? (
+                            <Clock className="h-4 w-4 text-orange-600" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          )}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleResendEmail(user)}
+                          disabled={hasUserLoggedIn(user)}
+                          className={cn(
+                            "rounded-lg transition-colors duration-200 p-2",
+                            hasUserLoggedIn(user) 
+                              ? "opacity-50 cursor-not-allowed" 
+                              : "hover:bg-purple-100"
+                          )}
+                          title={hasUserLoggedIn(user) ? "Usuário já fez login - não é possível reenviar e-mail" : "Reenviar e-mail"}
+                        >
+                          <Mail className={cn(
+                            "h-4 w-4",
+                            hasUserLoggedIn(user) ? "text-gray-400" : "text-purple-600"
+                          )} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDelete(user)}
+                          className="hover:bg-red-100 rounded-lg transition-colors duration-200 p-2"
+                          title="Excluir usuário"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -544,6 +695,51 @@ export default function UsersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modais de Confirmação */}
+      
+      {/* Modal de Confirmação para Exclusão */}
+      <ConfirmationDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({isOpen: false, user: null})}
+        onConfirm={confirmDelete}
+        title="Excluir Usuário"
+        description={`Tem certeza que deseja excluir o usuário "${deleteConfirm.user?.full_name}"? Esta ação não pode ser desfeita e todos os dados serão permanentemente removidos.`}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        variant="delete"
+        icon={<Trash2 className="h-8 w-8 text-red-600" />}
+      />
+
+      {/* Modal de Confirmação para Alteração de Status */}
+      <ConfirmationDialog
+        isOpen={statusConfirm.isOpen}
+        onClose={() => setStatusConfirm({isOpen: false, user: null})}
+        onConfirm={confirmToggleStatus}
+        title={statusConfirm.user?.email_confirmed_at ? "Inativar Usuário" : "Ativar Usuário"}
+        description={`Tem certeza que deseja ${statusConfirm.user?.email_confirmed_at ? 'inativar' : 'ativar'} o usuário "${statusConfirm.user?.full_name}"?`}
+        confirmText={statusConfirm.user?.email_confirmed_at ? "Inativar" : "Ativar"}
+        cancelText="Cancelar"
+        variant="warning"
+        icon={statusConfirm.user?.email_confirmed_at ? 
+          <UserX className="h-8 w-8 text-orange-600" /> : 
+          <CheckCircle className="h-8 w-8 text-green-600" />
+        }
+      />
+
+      {/* Modal de Confirmação para Reenvio de E-mail */}
+      <ConfirmationDialog
+        isOpen={emailConfirm.isOpen}
+        onClose={() => setEmailConfirm({isOpen: false, user: null})}
+        onConfirm={confirmResendEmail}
+        title="Reenviar E-mail"
+        description={`Deseja reenviar o e-mail de boas-vindas para "${emailConfirm.user?.full_name}"? Uma nova senha temporária será gerada e a senha atual será substituída.`}
+        confirmText="Reenviar"
+        cancelText="Cancelar"
+        variant="info"
+        icon={<Mail className="h-8 w-8 text-blue-600" />}
+      />
     </div>
   )
 }
+

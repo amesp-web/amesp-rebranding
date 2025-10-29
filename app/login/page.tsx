@@ -28,6 +28,22 @@ export default function LoginPage() {
     }
   }
 
+  const translateErrorMessage = (errorMessage: string): string => {
+    const translations: { [key: string]: string } = {
+      "Invalid login credentials": "Credenciais de login inválidas",
+      "Email not confirmed": "E-mail não confirmado",
+      "Too many requests": "Muitas tentativas. Tente novamente mais tarde",
+      "User not found": "Usuário não encontrado",
+      "Invalid email": "E-mail inválido",
+      "Password should be at least 6 characters": "A senha deve ter pelo menos 6 caracteres",
+      "Unable to validate email address: invalid format": "Formato de e-mail inválido",
+      "Signup requires a valid password": "É necessário uma senha válida para cadastro",
+      "User already registered": "Usuário já cadastrado"
+    }
+    
+    return translations[errorMessage] || errorMessage
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -47,7 +63,7 @@ export default function LoginPage() {
       })
 
       if (error) {
-        setError(error.message)
+        setError(translateErrorMessage(error.message))
         setLoading(false)
         return
       }

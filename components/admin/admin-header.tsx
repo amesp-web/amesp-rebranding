@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 interface AdminHeaderProps {
   user: any
@@ -21,6 +23,17 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ user, adminProfile }: AdminHeaderProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      router.push('/login')
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md shadow-sm">
@@ -95,7 +108,7 @@ export function AdminHeader({ user, adminProfile }: AdminHeaderProps) {
                 <span>Configurações</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
+              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sair</span>
               </DropdownMenuItem>

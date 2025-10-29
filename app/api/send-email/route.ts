@@ -4,18 +4,18 @@ import nodemailer from 'nodemailer'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, userName } = await request.json()
+    const { email, tempPassword, userName } = await request.json()
 
     // Verificar se as configurações do Gmail estão disponíveis
     if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
       console.log('📧 EMAIL SIMULADO (Gmail não configurado):')
       console.log('Para:', email)
-      console.log('Senha temporária:', password)
+      console.log('Senha temporária:', tempPassword)
       return NextResponse.json({ success: true, message: 'E-mail simulado enviado' })
     }
 
     // Configurar transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.GMAIL_USER,
@@ -45,15 +45,23 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🐟 AMESP</h1>
-            <p>Associação dos Maricultores do Estado de São Paulo</p>
+            <div style="text-align: center; padding: 20px 0;">
+              <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; max-width: 300px; margin: 0 auto; display: inline-block;">
+                <div style="font-size: 32px; font-weight: bold; color: #0ea5e9; text-align: center; letter-spacing: 2px;">
+                  AMESP
+                </div>
+                <div style="font-size: 12px; color: #64748b; text-align: center; margin-top: 4px;">
+                  Associação dos Maricultores do Estado de São Paulo
+                </div>
+              </div>
+            </div>
           </div>
           <div class="content">
             <h2>Bem-vindo, ${userName}!</h2>
             <p>Seu acesso ao sistema administrativo da AMESP foi criado com sucesso. Estamos felizes em tê-lo conosco!</p>
             
             <div class="password-box">
-              ${password}
+              ${tempPassword}
             </div>
             
             <div class="warning">
