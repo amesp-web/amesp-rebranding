@@ -265,19 +265,22 @@ export default function MaricultorCadastroPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-foreground">Logradouro</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      name="logradouro"
-                      value={formData.logradouro}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                      placeholder="Rua, número e complemento"
-                    />
-                  </div>
+                <div className="space-y-2 hidden md:block"></div>
+              </div>
+
+              {/* Logradouro em largura total */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground">Logradouro</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    name="logradouro"
+                    value={formData.logradouro}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                    placeholder="Rua, número e complemento"
+                  />
                 </div>
               </div>
 
