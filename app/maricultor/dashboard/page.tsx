@@ -12,6 +12,9 @@ import { LogOut, User, Settings, Fish, Calendar, FileText, BarChart3, Bell } fro
 export default function MaricultorDashboard() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,6 +28,36 @@ export default function MaricultorDashboard() {
       } = await supabase.auth.getUser()
       setUser(user)
       setLoading(false)
+
+      if (user?.id) {
+        // Carregar perfil do maricultor
+        const { data: p, error: pErr } = await supabase
+          .from('maricultor_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        if (pErr) {
+          console.warn('maricultor_profiles select error:', pErr)
+        }
+        const parseStreetNumber = (value?: string) => {
+          if (!value) return { street: '', number: '' }
+          const trimmed = String(value).trim()
+          // captura padrões: ", 123", " 123", "nº 123", "no 123", "N 123A"
+          const m = trimmed.match(/^(.*?)[,\s-]*(?:n\s*[ºo]?\s*)?(\d+[A-Za-z]?)\s*$/i)
+          if (!m) return { street: trimmed, number: '' }
+          const street = m[1].trim()
+          const number = m[2].trim()
+          return { street, number }
+        }
+
+        const { street, number } = parseStreetNumber(p?.logradouro)
+        setProfile({
+          ...p,
+          logradouro: street,
+          numero: number,
+          cep: p?.cep || '',
+        } as any)
+      }
     }
 
     getUser()
@@ -33,6 +66,54 @@ export default function MaricultorDashboard() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = "/"
+  }
+
+  const handleSaveProfile = async () => {
+    if (!user?.id) return
+    setSaving(true)
+    try {
+      // Delegamos ao backend para geocodificar (mesma lógica do cadastro)
+      const resp = await fetch('/api/maricultor/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: user.id,
+          full_name: profile?.full_name || user.user_metadata?.name || '',
+          phone: profile?.contact_phone || null,
+          logradouro: [profile?.logradouro, profile?.numero].filter(Boolean).join(', '),
+          cidade: profile?.cidade || null,
+          estado: profile?.estado || null,
+          cep: String(profile?.cep || '').replace(/\D/g, ''),
+          company: profile?.company || null,
+          specialties: profile?.specialties || null,
+          latitude: null,
+          longitude: null,
+        })
+      })
+      if (resp.ok) {
+        setEditing(false)
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCepChange = async (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 8)
+    const masked = digits.replace(/(\d{5})(\d{1,3})?/, (_, a: string, b?: string) => (b ? `${a}-${b}` : a))
+    setProfile((p: any) => ({ ...p, cep: masked }))
+    if (digits.length !== 8) return
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`, { cache: 'no-store' })
+      const data = await res.json()
+      if (data?.erro) return
+      setProfile((p: any) => ({
+        ...p,
+        logradouro: data.logradouro || p?.logradouro || '',
+        cidade: data.localidade || p?.cidade || '',
+        estado: data.uf || p?.estado || '',
+      }))
+    } catch {}
   }
 
   if (loading) {
@@ -73,7 +154,7 @@ export default function MaricultorDashboard() {
 
           <div className="flex items-center space-x-4">
             <span className="text-sm text-muted-foreground hidden sm:inline">
-              Olá, {user.user_metadata?.name || user.email}
+              Olá, {profile?.full_name || user.user_metadata?.name || user.email}
             </span>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -86,7 +167,7 @@ export default function MaricultorDashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Bem-vindo, {user.user_metadata?.name || "Maricultor"}!</h1>
+          <h1 className="text-3xl font-bold mb-2">Bem-vindo, {profile?.full_name || user.user_metadata?.name || user.email}!</h1>
           <p className="text-muted-foreground">
             Gerencie suas atividades de maricultura e acompanhe as novidades do setor.
           </p>
@@ -214,20 +295,112 @@ export default function MaricultorDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-center">
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                    <Fish className="h-8 w-8 text-primary" />
-                  </div>
-                  <h3 className="font-semibold">{user.user_metadata?.name || "Maricultor"}</h3>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                  {user.user_metadata?.company && (
-                    <p className="text-sm text-muted-foreground">{user.user_metadata.company}</p>
-                  )}
-                </div>
-                <Button variant="outline" className="w-full bg-transparent">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Editar Perfil
-                </Button>
+                {!editing ? (
+                  <>
+                    <div className="text-center">
+                      <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                        <Fish className="h-8 w-8 text-primary" />
+                      </div>
+                  <h3 className="font-semibold">{profile?.full_name || user.user_metadata?.name || "Maricultor"}</h3>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                      {(profile?.company || user.user_metadata?.company) && (
+                        <p className="text-sm text-muted-foreground">{profile?.company || user.user_metadata?.company}</p>
+                      )}
+                    </div>
+                    <Button variant="outline" className="w-full bg-transparent" onClick={() => setEditing(true)}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      Editar Perfil
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground">CEP</label>
+                        <input
+                          className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border"
+                          value={profile?.cep || ''}
+                          onChange={(e) => handleCepChange(e.target.value)}
+                          placeholder="00000-000"
+                          inputMode="numeric"
+                          maxLength={9}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Nome completo</label>
+                        <input
+                          className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border"
+                          value={profile?.full_name || ''}
+                          onChange={(e) => setProfile((p: any) => ({ ...p, full_name: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Telefone</label>
+                        <input
+                          className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border"
+                          value={profile?.contact_phone || ''}
+                          onChange={(e) => setProfile((p: any) => ({ ...p, contact_phone: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Logradouro</label>
+                        <input
+                          className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border"
+                          value={profile?.logradouro || ''}
+                          onChange={(e) => setProfile((p: any) => ({ ...p, logradouro: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Número</label>
+                        <input
+                          className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border"
+                          value={profile?.numero || ''}
+                          onChange={(e) => setProfile((p: any) => ({ ...p, numero: e.target.value }))}
+                          inputMode="numeric"
+                          placeholder="nº"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs text-muted-foreground">Cidade</label>
+                          <input
+                            className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border"
+                            value={profile?.cidade || ''}
+                            onChange={(e) => setProfile((p: any) => ({ ...p, cidade: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground">UF</label>
+                          <input
+                            className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border"
+                            value={profile?.estado || ''}
+                            onChange={(e) => setProfile((p: any) => ({ ...p, estado: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Empresa/Fazenda</label>
+                        <input
+                          className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border"
+                          value={profile?.company || ''}
+                          onChange={(e) => setProfile((p: any) => ({ ...p, company: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Especialidades</label>
+                        <textarea
+                          className="mt-1 w-full px-3 py-2 rounded-md bg-white border border-border h-20"
+                          value={profile?.specialties || ''}
+                          onChange={(e) => setProfile((p: any) => ({ ...p, specialties: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button variant="outline" className="bg-transparent" onClick={() => setEditing(false)} disabled={saving}>Cancelar</Button>
+                      <Button onClick={handleSaveProfile} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 

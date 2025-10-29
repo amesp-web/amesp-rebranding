@@ -8,17 +8,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 import { UserPlus, Mail, Lock, User, Phone, MapPin, ArrowLeft, Fish } from "lucide-react"
 
 export default function MaricultorCadastroPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
     phone: "",
+    cep: "",
     location: "",
     logradouro: "",
+    numero: "",
     cidade: "",
     estado: "",
     company: "",
@@ -29,6 +33,7 @@ export default function MaricultorCadastroPage() {
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const debounceRef = useRef<any>(null)
+  const [addressLocked, setAddressLocked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
@@ -49,15 +54,40 @@ export default function MaricultorCadastroPage() {
     }))
   }
 
-  // Autocomplete com Nominatim (OpenStreetMap) - gratuito
+  // Buscar endereço pelo CEP (ViaCEP) e travar endereço (geocodificação no backend)
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value
+    const onlyDigits = raw.replace(/\D/g, "")
+    // Máscara CEP 00000-000
+    const masked = onlyDigits
+      .slice(0, 8)
+      .replace(/(\d{5})(\d{1,3})?/, (_, a: string, b?: string) => (b ? `${a}-${b}` : a))
+    setFormData((prev) => ({ ...prev, cep: masked }))
+    if (onlyDigits.length !== 8) return
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${onlyDigits}/json/`, { cache: 'no-store' })
+      const data = await res.json()
+      if (data?.erro) return
+      const logradouro = data.logradouro || ''
+      const cidade = data.localidade || ''
+      const estado = data.uf || ''
+      setFormData((prev) => ({ ...prev, logradouro, cidade, estado }))
+      // Trava: não buscamos sugestões nem lat/lon no cliente; backend fará a geocodificação
+      setAddressLocked(true)
+      setSuggestions([])
+      setShowSuggestions(false)
+    } catch {}
+  }
+
+  // Autocomplete com Geoapify (desativado quando endereço estiver travado por CEP)
   useEffect(() => {
-    // Requer cidade e estado para busca assertiva
-    if (!formData.cidade || !formData.estado) {
+    if (addressLocked) {
       setSuggestions([])
       setShowSuggestions(false)
       return
     }
-    if (!formData.logradouro || formData.logradouro.trim().length < 2) {
+    const text = formData.logradouro?.trim()
+    if (!text || text.length < 2) {
       setSuggestions([])
       setShowSuggestions(false)
       return
@@ -66,32 +96,49 @@ export default function MaricultorCadastroPage() {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(formData.logradouro)}&city=${encodeURIComponent(formData.cidade)}&state=${encodeURIComponent(formData.estado)}`, { cache: 'no-store' })
-        const { results } = await res.json()
-        setSuggestions(Array.isArray(results) ? results : [])
+        const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_KEY
+        const queryParts = [text]
+        // Adiciona contexto se o usuário já informou cidade/UF para melhorar a assertividade
+        const hasCidade = Boolean(formData.cidade && formData.cidade.trim())
+        const hasEstado = Boolean(formData.estado && formData.estado.trim())
+        if (hasCidade) queryParts.push(formData.cidade)
+        if (hasEstado) queryParts.push(formData.estado)
+        const q = encodeURIComponent(queryParts.join(', '))
+        // Filtros: Brasil + UF + Cidade quando disponíveis
+        const filters: string[] = ['countrycode:br']
+        if (hasEstado) filters.push(`statecode:${encodeURIComponent(formData.estado)}`)
+        if (hasCidade) filters.push(`place:${encodeURIComponent(formData.cidade)}`)
+        const filterParam = filters.join(',')
+        // Bias por cidade ajuda a ranquear melhor nos primeiros caracteres
+        const biasParam = hasCidade ? `&bias=city:${encodeURIComponent(formData.cidade)}` : ''
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${q}&type=street,address&limit=10&lang=pt&filter=${filterParam}${biasParam}&apiKey=${apiKey}`
+        const res = await fetch(url, { cache: 'no-store' })
+        const data = await res.json()
+        const feats = data?.features || data?.results || []
+        setSuggestions(Array.isArray(feats) ? feats : [])
         setShowSuggestions(true)
       } catch {
         setSuggestions([])
         setShowSuggestions(false)
       }
-    }, 200)
-  }, [formData.logradouro])
+    }, 150)
+  }, [formData.logradouro, formData.cidade, formData.estado])
 
   const handleSelectSuggestion = (item: any) => {
-    const addr = item.address || {}
-    const road = addr.road || addr.pedestrian || addr.footway || addr.path
-    const number = addr.house_number
-    const cidade = addr.city || addr.town || addr.village || addr.municipality || formData.cidade
-    const estado = addr.state || formData.estado
-    const rua = [road, number].filter(Boolean).join(', ') || item.display_name
+    const p = item?.properties || item || {}
+    const rua = p.address_line1 || p.formatted || p.name || ''
+    const cidade = p.city || p.town || p.village || p.municipality || formData.cidade
+    const estado = p.state_code || p.state || formData.estado
 
     setFormData((prev) => ({
       ...prev,
       logradouro: rua,
-      cidade,
-      estado,
+      cidade: cidade || prev.cidade,
+      estado: estado || prev.estado,
     }))
-    setCoords({ latitude: item.lat ? parseFloat(item.lat) : null, longitude: item.lon ? parseFloat(item.lon) : null })
+    const lat = typeof p.lat === 'number' ? p.lat : (item?.geometry?.coordinates?.[1] ?? null)
+    const lon = typeof p.lon === 'number' ? p.lon : (item?.geometry?.coordinates?.[0] ?? null)
+    setCoords({ latitude: lat, longitude: lon })
     setShowSuggestions(false)
   }
 
@@ -123,8 +170,6 @@ export default function MaricultorCadastroPage() {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/maricultor/dashboard`,
           data: {
             name: formData.name,
             phone: formData.phone,
@@ -143,27 +188,49 @@ export default function MaricultorCadastroPage() {
         const userId = data.user?.id
         if (userId) {
           try {
-            await fetch('/api/maricultor/register', {
+            const resp = await fetch('/api/maricultor/register', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 id: userId,
                 full_name: formData.name,
                 phone: formData.phone,
-                logradouro: formData.logradouro,
+                logradouro: [formData.logradouro, formData.numero].filter(Boolean).join(', '),
                 cidade: formData.cidade,
                 estado: formData.estado,
+                cep: formData.cep.replace(/\D/g, ''),
                 company: formData.company,
                 specialties: formData.specialties,
-                latitude: coords.latitude,
-                longitude: coords.longitude,
+                latitude: addressLocked ? null : coords.latitude,
+                longitude: addressLocked ? null : coords.longitude,
               })
             })
+            if (!resp.ok) {
+              const payload = await resp.json().catch(() => ({}))
+              setError(payload?.error || 'Falha ao salvar perfil de maricultor')
+              setLoading(false)
+              return
+            }
+
+            // Confirma e-mail automaticamente (para evitar bloqueio no primeiro login)
+            try {
+              await fetch('/api/auth/confirm-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId })
+              })
+            } catch {}
           } catch (e) {
-            // mantém fluxo mesmo se a criação do perfil falhar; pode ser reprocessado posteriormente
+            setError('Falha na comunicação com o servidor ao salvar o perfil')
+            setLoading(false)
+            return
           }
         }
         setSuccess(true)
+        // Redireciona para login unificado após breve confirmação
+        setTimeout(() => {
+          router.push('/login?success=maricultor_registered')
+        }, 1200)
       }
     } catch (err) {
       setError("Erro inesperado. Tente novamente.")
@@ -180,13 +247,10 @@ export default function MaricultorCadastroPage() {
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <Mail className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-bold mb-2">Cadastro Realizado!</h2>
-            <p className="text-muted-foreground mb-6">
-              Enviamos um e-mail de confirmação para <strong>{formData.email}</strong>. Clique no link do e-mail para
-              ativar sua conta.
-            </p>
+            <h2 className="text-xl font-bold mb-2">Cadastro realizado!</h2>
+            <p className="text-muted-foreground mb-6">Redirecionando para a página de login...</p>
             <Button asChild className="w-full">
-              <Link href="/maricultor/login">Ir para Login</Link>
+              <Link href="/login">Ir para Login</Link>
             </Button>
           </CardContent>
         </Card>
@@ -318,41 +382,50 @@ export default function MaricultorCadastroPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 hidden md:block"></div>
+                {/* CEP ao lado do telefone */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-foreground">CEP</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="cep"
+                      inputMode="numeric"
+                      value={formData.cep}
+                      onChange={handleCepChange}
+                      maxLength={9}
+                      className="w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                      placeholder="Ex: 01001-000"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Logradouro em largura total com autocomplete (Nominatim) */}
-              <div className="space-y-2 relative">
+              {/* Logradouro + número com autocomplete (Geoapify) */}
+              <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground">Logradouro</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    name="logradouro"
-                    value={formData.logradouro}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                    placeholder="Rua, número e complemento"
-                    ref={logradouroRef}
-                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                  />
-                </div>
-                {!formData.cidade || !formData.estado ? (
-                  <div className="text-xs text-muted-foreground">Preencha Cidade e Estado para buscar o endereço.</div>
-                ) : null}
-                {showSuggestions && (
-                  <div className="absolute z-20 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                <div className="grid grid-cols-12 gap-3 relative">
+                  <div className="col-span-9 md:col-span-10 relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      name="logradouro"
+                      value={formData.logradouro}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                      placeholder="Rua e complemento"
+                      ref={logradouroRef}
+                      onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                    />
+                    {/* Dica opcional removida: Geoapify funciona mesmo sem cidade/UF */}
+                    {showSuggestions && (
+                      <div className="absolute z-20 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
                     {suggestions.length === 0 ? (
                       <div className="px-3 py-2 text-sm text-muted-foreground">Nenhuma sugestão encontrada</div>
                     ) : suggestions.map((item, idx) => {
-                      const addr = item.address || {}
-                      const primary = [addr.road || addr.pedestrian || addr.footway || addr.path, addr.house_number]
-                        .filter(Boolean)
-                        .join(', ')
-                      const secondary = [addr.city || addr.town || addr.village || addr.municipality, addr.state]
-                        .filter(Boolean)
-                        .join(' - ')
+                      const p = item?.properties || item || {}
+                      const primary = p.address_line1 || p.formatted || p.name
+                      const secondary = p.address_line2 || [p.city, p.state_code || p.state].filter(Boolean).join(' - ')
                       return (
                         <button
                           key={idx}
@@ -361,15 +434,29 @@ export default function MaricultorCadastroPage() {
                           onClick={() => handleSelectSuggestion(item)}
                           className="block w-full text-left px-3 py-2 hover:bg-muted/50"
                         >
-                          <div className="text-sm font-medium text-foreground">{primary || item.display_name}</div>
+                          <div className="text-sm font-medium text-foreground">{primary}</div>
                           {secondary && (
                             <div className="text-xs text-muted-foreground">{secondary}</div>
                           )}
                         </button>
                       )
                     })}
+                      </div>
+                    )}
                   </div>
-                )}
+                  <div className="col-span-3 md:col-span-2">
+                    <label className="sr-only">Número</label>
+                    <input
+                      type="text"
+                      name="numero"
+                      value={formData.numero}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                      placeholder="nº"
+                      inputMode="numeric"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
