@@ -29,6 +29,7 @@ interface User {
   created_at: string
   last_sign_in_at?: string
   email_confirmed_at?: string
+  is_active?: boolean
 }
 
 export default function UsersPage() {
@@ -226,7 +227,7 @@ export default function UsersPage() {
         },
         body: JSON.stringify({
           userId: statusConfirm.user.id,
-          currentStatus: statusConfirm.user.email_confirmed_at ? 'active' : 'inactive'
+          currentStatus: statusConfirm.user.is_active ? 'active' : 'inactive'
         })
       })
 
@@ -238,7 +239,7 @@ export default function UsersPage() {
       const result = await response.json()
       console.log('✅ Status alterado:', result)
       
-      toast.success(`Usuário ${statusConfirm.user.email_confirmed_at ? 'inativado' : 'ativado'} com sucesso!`)
+      toast.success(`Usuário ${statusConfirm.user.is_active ? 'inativado' : 'ativado'} com sucesso!`)
       await fetchUsers() // Recarregar lista
     } catch (error: any) {
       console.error('❌ Erro ao alterar status:', error)
@@ -561,7 +562,7 @@ export default function UsersPage() {
               </CardDescription>
             </div>
             <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
-              {users.filter(u => u.email_confirmed_at).length} Ativos
+              {users.filter(u => u.is_active).length} Ativos
             </Badge>
           </div>
         </CardHeader>
@@ -622,15 +623,15 @@ export default function UsersPage() {
                     </TableCell>
                     <TableCell className="py-4 px-6 min-w-[120px]">
                       <Badge 
-                        variant={user.email_confirmed_at ? 'default' : 'destructive'}
+                        variant={user.is_active ? 'default' : 'destructive'}
                         className={cn(
                           "font-semibold",
-                          user.email_confirmed_at 
+                          user.is_active 
                             ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0" 
                             : "bg-gradient-to-r from-orange-500 to-red-500 text-white border-0"
                         )}
                       >
-                        {user.email_confirmed_at ? (
+                        {user.is_active ? (
                           <>
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Ativo
@@ -638,7 +639,7 @@ export default function UsersPage() {
                         ) : (
                           <>
                             <Clock className="h-3 w-3 mr-1" />
-                            Pendente
+                            Inativo
                           </>
                         )}
                       </Badge>
@@ -665,9 +666,9 @@ export default function UsersPage() {
                           size="sm"
                           onClick={() => handleToggleStatus(user)}
                           className="hover:bg-orange-100 rounded-lg transition-colors duration-200 p-2"
-                          title={user.email_confirmed_at ? "Inativar usuário" : "Ativar usuário"}
+                          title={user.is_active ? "Inativar usuário" : "Ativar usuário"}
                         >
-                          {user.email_confirmed_at ? (
+                          {user.is_active ? (
                             <Clock className="h-4 w-4 text-orange-600" />
                           ) : (
                             <CheckCircle className="h-4 w-4 text-green-600" />
@@ -730,12 +731,12 @@ export default function UsersPage() {
         isOpen={statusConfirm.isOpen}
         onClose={() => setStatusConfirm({isOpen: false, user: null})}
         onConfirm={confirmToggleStatus}
-        title={statusConfirm.user?.email_confirmed_at ? "Inativar Usuário" : "Ativar Usuário"}
-        description={`Tem certeza que deseja ${statusConfirm.user?.email_confirmed_at ? 'inativar' : 'ativar'} o usuário "${statusConfirm.user?.full_name}"?`}
-        confirmText={statusConfirm.user?.email_confirmed_at ? "Inativar" : "Ativar"}
+        title={statusConfirm.user?.is_active ? "Inativar Usuário" : "Ativar Usuário"}
+        description={`Tem certeza que deseja ${statusConfirm.user?.is_active ? 'inativar' : 'ativar'} o usuário "${statusConfirm.user?.full_name}"?`}
+        confirmText={statusConfirm.user?.is_active ? "Inativar" : "Ativar"}
         cancelText="Cancelar"
         variant="warning"
-        icon={statusConfirm.user?.email_confirmed_at ? 
+        icon={statusConfirm.user?.is_active ? 
           <UserX className="h-8 w-8 text-orange-600" /> : 
           <CheckCircle className="h-8 w-8 text-green-600" />
         }

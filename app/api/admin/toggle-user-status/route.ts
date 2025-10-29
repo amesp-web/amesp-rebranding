@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
     // Determinar novo status
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
     const emailConfirmedAt = newStatus === 'active' ? new Date().toISOString() : null
+    const isActive = newStatus === 'active'
     
-    console.log('📧 Novo status:', newStatus, 'email_confirmed_at:', emailConfirmedAt)
+    console.log('📧 Novo status:', newStatus, 'is_active:', isActive, 'email_confirmed_at:', emailConfirmedAt)
 
     // Atualizar usuário no auth.users
     const { data: authData, error: authError } = await supabase.auth.admin.updateUserById(userId, {
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
     const { error: profileError } = await supabase
       .from('admin_profiles')
       .update({ 
+        is_active: isActive,
         email_confirmed_at: emailConfirmedAt,
         updated_at: new Date().toISOString()
       })
