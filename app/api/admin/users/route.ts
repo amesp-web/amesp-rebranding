@@ -48,7 +48,8 @@ export async function GET() {
     // Normalizar last_sign_in_at e adicionar flag has_logged_in
     const normalized = (data || []).map((u: any) => {
       const raw = u.last_sign_in_at as string | null
-      const iso = raw ? raw.replace(' ', 'T') : null
+      // Se já tem 'T' no formato ou é null, manter como está
+      const iso = raw && !raw.includes('T') ? raw.replace(' ', 'T') : raw
       const result = {
         ...u,
         last_sign_in_at: iso,
