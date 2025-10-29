@@ -668,6 +668,35 @@ export default function UsersPage() {
               >
                 <span>🧪 Teste</span>
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    console.log('🔄 Atualizando último acesso do Grah Duetes...')
+                    const response = await fetch('/api/admin/update-last-access', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: 'graziely@gobi.consulting' })
+                    })
+                    const data = await response.json()
+                    console.log('✅ Resposta da atualização:', data)
+                    if (data.success) {
+                      toast.success("Último acesso atualizado! Clique em 'Atualizar' para ver.")
+                      // Recarregar lista após 500ms
+                      setTimeout(() => fetchUsers(), 500)
+                    } else {
+                      toast.error(data.error || "Erro ao atualizar")
+                    }
+                  } catch (error) {
+                    console.error('❌ Erro:', error)
+                    toast.error("Erro ao atualizar último acesso")
+                  }
+                }}
+                className="flex items-center space-x-2 bg-purple-100 hover:bg-purple-200"
+              >
+                <span>🔄 Atualizar Último Acesso</span>
+              </Button>
               <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
                 {users.filter(u => u.is_active).length} Ativos
               </Badge>
