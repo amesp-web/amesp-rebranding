@@ -97,7 +97,22 @@ export default function UsersPage() {
 
       console.log('📊 Usuários recebidos da API:', result.users?.length || 0)
       console.log('📋 Dados detalhados:', result.users)
-      console.log('📋 Dados:', result.users)
+      
+      // Log específico para Grah Duetes
+      const grahUser = result.users?.find((u: User) => u.email === 'graziely@gobi.consulting')
+      if (grahUser) {
+        console.log('🔍 GRAH DUETES NO FRONTEND:')
+        console.log('  - last_sign_in_at:', grahUser.last_sign_in_at)
+        console.log('  - has_logged_in:', grahUser.has_logged_in)
+        console.log('  - is_active:', grahUser.is_active)
+        console.log('  - Tipo de last_sign_in_at:', typeof grahUser.last_sign_in_at)
+        console.log('  - É null?', grahUser.last_sign_in_at === null)
+        console.log('  - É undefined?', grahUser.last_sign_in_at === undefined)
+        console.log('  - Usuário completo:', grahUser)
+      } else {
+        console.warn('⚠️ GRAH DUETES NÃO ENCONTRADO NA RESPOSTA DA API!')
+        console.log('📋 Todos os emails na resposta:', result.users?.map((u: User) => u.email))
+      }
       
       // ATUALIZAR ESTADO DIRETAMENTE
       setUsers(result.users || [])
