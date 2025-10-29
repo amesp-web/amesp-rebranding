@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
@@ -24,6 +24,11 @@ export default function MaricultorCadastroPage() {
     company: "",
     specialties: "",
   })
+  const [coords, setCoords] = useState<{ latitude: number | null; longitude: number | null }>({ latitude: null, longitude: null })
+  const logradouroRef = useRef<HTMLInputElement | null>(null)
+  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const debounceRef = useRef<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
@@ -42,6 +47,56 @@ export default function MaricultorCadastroPage() {
       ...prev,
       [e.target.name]: e.target.value,
     }))
+  }
+
+  // Autocomplete com Nominatim (OpenStreetMap) - gratuito
+  useEffect(() => {
+    if (!formData.logradouro || formData.logradouro.trim().length < 3) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          q: formData.logradouro,
+          format: 'json',
+          addressdetails: '1',
+          countrycodes: 'br',
+          limit: '5',
+          email: 'contato@amesp.org.br'
+        })
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+          headers: { 'Accept-Language': 'pt-BR' }
+        })
+        const data = await res.json()
+        setSuggestions(Array.isArray(data) ? data : [])
+        setShowSuggestions(true)
+      } catch {
+        setSuggestions([])
+        setShowSuggestions(false)
+      }
+    }, 400)
+  }, [formData.logradouro])
+
+  const handleSelectSuggestion = (item: any) => {
+    const addr = item.address || {}
+    const road = addr.road || addr.pedestrian || addr.footway || addr.path
+    const number = addr.house_number
+    const cidade = addr.city || addr.town || addr.village || addr.municipality || formData.cidade
+    const estado = addr.state || formData.estado
+    const rua = [road, number].filter(Boolean).join(', ') || item.display_name
+
+    setFormData((prev) => ({
+      ...prev,
+      logradouro: rua,
+      cidade,
+      estado,
+    }))
+    setCoords({ latitude: item.lat ? parseFloat(item.lat) : null, longitude: item.lon ? parseFloat(item.lon) : null })
+    setShowSuggestions(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,6 +159,8 @@ export default function MaricultorCadastroPage() {
                 estado: formData.estado,
                 company: formData.company,
                 specialties: formData.specialties,
+                latitude: coords.latitude,
+                longitude: coords.longitude,
               })
             })
           } catch (e) {
@@ -268,8 +325,8 @@ export default function MaricultorCadastroPage() {
                 <div className="space-y-2 hidden md:block"></div>
               </div>
 
-              {/* Logradouro em largura total */}
-              <div className="space-y-2">
+              {/* Logradouro em largura total com autocomplete (Nominatim) */}
+              <div className="space-y-2 relative">
                 <label className="text-sm font-semibold text-foreground">Logradouro</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -280,8 +337,38 @@ export default function MaricultorCadastroPage() {
                     onChange={handleChange}
                     className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
                     placeholder="Rua, número e complemento"
+                    ref={logradouroRef}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                   />
                 </div>
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-20 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                    {suggestions.map((item, idx) => {
+                      const addr = item.address || {}
+                      const primary = [addr.road || addr.pedestrian || addr.footway || addr.path, addr.house_number]
+                        .filter(Boolean)
+                        .join(', ')
+                      const secondary = [addr.city || addr.town || addr.village || addr.municipality, addr.state]
+                        .filter(Boolean)
+                        .join(' - ')
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleSelectSuggestion(item)}
+                          className="block w-full text-left px-3 py-2 hover:bg-muted/50"
+                        >
+                          <div className="text-sm font-medium text-foreground">{primary || item.display_name}</div>
+                          {secondary && (
+                            <div className="text-xs text-muted-foreground">{secondary}</div>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
