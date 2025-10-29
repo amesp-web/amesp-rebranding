@@ -45,8 +45,28 @@ export async function GET() {
       throw error
     }
 
-    console.log('✅ Retornando usuários:', data?.length || 0)
-    return NextResponse.json({ users: data || [] })
+    // Normalizar last_sign_in_at e adicionar flag has_logged_in
+    const normalized = (data || []).map((u: any) => {
+      const raw = u.last_sign_in_at as string | null
+      const iso = raw ? raw.replace(' ', 'T') : null
+      return {
+        ...u,
+        last_sign_in_at: iso,
+        has_logged_in: Boolean(raw),
+      }
+    })
+
+    console.log('✅ Retornando usuários:', normalized.length)
+    return NextResponse.json(
+      { users: normalized },
+      {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      },
+    )
   } catch (error: any) {
     console.error('❌ Erro na API users:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })

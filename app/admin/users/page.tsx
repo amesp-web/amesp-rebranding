@@ -30,6 +30,7 @@ interface User {
   last_sign_in_at?: string
   email_confirmed_at?: string
   is_active?: boolean
+  has_logged_in?: boolean
 }
 
 export default function UsersPage() {
@@ -185,10 +186,11 @@ export default function UsersPage() {
   }
 
   const hasUserLoggedIn = (user: User) => {
-    // Se o usuário tem last_sign_in_at, significa que já fez login
-    const hasLoggedIn = user.last_sign_in_at !== null && user.last_sign_in_at !== undefined
+    // Preferir flag do backend; fallback para checar string
+    const hasLoggedIn = Boolean(user.has_logged_in) || (user.last_sign_in_at !== null && user.last_sign_in_at !== undefined)
     console.log(`🔍 Verificando se ${user.full_name} já fez login:`, {
       last_sign_in_at: user.last_sign_in_at,
+      has_logged_in: user.has_logged_in,
       hasLoggedIn
     })
     return hasLoggedIn
@@ -672,11 +674,17 @@ export default function UsersPage() {
                         )}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-slate-600 py-4 px-6 min-w-[120px]">
-                      {user.last_sign_in_at 
-                        ? new Date(user.last_sign_in_at).toLocaleDateString('pt-BR')
-                        : 'Nunca'
-                      }
+                    <TableCell className="text-slate-600 py-4 px-6 min-w-[140px]">
+                      {user.last_sign_in_at ? (
+                        (() => {
+                          // Garantir parsing em todos os navegadores
+                          const safe = user.last_sign_in_at.includes('T')
+                            ? user.last_sign_in_at
+                            : user.last_sign_in_at.replace(' ', 'T')
+                          const d = new Date(safe)
+                          return isNaN(d.getTime()) ? 'Nunca' : d.toLocaleDateString('pt-BR')
+                        })()
+                      ) : 'Nunca'}
                     </TableCell>
                     <TableCell className="py-4 px-6 w-[200px]">
                       <div className="flex items-center space-x-2">
