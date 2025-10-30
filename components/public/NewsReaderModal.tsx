@@ -22,6 +22,7 @@ type Article = {
 export function NewsReaderModal({ article }: { article: Article }) {
   const [open, _setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [currentViews, setCurrentViews] = useState<number>(article.views || 0)
 
   const setOpen = (next: boolean) => {
     _setOpen(next)
@@ -43,6 +44,23 @@ export function NewsReaderModal({ article }: { article: Article }) {
       _setOpen(true)
     }
   }, [article.id])
+
+  // Incremento de views quando abre, evitando duplicidade por usuário
+  useEffect(() => {
+    const key = `news:viewed:${article.id}`
+    if (!open) return
+    try {
+      const already = localStorage.getItem(key)
+      if (already) return
+      fetch('/api/public/news/view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: article.id }) })
+        .then(() => {
+          setCurrentViews((v) => v + 1)
+          localStorage.setItem(key, '1')
+          try { window.dispatchEvent(new CustomEvent('news-views-updated', { detail: { id: String(article.id), views: currentViews + 1 } })) } catch {}
+        })
+        .catch(() => {})
+    } catch {}
+  }, [open, article.id])
 
   return (
     <>
@@ -108,9 +126,7 @@ export function NewsReaderModal({ article }: { article: Article }) {
                 {article.read_time ? (
                   <span className="flex items-center"><Clock className="mr-1 h-3 w-3" />{article.read_time}min</span>
                 ) : null}
-                {typeof article.views === 'number' ? (
-                  <span className="flex items-center"><Eye className="mr-1 h-3 w-3" />{article.views}</span>
-                ) : null}
+                  <span className="flex items-center"><Eye className="mr-1 h-3 w-3" />{currentViews}</span>
                 {article.category ? (
                   <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">{article.category}</Badge>
                 ) : null}
