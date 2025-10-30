@@ -12,37 +12,22 @@ export async function POST(request: Request) {
 
     const supabase = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
 
-    // Incremento atômico
-    const { error } = await supabase
+    // Estratégia simples e confiável: ler e escrever o novo valor
+    const { data: row, error: readErr } = await supabase
       .from('news')
-      .update({ views: (null as any) }) // placeholder, vamos usar RPC via expressão
+      .select('views')
       .eq('id', id)
-      .select('id')
+      .single()
+    if (readErr) return NextResponse.json({ error: readErr.message }, { status: 500 })
 
-    // Como update direto com expressão não é suportado pelo client,
-    // usamos uma chamada a RPC no PostgREST: increment via single update
-    // Alternativa: rodar explicit 'views = views + 1' com SQL custom via Edge não é possível
-    // portanto refazemos usando fetch no rest endpoint diretamente
+    const nextViews = (row?.views || 0) + 1
+    const { error: updErr } = await supabase
+      .from('news')
+      .update({ views: nextViews })
+      .eq('id', id)
+    if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 })
 
-    // Se a abordagem acima falhar, tentaremos um fallback usando fetch no endpoint restful
-    if (error) {
-      const resp = await fetch(`${url}/rest/v1/news?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: {
-          apikey: key,
-          Authorization: `Bearer ${key}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=representation',
-        },
-        body: JSON.stringify({ views: { increment: 1 } }),
-      })
-      if (!resp.ok) {
-        const text = await resp.text()
-        return NextResponse.json({ error: text || 'Falha ao incrementar views' }, { status: 500 })
-      }
-    }
-
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, views: nextViews })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Erro inesperado' }, { status: 500 })
   }

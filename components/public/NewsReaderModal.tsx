@@ -53,10 +53,16 @@ export function NewsReaderModal({ article }: { article: Article }) {
       const already = localStorage.getItem(key)
       if (already) return
       fetch('/api/public/news/view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: article.id }) })
-        .then(() => {
-          setCurrentViews((v) => v + 1)
+        .then(async (r) => {
+          try {
+            const data = await r.json()
+            if (data?.views != null) setCurrentViews(Number(data.views))
+            else setCurrentViews((v) => v + 1)
+          } catch {
+            setCurrentViews((v) => v + 1)
+          }
           localStorage.setItem(key, '1')
-          try { window.dispatchEvent(new CustomEvent('news-views-updated', { detail: { id: String(article.id), views: currentViews + 1 } })) } catch {}
+          try { window.dispatchEvent(new CustomEvent('news-views-updated', { detail: { id: String(article.id), views: (currentViews || 0) + 1 } })) } catch {}
         })
         .catch(() => {})
     } catch {}
