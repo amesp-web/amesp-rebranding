@@ -138,10 +138,30 @@ export default function LoginPage() {
             router.push("/admin")
           }, 1000)
         } else {
+          // Verificar maricultor profile e status
+          const { data: maricultorProfile } = await supabase
+            .from('maricultor_profiles')
+            .select('id, is_active')
+            .eq('id', data.user.id)
+            .single()
+
+          if (maricultorProfile && maricultorProfile.is_active === false) {
+            setError("Sua conta foi inativada. Entre em contato com o administrador.")
+            setLoading(false)
+            return
+          }
+
+          // Atualizar último acesso (se existir o perfil)
+          try {
+            await supabase
+              .from('maricultor_profiles')
+              .update({ last_sign_in_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+              .eq('id', data.user.id)
+          } catch {}
+
           setUserType("maricultor")
-          // Redirect to maricultor dashboard
           setTimeout(() => {
-            router.push("/maricultor/dashboard")
+            router.push('/maricultor/dashboard')
           }, 1000)
         }
       }
