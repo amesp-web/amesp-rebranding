@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { NewsLikeButton } from "@/components/public/NewsLikeButton"
+import { NewsReaderModal } from "@/components/public/NewsReaderModal"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
 import {
@@ -375,17 +376,19 @@ export default async function HomePage() {
             {mockNews.map((article, index) => (
               <Card
                 key={article.id}
-                className={`group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden border-0 shadow-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm ${index === 0 ? "md:col-span-2 lg:col-span-1" : ""}`}
+                className={`group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden rounded-2xl border-0 shadow-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm ${index === 0 ? "md:col-span-2 lg:col-span-1" : ""}`}
               >
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-hidden rounded-t-2xl">
                   <Image
                     src={article.image_url || "/placeholder.svg"}
                     alt={article.title}
                     width={600}
                     height={300}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="block w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  {/* Linha gradiente encostada à imagem */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
                   <div className="absolute top-4 left-4">
                     <Badge
                       variant="secondary"
@@ -409,7 +412,6 @@ export default async function HomePage() {
                   </div>
                 </div>
                 <CardContent className="p-6 relative">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent"></div>
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
                     <div className="flex items-center">
                       <Calendar className="mr-1 h-3 w-3" />
@@ -428,12 +430,16 @@ export default async function HomePage() {
                     {article.title}
                   </CardTitle>
                   <CardDescription className="line-clamp-3 mb-4">{article.excerpt}</CardDescription>
-                  <Button
-                    variant="ghost"
-                    className="p-0 h-auto font-medium text-primary hover:text-primary/80 group-hover:translate-x-1 transition-transform"
-                  >
-                    Ler mais
-                  </Button>
+                  <NewsReaderModal article={{
+                    id: String(article.id),
+                    title: article.title,
+                    content: article.content,
+                    image_url: article.image_url,
+                    category: article.category,
+                    created_at: article.created_at,
+                    read_time: article.read_time,
+                    views: article.views,
+                  }} />
                 </CardContent>
               </Card>
             ))}
