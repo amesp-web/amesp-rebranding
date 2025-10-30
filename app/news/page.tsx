@@ -98,6 +98,7 @@ export default async function AllNewsPage() {
                 created_at: article.created_at,
                 read_time: article.read_time,
                 views: article.views,
+                // @ts-ignore incluir likes para contador no modal
                 likes: article.likes,
               }} />
             </CardContent>

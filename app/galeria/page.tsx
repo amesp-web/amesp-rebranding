@@ -30,10 +30,10 @@ export default async function GalleryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
       {/* Header moderno (mesmo estilo das notícias) */}
-      <header className="relative overflow-hidden rounded-2xl border-0 shadow-xl mt-6">
+      <header className="relative overflow-hidden rounded-2xl border-0 shadow-xl">
         <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/40 to-cyan-50/30" />
         <div className="absolute inset-0 pointer-events-none">
-          <svg className="absolute bottom-0 w-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <svg className="absolute bottom-0 w-full -translate-y-4 md:-translate-y-5" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="rgb(59 130 246 / 0.12)"/>
           </svg>
         </div>
@@ -41,14 +41,15 @@ export default async function GalleryPage() {
           <div className="flex justify-center mb-4">
             <Image src="/amesp_logo.png" alt="AMESP" width={140} height={40} className="h-10 w-auto" />
           </div>
-          <Badge variant="outline" className="w-fit mx-auto">Galeria Visual</Badge>
-          <h1 className="font-sans font-bold text-3xl lg:text-4xl text-balance mt-2">Galeria Completa de Imagens</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty mt-2">Uma jornada visual completa pela maricultura sustentável no litoral norte de São Paulo.</p>
-          <div className="mt-6">
-            <a href="/" className="inline-flex items-center text-sm text-primary hover:underline">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para a Home
-            </a>
+          <Badge variant="secondary" className="w-fit mx-auto bg-primary/10 text-primary border-primary/20 mb-3">Galeria</Badge>
+          <div className="relative z-10 transform -translate-y-1 md:-translate-y-2">
+            <h1 className="font-sans font-bold text-3xl lg:text-4xl text-balance">Galeria Completa de Imagens</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-2">Uma jornada visual completa pela maricultura sustentável no litoral norte de São Paulo.</p>
           </div>
+          <div className="mt-4 relative z-10 transform -translate-y-1 md:-translate-y-2">
+            <a href="/" className="inline-flex items-center text-sm text-primary hover:underline">← Voltar para a Home</a>
+          </div>
+          
         </div>
       </header>
 
