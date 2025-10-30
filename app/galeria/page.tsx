@@ -12,6 +12,7 @@ async function getGalleryData() {
     const { data: gallery } = await supabase
       .from("gallery")
       .select("*")
+      .order("featured", { ascending: false })
       .order("display_order", { ascending: true })
 
     return gallery || []
@@ -20,6 +21,8 @@ async function getGalleryData() {
     return []
   }
 }
+
+import GalleryGrid from "@/components/public/GalleryGrid"
 
 export default async function GalleryPage() {
   const gallery = await getGalleryData()
@@ -86,64 +89,7 @@ export default async function GalleryPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {gallery.map((item: any, index: number) => {
-                const isFeatured = item.featured || index === 0
-
-                return (
-                  <div
-                    key={item.id}
-                    className={`group overflow-hidden hover:shadow-2xl transition-all duration-500 rounded-xl shadow-lg relative ${
-                      isFeatured && index === 0
-                        ? "md:col-span-2 md:row-span-2 aspect-[2/1] md:aspect-auto"
-                        : "aspect-square"
-                    }`}
-                  >
-                    <div className="absolute inset-0">
-                      <Image
-                        src={item.image_url || "/placeholder.svg"}
-                        alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div
-                      className={`absolute text-white transition-all duration-300 opacity-100 ${
-                        isFeatured && index === 0
-                          ? "bottom-6 left-6 right-6"
-                          : "bottom-4 left-4 right-4"
-                      }`}
-                    >
-                      {isFeatured && (
-                        <Badge className="mb-2 bg-primary/90 text-primary-foreground">
-                          Destaque
-                        </Badge>
-                      )}
-                      <h3
-                        className={`font-semibold mb-1 drop-shadow-lg ${
-                          isFeatured && index === 0 ? "text-2xl" : "text-lg"
-                        }`}
-                      >
-                        {item.title}
-                      </h3>
-                      {item.description && (
-                        <p
-                          className={`text-white/95 drop-shadow-md ${
-                            isFeatured && index === 0 ? "text-base" : "text-sm"
-                          }`}
-                        >
-                          {item.description}
-                        </p>
-                      )}
-                      {item.category && (
-                        <p className="text-white/80 text-xs mt-2">{item.category}</p>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <GalleryGrid items={gallery} />
           )}
 
           <div className="text-center">
