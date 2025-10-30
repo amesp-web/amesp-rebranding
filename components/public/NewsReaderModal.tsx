@@ -72,26 +72,29 @@ export function NewsReaderModal({ article }: { article: Article }) {
               </div>
             </div>
           )}
-          <div className="p-6 flex-1 overflow-y-auto">
-            <DialogHeader className="mb-2 sticky top-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
-              <DialogTitle className="text-2xl font-bold leading-tight">{article.title}</DialogTitle>
-              <DialogDescription>
-                <div className="flex items-center gap-3 text-muted-foreground text-sm">
-                  {article.created_at && (
-                    <span className="flex items-center"><Calendar className="mr-1 h-3 w-3" />{new Date(article.created_at).toLocaleDateString("pt-BR")}</span>
-                  )}
-                  {article.read_time ? (
-                    <span className="flex items-center"><Clock className="mr-1 h-3 w-3" />{article.read_time}min</span>
-                  ) : null}
-                  {typeof article.views === 'number' ? (
-                    <span className="flex items-center"><Eye className="mr-1 h-3 w-3" />{article.views}</span>
-                  ) : null}
-                  {article.category ? (
-                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">{article.category}</Badge>
-                  ) : null}
-                </div>
-              </DialogDescription>
-            </DialogHeader>
+          {/* Cabeçalho fixo */}
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/40">
+            <DialogTitle className="text-2xl font-bold leading-tight">{article.title}</DialogTitle>
+            <DialogDescription>
+              <div className="flex items-center gap-3 text-muted-foreground text-sm">
+                {article.created_at && (
+                  <span className="flex items-center"><Calendar className="mr-1 h-3 w-3" />{new Date(article.created_at).toLocaleDateString("pt-BR")}</span>
+                )}
+                {article.read_time ? (
+                  <span className="flex items-center"><Clock className="mr-1 h-3 w-3" />{article.read_time}min</span>
+                ) : null}
+                {typeof article.views === 'number' ? (
+                  <span className="flex items-center"><Eye className="mr-1 h-3 w-3" />{article.views}</span>
+                ) : null}
+                {article.category ? (
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">{article.category}</Badge>
+                ) : null}
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Conteúdo rolável */}
+          <div className="px-6 py-5 flex-1 overflow-y-auto">
             <div className="prose prose-slate max-w-none whitespace-pre-wrap leading-relaxed">
               {article.content}
             </div>
