@@ -46,6 +46,7 @@ export default function GalleryManagement() {
   const [file, setFile] = useState<File | null>(null)
   const [buttonClicked, setButtonClicked] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; item: any | null }>({ isOpen: false, item: null })
 
   const supabase = createClient()
 
@@ -258,14 +259,21 @@ export default function GalleryManagement() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, imageUrl?: string) => {
     try {
       // Remover imediatamente do estado
       setGallery(prev => prev.filter(item => item.id !== id))
       setRefreshKey(prev => prev + 1)
-      
-      const { error } = await supabase.from("gallery").delete().eq("id", id)
-      if (error) throw error
+
+      const resp = await fetch('/api/admin/gallery/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, imageUrl }),
+      })
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}))
+        throw new Error(data.error || 'Erro ao remover imagem')
+      }
       
       toast.success("Imagem removida com sucesso!")
       
@@ -591,7 +599,7 @@ export default function GalleryManagement() {
                 return (
                   <SortableCard key={item.id} item={item} index={index} renderHandle={({ attributes, listeners }) => (
                     <button
-                      className="absolute top-2 left-2 z-10 inline-flex items-center justify-center h-7 w-7 rounded-md bg-white/80 border border-blue-200/60 shadow-sm hover:bg-white"
+                      className="absolute top-2 left-2 z-50 inline-flex items-center justify-center h-7 w-7 rounded-md bg-white/90 border border-blue-200/60 shadow-sm hover:bg-white cursor-grab active:cursor-grabbing"
                       title="Arraste para reordenar"
                       {...attributes}
                       {...listeners}
@@ -617,8 +625,29 @@ export default function GalleryManagement() {
                           <ImageIcon className="h-12 w-12 text-muted-foreground" />
                         </div>
                       )}
+                      {/* Ações sobre a imagem */}
+                      <div className="absolute top-2 right-2 z-20 flex flex-col items-end space-y-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(item)}
+                          className="h-8 px-2 bg-white/90 backdrop-blur border-blue-200/70 hover:bg-white"
+                          title="Editar"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-8 px-2 shadow"
+                          title="Excluir"
+                          onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                       {item.featured && (
-                        <div className="absolute top-2 right-2">
+                        <div className="absolute bottom-2 left-2 z-10">
                           <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg">
                             <Star className="h-3 w-3 mr-1" />
                             Destaque
@@ -649,36 +678,7 @@ export default function GalleryManagement() {
                           {item.category}
                         </Badge>
                       )}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        {/* Setas ocultadas pois a ordenação agora é por arrastar e soltar */}
-                        <div />
-                        <div className="flex items-center space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(item)}
-                            className="h-8 w-8 p-0 hover:bg-blue-100"
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <ConfirmationDialog
-                            title="Remover Imagem"
-                            description={`Tem certeza que deseja remover "${item.title}"?`}
-                            onConfirm={() => handleDelete(item.id)}
-                            variant="destructive"
-                          >
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 hover:bg-red-100"
-                              title="Excluir"
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </ConfirmationDialog>
-                        </div>
-                      </div>
+                      {/* Barra inferior limpa (sem setas/ações, pois estão sobre a imagem) */}
                     </CardContent>
                   </Card>
                   </SortableCard>
@@ -690,6 +690,19 @@ export default function GalleryManagement() {
           )}
         </CardContent>
       </Card>
+      {/* Dialog de confirmação de remoção */}
+      <ConfirmationDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, item: null })}
+        onConfirm={async () => {
+          if (deleteConfirm.item) {
+            await handleDelete(deleteConfirm.item.id, deleteConfirm.item.image_url)
+          }
+        }}
+        title="Remover Imagem"
+        description={deleteConfirm.item ? `Tem certeza que deseja remover "${deleteConfirm.item.title}"?` : 'Tem certeza que deseja remover esta imagem?'}
+        variant="delete"
+      />
     </div>
   )
 }
