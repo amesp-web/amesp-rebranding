@@ -157,6 +157,20 @@ export default function GalleryManagement() {
         imageUrl = uploadData.url
       }
 
+      // Garantir que exista apenas UM destaque por vez
+      if (formData.featured) {
+        if (editingItem?.id) {
+          await supabase
+            .from("gallery")
+            .update({ featured: false })
+            .neq("id", editingItem.id)
+        } else {
+          await supabase
+            .from("gallery")
+            .update({ featured: false })
+        }
+      }
+
       // Determinar display_order
       let displayOrder = formData.display_order
       if (!editingItem) {

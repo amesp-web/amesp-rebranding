@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
-import dynamic from "next/dynamic"
+import nextDynamic from "next/dynamic"
 import {
   Waves,
   Heart,
@@ -20,6 +20,9 @@ import {
   UserPlus,
 } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 async function getSupabaseData() {
   try {
     const { createClient } = await import("@/lib/supabase/server")
@@ -33,12 +36,32 @@ async function getSupabaseData() {
       .order("created_at", { ascending: false })
       .limit(3)
 
-    // Fetch real gallery data (apenas 5 para a home: 1 destacada + 4 pequenas)
-    const { data: gallery } = await supabase
+    // Buscar imagem destacada (mais recente) e mais 4 imagens comuns
+    let featuredId: string | null = null
+    let galleryHome: any[] = []
+
+    const { data: featured } = await supabase
       .from("gallery")
       .select("*")
+      .eq("featured", true)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+
+    if (featured && featured.length > 0) {
+      featuredId = featured[0].id
+      galleryHome.push(featured[0])
+    }
+
+    const { data: others } = await supabase
+      .from("gallery")
+      .select("*")
+      .neq("id", featuredId || "00000000-0000-0000-0000-000000000000")
       .order("display_order", { ascending: true })
-      .limit(5)
+      .limit(4)
+
+    if (others && others.length > 0) {
+      galleryHome = [...galleryHome, ...others]
+    }
 
     // Contar total de imagens para mostrar botão "Ver Galeria Completa"
     const { count: totalCount } = await supabase
@@ -51,7 +74,7 @@ async function getSupabaseData() {
       .eq("active", true)
       .order("name", { ascending: true })
 
-    return { news, gallery, producers, galleryTotalCount: totalCount || 0 }
+    return { news, gallery: galleryHome, producers, galleryTotalCount: totalCount || 0 }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
     return { news: null, gallery: null, producers: null, galleryTotalCount: 0 }
@@ -684,7 +707,7 @@ export default async function HomePage() {
               <CardContent className="p-0">
                 <div className="relative h-96 bg-gradient-to-br from-primary/10 to-accent/10">
                   {/* Mapa MapLibre */}
-                  {dynamic(() => import("@/components/public/HomeMap"), { ssr: false })({})}
+                  {nextDynamic(() => import("@/components/public/HomeMap"), { ssr: false })({})}
                   <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-md rounded-lg p-3 shadow-lg">
                     <div className="flex items-center space-x-2">
                       <MapPin className="h-5 w-5 text-primary" />
