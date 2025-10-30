@@ -432,86 +432,66 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {/* Featured large image */}
-            <div className="group overflow-hidden hover:shadow-2xl transition-all duration-500 md:col-span-2 md:row-span-2 rounded-xl shadow-lg relative">
-              <Image
-                src="/sustainable-aquaculture-farm-with-workers-in-boats.jpg"
-                alt="Cultivo Sustentável"
-                width={800}
-                height={600}
-                className="w-full h-96 md:h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-6 left-6 right-6 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100 group-hover:translate-y-0">
-                <h3 className="font-bold text-2xl mb-2">Cultivo Sustentável</h3>
-                <p className="text-white/90">
-                  Fazendas aquícolas modernas com tecnologia de ponta para produção sustentável
-                </p>
-              </div>
-            </div>
+          {gallery && gallery.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {gallery.map((item: any, index: number) => {
+                const isFeatured = item.featured || index === 0
+                const isLarge = isFeatured && index === 0
 
-            {/* Smaller gallery items */}
-            <div className="group overflow-hidden hover:shadow-xl transition-all duration-300 rounded-xl shadow-lg relative">
-              <Image
-                src="/professional-conference-room-with-aquaculture-expe.jpg"
-                alt="Eventos Técnicos"
-                width={400}
-                height={300}
-                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100">
-                <h3 className="font-semibold text-lg mb-1">Eventos Técnicos</h3>
-                <p className="text-sm text-white/90">Capacitação profissional</p>
-              </div>
-            </div>
+                if (isLarge) {
+                  // Imagem grande em destaque (2 colunas x 2 linhas)
+                  return (
+                    <div
+                      key={item.id}
+                      className="group overflow-hidden hover:shadow-2xl transition-all duration-500 md:col-span-2 md:row-span-2 rounded-xl shadow-lg relative"
+                    >
+                      <Image
+                        src={item.image_url || "/placeholder.svg"}
+                        alt={item.title}
+                        width={800}
+                        height={600}
+                        className="w-full h-96 md:h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute bottom-6 left-6 right-6 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100 group-hover:translate-y-0">
+                        <h3 className="font-bold text-2xl mb-2">{item.title}</h3>
+                        {item.description && (
+                          <p className="text-white/90">{item.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
 
-            <div className="group overflow-hidden hover:shadow-xl transition-all duration-300 rounded-xl shadow-lg relative">
-              <Image
-                src="/interactive-map-of-s-o-paulo-coast-showing-aquacul.jpg"
-                alt="Mapeamento Costeiro"
-                width={400}
-                height={300}
-                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100">
-                <h3 className="font-semibold text-lg mb-1">Mapeamento Costeiro</h3>
-                <p className="text-sm text-white/90">Tecnologia de ponta</p>
-              </div>
+                // Imagens pequenas (1 coluna x 1 linha)
+                return (
+                  <div
+                    key={item.id}
+                    className="group overflow-hidden hover:shadow-xl transition-all duration-300 rounded-xl shadow-lg relative"
+                  >
+                    <Image
+                      src={item.image_url || "/placeholder.svg"}
+                      alt={item.title}
+                      width={400}
+                      height={300}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100">
+                      <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
+                      {item.description && (
+                        <p className="text-sm text-white/90">{item.description}</p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-
-            <div className="group overflow-hidden hover:shadow-xl transition-all duration-300 rounded-xl shadow-lg relative">
-              <Image
-                src="/underwater-marine-cultivation-tanks.jpg"
-                alt="Tanques de Cultivo"
-                width={400}
-                height={300}
-                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100">
-                <h3 className="font-semibold text-lg mb-1">Tanques de Cultivo</h3>
-                <p className="text-sm text-white/90">Infraestrutura moderna</p>
-              </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Nenhuma imagem na galeria ainda</p>
             </div>
-
-            <div className="group overflow-hidden hover:shadow-xl transition-all duration-300 rounded-xl shadow-lg relative">
-              <Image
-                src="/marine-biologist-examining-oysters-mussels.jpg"
-                alt="Pesquisa Científica"
-                width={400}
-                height={300}
-                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100">
-                <h3 className="font-semibold text-lg mb-1">Pesquisa Científica</h3>
-                <p className="text-sm text-white/90">Inovação constante</p>
-              </div>
-            </div>
-          </div>
+          )}
 
           <div className="text-center">
             <Button
