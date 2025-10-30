@@ -13,6 +13,18 @@ import { Plus, Edit, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, Loader2, Ca
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import Image from "next/image"
+import {
+  DndContext,
+  DragEndEvent,
+  closestCenter,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { FishTableLoading } from "@/components/ui/fish-loading"
 
@@ -308,6 +320,58 @@ export default function GalleryManagement() {
 
   const featuredCount = gallery.filter((g) => g.featured).length
 
+  // Componente item sortável
+  function SortableCard({ item, index, children }: { item: any; index: number; children: React.ReactNode }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.6 : 1,
+      cursor: "grab",
+    } as React.CSSProperties
+
+    return (
+      <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        {children}
+      </div>
+    )
+  }
+
+  const onDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = gallery.findIndex((g) => g.id === active.id)
+    const newIndex = gallery.findIndex((g) => g.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    // Atualiza estado imediatamente
+    const moved = arrayMove(gallery, oldIndex, newIndex)
+    // Reindexar SOMENTE não-destaques em sequência (1,2,3...) – armazenamos como 0,1,2...
+    const nonFeatured = moved.filter((g) => !g.featured)
+    const reordered = moved.map((g) =>
+      g.featured ? g : { ...g, display_order: nonFeatured.findIndex((n) => n.id === g.id) }
+    )
+    setGallery(reordered)
+    setRefreshKey((prev) => prev + 1)
+
+    // Persiste novos índices
+    try {
+      const updates = [] as Promise<any>[]
+      for (const item of reordered) {
+        if (!item.featured) {
+          updates.push(
+            supabase.from("gallery").update({ display_order: item.display_order }).eq("id", item.id)
+          )
+        }
+      }
+      await Promise.all(updates)
+    } catch (e: any) {
+      toast.error("Erro ao salvar nova ordem: " + e.message)
+      fetchGallery()
+    }
+  }
+
   return (
     <div className="space-y-8">
       {/* Header com gradiente oceânico */}
@@ -519,10 +583,13 @@ export default function GalleryManagement() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" key={refreshKey}>
-              {filteredGallery.map((item, index) => {
+            <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+              <SortableContext items={filteredGallery.map((i) => i.id)} strategy={rectSortingStrategy}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" key={refreshKey}>
+                  {filteredGallery.map((item, index) => {
                 const originalIndex = gallery.findIndex((g) => g.id === item.id)
                 return (
+                  <SortableCard key={item.id} item={item} index={index}>
                   <Card
                     key={item.id}
                     className="overflow-hidden group hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-300 bg-white"
@@ -550,6 +617,19 @@ export default function GalleryManagement() {
                       )}
                     </div>
                     <CardContent className="p-4">
+                      {/* Badge de ordem sequencial para não-destaque */}
+                      {(() => {
+                        if (item.featured) return null
+                        const nonFeaturedSorted = [...gallery.filter((g) => !g.featured)].sort(
+                          (a, b) => (a.display_order || 0) - (b.display_order || 0)
+                        )
+                        const position = nonFeaturedSorted.findIndex((g) => g.id === item.id)
+                        return (
+                          <Badge variant="outline" className="mb-2 text-xs">
+                            Ordem: {position + 1}
+                          </Badge>
+                        )
+                      })()}
                       <h3 className="font-semibold mb-1 line-clamp-1 text-slate-800">{item.title}</h3>
                       {item.description && (
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{item.description}</p>
@@ -611,9 +691,12 @@ export default function GalleryManagement() {
                       </div>
                     </CardContent>
                   </Card>
+                  </SortableCard>
                 )
               })}
-            </div>
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </CardContent>
       </Card>

@@ -56,7 +56,8 @@ async function getSupabaseData() {
       .from("gallery")
       .select("*")
       .neq("id", featuredId || "00000000-0000-0000-0000-000000000000")
-      .order("display_order", { ascending: true })
+      .order("display_order", { ascending: true, nullsFirst: false })
+      .order("updated_at", { ascending: true })
       .limit(4)
 
     if (others && others.length > 0) {
