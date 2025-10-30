@@ -443,20 +443,21 @@ export default async function HomePage() {
                   return (
                     <div
                       key={item.id}
-                      className="group overflow-hidden hover:shadow-2xl transition-all duration-500 md:col-span-2 md:row-span-2 rounded-xl shadow-lg relative"
+                      className="group overflow-hidden hover:shadow-2xl transition-all duration-500 md:col-span-2 md:row-span-2 rounded-xl shadow-lg relative aspect-[2/1] md:aspect-auto"
                     >
-                      <Image
-                        src={item.image_url || "/placeholder.svg"}
-                        alt={item.title}
-                        width={800}
-                        height={600}
-                        className="w-full h-96 md:h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="absolute bottom-6 left-6 right-6 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100 group-hover:translate-y-0">
-                        <h3 className="font-bold text-2xl mb-2">{item.title}</h3>
+                      <div className="absolute inset-0">
+                        <Image
+                          src={item.image_url || "/placeholder.svg"}
+                          alt={item.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute bottom-6 left-6 right-6 text-white transform translate-y-0 transition-all duration-300 opacity-100">
+                        <h3 className="font-bold text-2xl mb-2 drop-shadow-lg">{item.title}</h3>
                         {item.description && (
-                          <p className="text-white/90">{item.description}</p>
+                          <p className="text-white/95 drop-shadow-md">{item.description}</p>
                         )}
                       </div>
                     </div>
@@ -467,20 +468,21 @@ export default async function HomePage() {
                 return (
                   <div
                     key={item.id}
-                    className="group overflow-hidden hover:shadow-xl transition-all duration-300 rounded-xl shadow-lg relative"
+                    className="group overflow-hidden hover:shadow-xl transition-all duration-300 rounded-xl shadow-lg relative aspect-square"
                   >
-                    <Image
-                      src={item.image_url || "/placeholder.svg"}
-                      alt={item.title}
-                      width={400}
-                      height={300}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-0 transition-all duration-300 opacity-40 group-hover:opacity-100">
-                      <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
+                    <div className="absolute inset-0">
+                      <Image
+                        src={item.image_url || "/placeholder.svg"}
+                        alt={item.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-0 transition-all duration-300 opacity-100">
+                      <h3 className="font-semibold text-lg mb-1 drop-shadow-lg">{item.title}</h3>
                       {item.description && (
-                        <p className="text-sm text-white/90">{item.description}</p>
+                        <p className="text-sm text-white/95 drop-shadow-md">{item.description}</p>
                       )}
                     </div>
                   </div>
