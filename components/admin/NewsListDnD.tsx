@@ -5,6 +5,7 @@ import { DndContext, closestCenter } from '@dnd-kit/core'
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Heart, Eye } from 'lucide-react'
 import { NewsCardActions } from '@/components/admin/NewsCardActions'
 
@@ -62,12 +63,17 @@ export function NewsListDnD({ items }: { items: NewsItem[] }) {
     <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <SortableContext items={list.map((n) => n.id)} strategy={rectSortingStrategy}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {list.map((n) => (
+          {list.map((n, idx) => (
             <SortableCard key={n.id} id={n.id}>
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50/30 via-white to-cyan-50/30 ring-1 ring-black/5">
                 <CardHeader className="pb-3 cursor-grab">
-                  <CardTitle className="text-base font-semibold line-clamp-2">{n.title}</CardTitle>
-                  <CardDescription>{new Date(n.created_at).toLocaleDateString('pt-BR')}</CardDescription>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-base font-semibold line-clamp-2">{n.title}</CardTitle>
+                      <CardDescription>{new Date(n.created_at).toLocaleDateString('pt-BR')}</CardDescription>
+                    </div>
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">Ordem: {idx + 1}</Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-0 flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center gap-4">

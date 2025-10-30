@@ -35,6 +35,7 @@ async function getSupabaseData() {
       .from("news")
       .select("*")
       .eq("published", true)
+      .order("display_order", { ascending: true })
       .order("created_at", { ascending: false })
       .limit(3)
 

@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { ArrowLeft, Save } from "lucide-react"
+import { useRef, useState } from "react"
+import { ArrowLeft, Save, ImagePlus } from "lucide-react"
 import Link from "next/link"
 
 interface NewsFormProps {
@@ -33,6 +33,8 @@ export function NewsForm({ initialData }: NewsFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialData?.image_url || null)
   const router = useRouter()
   const supabase = createClient()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const triggerFileSelect = () => fileInputRef.current?.click()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -128,15 +130,34 @@ export function NewsForm({ initialData }: NewsFormProps) {
               value={formData.title}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Digite o título da notícia"
+              className="border-2 border-blue-200/60 bg-white/90 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image_file">Foto da Notícia</Label>
-            <Input id="image_file" type="file" accept="image/*" onChange={handleFileChange} disabled={isUploading} />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="image_file">Foto da Notícia</Label>
+              <button
+                type="button"
+                onClick={triggerFileSelect}
+                className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow transition-colors"
+                title="Escolher arquivo"
+              >
+                <ImagePlus className="h-5 w-5" />
+              </button>
+            </div>
+            <input
+              ref={fileInputRef}
+              id="image_file"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={isUploading}
+              className="hidden"
+            />
             {(previewUrl || formData.image_url) && (
-              <div className="mt-2 mx-auto w-full max-w-md">
+              <div className="mt-2 mx-auto w-full max-w-md cursor-pointer" onClick={triggerFileSelect}>
                 <div className="relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-black/5 shadow-md bg-white">
                   <img
                     src={(previewUrl || formData.image_url) || "/placeholder.svg"}
@@ -155,6 +176,19 @@ export function NewsForm({ initialData }: NewsFormProps) {
                 </div>
               </div>
             )}
+            {!previewUrl && !formData.image_url && (
+              <div
+                onClick={triggerFileSelect}
+                className="mt-2 mx-auto w-full max-w-md cursor-pointer"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-dashed ring-blue-300/70 bg-white/70 flex items-center justify-center">
+                  <div className="flex flex-col items-center text-slate-500">
+                    <ImagePlus className="h-8 w-8 mb-2" />
+                    <span className="text-sm">Clique para escolher uma imagem</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -164,6 +198,9 @@ export function NewsForm({ initialData }: NewsFormProps) {
               value={formData.image_url}
               onChange={(e) => handleChange("image_url", e.target.value)}
               placeholder="https://exemplo.com/imagem.jpg"
+              className="border-2 border-blue-200/60 bg-slate-50 text-slate-600 rounded-xl select-text"
+              readOnly
+              disabled
             />
           </div>
 
@@ -175,6 +212,7 @@ export function NewsForm({ initialData }: NewsFormProps) {
               onChange={(e) => handleChange("excerpt", e.target.value)}
               placeholder="Breve descrição da notícia"
               rows={3}
+              className="border-2 border-blue-200/60 bg-white/90 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               required
             />
           </div>
@@ -187,6 +225,7 @@ export function NewsForm({ initialData }: NewsFormProps) {
               onChange={(e) => handleChange("content", e.target.value)}
               placeholder="Conteúdo completo da notícia"
               rows={15}
+              className="border-2 border-blue-200/60 bg-white/90 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
               required
             />
           </div>
@@ -196,7 +235,7 @@ export function NewsForm({ initialData }: NewsFormProps) {
           <div className="space-y-2">
             <Label htmlFor="category">Categoria *</Label>
             <Select value={formData.category} onValueChange={(value) => handleChange("category", value)}>
-              <SelectTrigger>
+              <SelectTrigger className="border-2 border-blue-200/60 bg-white/90 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -220,6 +259,7 @@ export function NewsForm({ initialData }: NewsFormProps) {
               onChange={(e) => handleChange("read_time", Number.parseInt(e.target.value) || 5)}
               min="1"
               max="60"
+              className="w-40 border-2 border-blue-200/60 bg-white/90 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
           </div>
 
@@ -237,15 +277,19 @@ export function NewsForm({ initialData }: NewsFormProps) {
       </div>
 
       {/* Rodapé com ações */}
-      <div className="mt-6 flex items-center justify-between">
-        <Button variant="ghost" asChild>
+      <div className="mt-8 pt-6 border-t border-blue-200/50 flex items-center justify-between">
+        <Button variant="outline" asChild className="border-2 border-gray-300 hover:border-gray-400 rounded-xl px-6 py-2 transition-all duration-300">
           <Link href="/admin/news">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar
           </Link>
         </Button>
         <div className="flex items-center space-x-2">
-          <Button type="submit" disabled={isLoading}>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-150 rounded-xl px-6 py-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <Save className="mr-2 h-4 w-4" />
             {isLoading ? "Salvando..." : "Salvar"}
           </Button>
