@@ -2,10 +2,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Plus, MapPin, Edit, Eye, Search, Phone, Mail } from "lucide-react"
+import { MapPin, Search, Phone, Factory, Users, CalendarDays, ChevronRight, User as UserIcon } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
-import { ProducerActions } from "@/components/admin/producer-actions"
+
+function normalizeSpecialties(value: any): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) return value.filter(Boolean)
+  if (typeof value === "string") {
+    // Try JSON first
+    try {
+      const parsed = JSON.parse(value)
+      if (Array.isArray(parsed)) return parsed.filter(Boolean)
+    } catch {}
+    // Fallback: comma/semicolon separated
+    return value
+      .split(/[,;]+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
+function getInitials(name?: string | null): string {
+  if (!name) return "?"
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
 
 export default async function ProducersManagement({
   searchParams,
@@ -15,56 +39,83 @@ export default async function ProducersManagement({
   const params = await searchParams
   const supabase = await createClient()
 
-  // Build query
-  let query = supabase.from("producers").select("*").order("created_at", { ascending: false })
-
-  // Apply search filter
-  if (params.search) {
-    query = query.or(
-      `name.ilike.%${params.search}%,location.ilike.%${params.search}%,specialties.cs.{${params.search}}`,
+  // Buscar maricultores
+  let query = supabase
+    .from("maricultor_profiles")
+    .select(
+      "id, full_name, contact_phone, logradouro, cidade, estado, company, specialties, latitude, longitude, created_at, is_active"
     )
-  }
+    .order("created_at", { ascending: false })
 
-  // Apply status filter
+  if (params.search) {
+    const s = params.search
+    query = query.or(`full_name.ilike.%${s}%,cidade.ilike.%${s}%,estado.ilike.%${s}%,company.ilike.%${s}%`)
+  }
   if (params.filter === "active") {
-    query = query.eq("active", true)
+    query = query.eq("is_active", true)
   } else if (params.filter === "inactive") {
-    query = query.eq("active", false)
+    query = query.eq("is_active", false)
   }
 
   const { data: producers, error } = await query
 
   if (error) {
-    console.error("Error fetching producers:", error)
+    console.error("Error fetching maricultores:", error)
   }
 
+  const total = producers?.length || 0
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+  const thisMonth = (producers || []).filter((p) => p.created_at && new Date(p.created_at) >= startOfMonth).length
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Gerenciar Produtores</h1>
-          <p className="text-muted-foreground">Adicione e gerencie produtores associados</p>
+    <div className="space-y-8">
+      {/* Header moderno com KPIs */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 p-8 shadow-xl">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -left-24 -bottom-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
         </div>
-        <Button asChild>
-          <Link href="/admin/producers/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Produtor
-          </Link>
-        </Button>
+        <div className="relative">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2 flex items-center drop-shadow">
+                <Factory className="h-8 w-8 mr-3" /> Maricultores
+              </h1>
+              <p className="text-blue-50/90 text-lg">Acompanhe e gerencie os maricultores cadastrados</p>
+            </div>
+            <div className="grid grid-cols-2 gap-6 text-white">
+              <div className="rounded-xl bg-white/10 backdrop-blur-md px-4 py-3 shadow-lg border border-white/20">
+                <div className="text-sm text-blue-50/90">Total cadastrados</div>
+                <div className="mt-1 text-2xl font-bold flex items-center">
+                  <Users className="h-5 w-5 mr-2" /> {total}
+                </div>
+              </div>
+              <div className="rounded-xl bg-white/10 backdrop-blur-md px-4 py-3 shadow-lg border border-white/20">
+                <div className="text-sm text-blue-50/90">Neste mês</div>
+                <div className="mt-1 text-2xl font-bold flex items-center">
+                  <CalendarDays className="h-5 w-5 mr-2" /> {thisMonth}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Card>
+      {/* Filtros */}
+      <Card className="border-0 shadow-md ring-1 ring-black/5 bg-gradient-to-br from-card to-card/60">
         <CardHeader>
-          <CardTitle>Filtros</CardTitle>
+          <CardTitle className="text-slate-800">Filtros</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar produtores..."
-                  className="pl-10"
+                  placeholder="Buscar maricultor, cidade, estado ou empresa..."
+                  className="pl-10 rounded-xl border-2 border-blue-200/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
                   defaultValue={params.search}
                   name="search"
                 />
@@ -85,76 +136,65 @@ export default async function ProducersManagement({
         </CardContent>
       </Card>
 
-      <Card>
+      {/* Lista moderna */}
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/60">
         <CardHeader>
-          <CardTitle>Lista de Produtores</CardTitle>
-          <CardDescription>
-            Gerencie todos os produtores associados ({producers?.length || 0} encontrados)
-          </CardDescription>
+          <CardTitle className="text-xl font-bold text-slate-800">Lista de Maricultores</CardTitle>
+          <CardDescription className="text-slate-600">Gerencie todos os maricultores cadastrados ({producers?.length || 0} encontrados)</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {producers && producers.length > 0 ? (
             <div className="space-y-4">
-              {producers.map((producer) => (
+              {producers.map((p) => (
                 <div
-                  key={producer.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  key={p.id}
+                  className="group flex items-center justify-between p-5 rounded-2xl transition-all bg-gradient-to-br from-background to-card/40 shadow-md border-0 ring-1 ring-black/5 hover:ring-primary/20 hover:shadow-lg hover:-translate-y-0.5"
                 >
-                  <div className="flex-1 space-y-2">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="relative h-12 w-12 shrink-0 rounded-xl bg-primary/10 text-primary grid place-items-center font-semibold">
+                      <span>{getInitials(p.full_name)}</span>
+                      <div className="absolute inset-0 rounded-xl ring-1 ring-primary/20" />
+                    </div>
+                    <div className="flex-1 space-y-2">
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold text-lg">{producer.name}</h3>
-                      <Badge variant={producer.active ? "default" : "secondary"}>
-                        {producer.active ? "Ativo" : "Inativo"}
-                      </Badge>
-                      {producer.certification_level && <Badge variant="outline">{producer.certification_level}</Badge>}
+                      <h3 className="font-semibold text-lg">{p.full_name || "Maricultor"}</h3>
+                      <Badge variant={p.is_active ? "default" : "secondary"}>{p.is_active ? "Ativo" : "Inativo"}</Badge>
+                        {p.company && <Badge variant="outline" className="bg-primary/5 border-primary/20">{p.company}</Badge>}
                     </div>
 
                     <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <MapPin className="mr-1 h-3 w-3" />
-                        {producer.location}
+                        {p.cidade}
+                        {p.estado ? ` - ${p.estado}` : ""}
                       </div>
-                      {producer.contact_phone && (
+                      {p.contact_phone && (
                         <div className="flex items-center">
-                          <Phone className="mr-1 h-3 w-3" />
-                          {producer.contact_phone}
-                        </div>
-                      )}
-                      {producer.contact_email && (
-                        <div className="flex items-center">
-                          <Mail className="mr-1 h-3 w-3" />
-                          {producer.contact_email}
+                          <Phone className="mr-1 h-3 w-3" /> {p.contact_phone}
                         </div>
                       )}
                     </div>
 
-                    {producer.specialties && producer.specialties.length > 0 && (
+                    {normalizeSpecialties(p.specialties).length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {producer.specialties.map((specialty: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {specialty}
+                        {normalizeSpecialties(p.specialties).map((s: string, i: number) => (
+                          <Badge key={i} variant="secondary" className="text-xs bg-accent/20">
+                            {s}
                           </Badge>
                         ))}
                       </div>
                     )}
 
-                    {producer.description && (
-                      <p className="text-muted-foreground text-sm line-clamp-2">{producer.description}</p>
+                    {p.logradouro && (
+                      <p className="text-muted-foreground text-sm line-clamp-2">
+                        {p.logradouro}
+                      </p>
                     )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 ml-4">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/admin/producers/${producer.id}`}>
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/admin/producers/${producer.id}/edit`}>
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <ProducerActions producerId={producer.id} active={producer.active} />
+                  <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
                   </div>
                 </div>
               ))}
@@ -162,18 +202,10 @@ export default async function ProducersManagement({
           ) : (
             <div className="text-center py-12">
               <MapPin className="mx-auto h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mt-4 text-lg font-semibold">Nenhum produtor encontrado</h3>
+              <h3 className="mt-4 text-lg font-semibold">Nenhum maricultor encontrado</h3>
               <p className="text-muted-foreground">
-                {params.search || params.filter
-                  ? "Tente ajustar os filtros de busca"
-                  : "Comece adicionando seu primeiro produtor"}
+                {params.search || params.filter ? "Tente ajustar os filtros de busca" : "Cadastro de maricultores é feito pelo formulário público"}
               </p>
-              <Button className="mt-4" asChild>
-                <Link href="/admin/producers/new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo Produtor
-                </Link>
-              </Button>
             </div>
           )}
         </CardContent>
