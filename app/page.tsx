@@ -6,6 +6,7 @@ import { NewsReaderModal } from "@/components/public/NewsReaderModal"
 import { ViewsCounter } from "@/components/public/ViewsCounter"
 import { ShareCopyButton } from "@/components/public/ShareCopyButton"
 import Image from "next/image"
+import HomeEventsSection from "@/components/public/HomeEventsSection"
 import nextDynamic from "next/dynamic"
 import {
   Waves,
@@ -715,49 +716,7 @@ export default async function HomePage() {
       {/* Events Section */}
       <section id="eventos" className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="text-center space-y-4 mb-16">
-            <Badge variant="outline" className="w-fit mx-auto">
-              Eventos
-            </Badge>
-            <h2 className="font-sans font-bold text-3xl lg:text-4xl text-balance">
-              I Workshop Nacional da Maricultura
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-              Participe do maior evento de maricultura do país, reunindo especialistas, produtores e pesquisadores.
-            </p>
-          </div>
-
-          <Card className="max-w-4xl mx-auto overflow-hidden border-0 shadow-xl">
-            <div className="grid md:grid-cols-2">
-              <div className="relative h-64 md:h-auto">
-                <Image
-                  src="/professional-conference-room-with-aquaculture-expe.jpg"
-                  alt="Workshop Nacional da Maricultura"
-                  width={600}
-                  height={400}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardContent className="p-8 flex flex-col justify-center bg-gradient-to-br from-card to-card/50">
-                <div className="space-y-4">
-                  <Badge variant="secondary" className="w-fit bg-primary/10 border-primary text-primary font-medium">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    30 de Agosto a 1 de Setembro de 2024
-                  </Badge>
-                  <CardTitle className="text-2xl font-sans">I Workshop Nacional da Maricultura</CardTitle>
-                  <CardDescription className="text-base">
-                    <div className="flex items-center mb-2">
-                      <MapPin className="mr-2 h-4 w-4" />
-                      Ubatuba - SP
-                    </div>
-                    Um evento único para discutir o futuro da maricultura brasileira, com palestras, workshops práticos
-                    e networking entre profissionais do setor.
-                  </CardDescription>
-                  <Button className="w-fit hover:scale-105 transition-transform">Saiba Mais</Button>
-                </div>
-              </CardContent>
-            </div>
-          </Card>
+          <HomeEventsSection />
         </div>
       </section>
 

@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Home, Newspaper, Users, Camera, MapPin, Settings, LogOut, ChevronLeft, ChevronRight, Info, Leaf, Download } from "lucide-react"
+import { Home, Newspaper, Users, Camera, MapPin, Settings, LogOut, ChevronLeft, ChevronRight, Info, Leaf, Download, Calendar } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -13,6 +13,7 @@ import { useSidebar } from "@/contexts/sidebar-context"
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: Home },
   { name: "Notícias", href: "/admin/news", icon: Newspaper },
+  { name: "Eventos", href: "/admin/events", icon: Calendar },
   { name: "Produtores", href: "/admin/producers", icon: MapPin },
   { name: "Galeria", href: "/admin/gallery", icon: Camera },
   { name: "Usuários", href: "/admin/users", icon: Users },
