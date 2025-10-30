@@ -17,7 +17,7 @@ export default async function AdminDashboard() {
     viewsDataResult
   ] = await Promise.all([
     supabase.from("news").select("id", { count: "exact" }),
-    supabase.from("producers").select("id", { count: "exact" }),
+    supabase.from("maricultor_profiles").select("id", { count: "exact" }).eq("is_active", true),
     supabase.from("gallery").select("id", { count: "exact" }),
     supabase.from("news").select("id", { count: "exact" }).eq("published", true),
     supabase.from("news").select("id, title, created_at, published, views").order("created_at", { ascending: false }).limit(5),

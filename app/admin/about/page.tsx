@@ -181,9 +181,14 @@ export default function AdminAboutPage() {
       </Card>
 
       <div className="flex justify-end">
-        <Button type="button" onClick={handleSave} className="rounded-full px-6 shadow-md" disabled={saving}>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-white shadow-lg transition-all disabled:opacity-60 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600"
+        >
           {saving ? 'Salvando...' : 'Salvar alterações'}
-        </Button>
+        </button>
       </div>
     </div>
   )
