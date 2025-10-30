@@ -33,12 +33,17 @@ async function getSupabaseData() {
       .order("created_at", { ascending: false })
       .limit(3)
 
-    // Fetch real gallery data
+    // Fetch real gallery data (apenas 5 para a home: 1 destacada + 4 pequenas)
     const { data: gallery } = await supabase
       .from("gallery")
       .select("*")
       .order("display_order", { ascending: true })
-      .limit(6)
+      .limit(5)
+
+    // Contar total de imagens para mostrar botão "Ver Galeria Completa"
+    const { count: totalCount } = await supabase
+      .from("gallery")
+      .select("*", { count: "exact", head: true })
 
     const { data: producers } = await supabase
       .from("producers")
@@ -46,15 +51,15 @@ async function getSupabaseData() {
       .eq("active", true)
       .order("name", { ascending: true })
 
-    return { news, gallery, producers }
+    return { news, gallery, producers, galleryTotalCount: totalCount || 0 }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
-    return { news: null, gallery: null, producers: null }
+    return { news: null, gallery: null, producers: null, galleryTotalCount: 0 }
   }
 }
 
 export default async function HomePage() {
-  const { news, gallery, producers } = await getSupabaseData()
+  const { news, gallery, producers, galleryTotalCount } = await getSupabaseData()
 
   // Use real data or fallback to mock data
   const mockNews = news || [
@@ -495,15 +500,18 @@ export default async function HomePage() {
             </div>
           )}
 
-          <div className="text-center">
-            <Button
-              variant="outline"
-              size="lg"
-              className="hover:bg-primary hover:text-primary-foreground transition-colors bg-transparent"
-            >
-              Ver Galeria Completa
-            </Button>
-          </div>
+          {galleryTotalCount > 5 && (
+            <div className="text-center">
+              <Button
+                variant="outline"
+                size="lg"
+                className="hover:bg-primary hover:text-primary-foreground transition-colors bg-transparent"
+                asChild
+              >
+                <a href="/galeria">Ver Galeria Completa</a>
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
