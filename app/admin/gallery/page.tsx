@@ -331,7 +331,7 @@ export default function GalleryManagement() {
     } as React.CSSProperties
 
     return (
-      <div ref={setNodeRef} style={style}>
+      <div ref={setNodeRef} style={style} className="relative">
         {renderHandle ? renderHandle({ attributes, listeners }) : null}
         {children}
       </div>
@@ -567,8 +567,7 @@ export default function GalleryManagement() {
         <CardContent className="p-6">
           {loading ? (
             <div className="text-center py-12">
-              <FishTableLoading />
-              <p className="text-muted-foreground mt-4">Carregando galeria...</p>
+              <FishTableLoading text="Carregando galeria..." />
             </div>
           ) : filteredGallery.length === 0 ? (
             <div className="text-center py-12">

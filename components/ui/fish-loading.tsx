@@ -76,10 +76,10 @@ export function FishLoading({ size = 'md', text = 'Carregando dados...' }: FishL
 }
 
 // Componente para loading em tabelas
-export function FishTableLoading() {
+export function FishTableLoading({ text = 'Carregando usuários...' }: { text?: string }) {
   return (
     <div className="flex items-center justify-center py-12">
-      <FishLoading size="md" text="Carregando usuários..." />
+      <FishLoading size="md" text={text} />
     </div>
   )
 }
