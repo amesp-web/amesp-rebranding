@@ -4,8 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { Calendar, Clock, Eye, X, Share2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { NewsLikeButton } from "@/components/public/NewsLikeButton"
+import { toast } from "sonner"
 
 type Article = {
   id: string | number
@@ -19,7 +20,29 @@ type Article = {
 }
 
 export function NewsReaderModal({ article }: { article: Article }) {
-  const [open, setOpen] = useState(false)
+  const [open, _setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const setOpen = (next: boolean) => {
+    _setOpen(next)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      if (next) {
+        url.searchParams.set('news', String(article.id))
+      } else {
+        url.searchParams.delete('news')
+      }
+      window.history.replaceState({}, '', url.toString())
+    }
+  }
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('news') === String(article.id)) {
+      _setOpen(true)
+    }
+  }, [article.id])
 
   return (
     <>
@@ -46,29 +69,31 @@ export function NewsReaderModal({ article }: { article: Article }) {
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
               <div className="absolute bottom-3 right-3 flex items-center space-x-3">
                 <div className="bg-background/95 backdrop-blur rounded-full px-3 py-1.5 shadow-lg">
-                  <NewsLikeButton id={String(article.id)} initialLikes={article.views ? 0 : 0} />
+                  <NewsLikeButton id={String(article.id)} initialLikes={(article as any).likes || 0} />
                 </div>
                 <button
                   type="button"
                   onClick={async () => {
-                    const shareData = {
-                      title: article.title,
-                      text: article.title,
-                      url: typeof window !== 'undefined' ? window.location.href : ''
-                    }
                     try {
-                      if (navigator.share) {
-                        await navigator.share(shareData)
-                      } else {
-                        await navigator.clipboard.writeText(shareData.url)
-                      }
-                    } catch {}
+                      const url = typeof window !== 'undefined' ? `${window.location.origin}/?news=${article.id}` : ''
+                      await navigator.clipboard.writeText(url)
+                      toast.success('Link copiado para a área de transferência')
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 1200)
+                    } catch (e) {
+                      toast.error('Não foi possível copiar o link')
+                    }
                   }}
                   className="bg-background/95 backdrop-blur rounded-full p-2 shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors"
                   aria-label="Compartilhar"
                 >
                   <Share2 className="h-4 w-4" />
                 </button>
+                {copied && (
+                  <div className="absolute -top-9 right-0 bg-black/80 text-white text-xs px-2 py-1 rounded-md shadow">
+                    Copiado!
+                  </div>
+                )}
               </div>
             </div>
           )}

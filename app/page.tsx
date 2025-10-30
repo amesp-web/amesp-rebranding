@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { NewsLikeButton } from "@/components/public/NewsLikeButton"
 import { NewsReaderModal } from "@/components/public/NewsReaderModal"
+import { ShareCopyButton } from "@/components/public/ShareCopyButton"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
 import {
@@ -406,9 +407,7 @@ export default async function HomePage() {
                         <NewsLikeButton id={`mock-${article.id}`} initialLikes={0} />
                       )}
                     </div>
-                    <div className="bg-background/95 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
-                      <Share2 className="h-4 w-4" />
-                    </div>
+                    <ShareCopyButton id={String(article.id)} />
                   </div>
                 </div>
                 <CardContent className="p-6 relative">
@@ -439,6 +438,7 @@ export default async function HomePage() {
                     created_at: article.created_at,
                     read_time: article.read_time,
                     views: article.views,
+                    likes: article.likes,
                   }} />
                 </CardContent>
               </Card>
@@ -450,8 +450,9 @@ export default async function HomePage() {
               variant="outline"
               size="lg"
               className="hover:bg-primary hover:text-primary-foreground transition-colors bg-transparent"
+              asChild
             >
-              Ver Todas as Notícias
+              <a href="/news">Ver Todas as Notícias</a>
             </Button>
           </div>
         </div>
