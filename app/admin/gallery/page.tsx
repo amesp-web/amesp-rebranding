@@ -8,15 +8,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Plus, Edit, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, Loader2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Plus, Edit, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, Loader2, Camera, Search, RefreshCw, Star } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import Image from "next/image"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { FishTableLoading } from "@/components/ui/fish-loading"
 
 export default function GalleryManagement() {
   const [gallery, setGallery] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
   const [formData, setFormData] = useState({
@@ -29,21 +32,61 @@ export default function GalleryManagement() {
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
+  const [buttonClicked, setButtonClicked] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const supabase = createClient()
 
   const fetchGallery = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
+      setGallery([])
+      
+      const timestamp = Date.now()
+      const random = Math.random().toString(36).substring(7)
+      const url = `/api/admin/gallery?t=${timestamp}&r=${random}&v=${Math.random()}`
+      
+      const response = await fetch(url, {
+        cache: 'no-store',
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Erro ao buscar galeria')
+      }
+
+      const result = await response.json()
+      
+      if (!result.gallery || !Array.isArray(result.gallery)) {
+        const { data, error } = await supabase
+          .from("gallery")
+          .select("*")
+          .order("display_order", { ascending: true })
+
+        if (error) throw error
+        setGallery(data || [])
+        return
+      }
+      
+      setGallery([...result.gallery])
+      setRefreshKey(prev => prev + 1)
+    } catch (error: any) {
+      const { data, error: supabaseError } = await supabase
         .from("gallery")
         .select("*")
         .order("display_order", { ascending: true })
 
-      if (error) throw error
-      setGallery(data || [])
-    } catch (error: any) {
-      toast.error("Erro ao carregar galeria: " + error.message)
+      if (supabaseError) {
+        toast.error("Erro ao carregar galeria: " + error.message)
+      } else {
+        setGallery(data || [])
+      }
     } finally {
       setLoading(false)
     }
@@ -96,11 +139,6 @@ export default function GalleryManagement() {
 
       // Upload da imagem se houver arquivo novo
       if (file) {
-        const fileExt = file.name.split(".").pop()
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
-        const filePath = `gallery/${fileName}`
-
-        // Fazer upload via API que processa a imagem
         const formDataUpload = new FormData()
         formDataUpload.append("file", file)
         formDataUpload.append("featured", formData.featured ? "true" : "false")
@@ -119,13 +157,12 @@ export default function GalleryManagement() {
         imageUrl = uploadData.url
       }
 
-      // Determinar display_order: featured vem primeiro, depois por ordem crescente
+      // Determinar display_order
       let displayOrder = formData.display_order
       if (!editingItem) {
         const featuredCount = gallery.filter((g) => g.featured).length
         if (formData.featured) {
           displayOrder = 0
-          // Reordenar os outros itens
           const otherItems = gallery.filter((g) => !g.featured && g.id !== editingItem?.id)
           for (let i = 0; i < otherItems.length; i++) {
             await supabase
@@ -157,7 +194,11 @@ export default function GalleryManagement() {
 
       setIsDialogOpen(false)
       resetForm()
-      fetchGallery()
+      
+      // Atualização otimizada
+      setTimeout(() => {
+        fetchGallery()
+      }, 300)
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message)
     } finally {
@@ -193,12 +234,22 @@ export default function GalleryManagement() {
 
   const handleDelete = async (id: string) => {
     try {
+      // Remover imediatamente do estado
+      setGallery(prev => prev.filter(item => item.id !== id))
+      setRefreshKey(prev => prev + 1)
+      
       const { error } = await supabase.from("gallery").delete().eq("id", id)
       if (error) throw error
+      
       toast.success("Imagem removida com sucesso!")
-      fetchGallery()
+      
+      // Atualizar lista após um delay
+      setTimeout(() => {
+        fetchGallery()
+      }, 300)
     } catch (error: any) {
       toast.error("Erro ao remover: " + error.message)
+      fetchGallery() // Restaurar lista em caso de erro
     }
   }
 
@@ -213,206 +264,341 @@ export default function GalleryManagement() {
       const current = gallery[currentIndex]
       const target = gallery[targetIndex]
 
-      // Trocar display_order
+      // Atualizar estado imediatamente
+      const newGallery = [...gallery]
+      newGallery[currentIndex] = { ...target, display_order: current.display_order }
+      newGallery[targetIndex] = { ...current, display_order: target.display_order }
+      setGallery(newGallery)
+      setRefreshKey(prev => prev + 1)
+
       await supabase.from("gallery").update({ display_order: target.display_order }).eq("id", current.id)
       await supabase.from("gallery").update({ display_order: current.display_order }).eq("id", target.id)
 
-      fetchGallery()
+      setTimeout(() => {
+        fetchGallery()
+      }, 300)
     } catch (error: any) {
       toast.error("Erro ao reordenar: " + error.message)
+      fetchGallery()
     }
   }
 
+  const filteredGallery = gallery.filter((item) => {
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      item.title?.toLowerCase().includes(searchLower) ||
+      item.description?.toLowerCase().includes(searchLower) ||
+      item.category?.toLowerCase().includes(searchLower)
+    )
+  })
+
+  const featuredCount = gallery.filter((g) => g.featured).length
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Gerenciar Galeria</h1>
-          <p className="text-muted-foreground">Adicione e organize imagens da galeria visual</p>
+    <div className="space-y-8">
+      {/* Header com gradiente oceânico */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 p-8 shadow-xl">
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full bg-gradient-to-br from-white/10 to-transparent"></div>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open)
-          if (!open) resetForm()
-        }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Imagem
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingItem ? "Editar Imagem" : "Nova Imagem"}</DialogTitle>
-              <DialogDescription>
-                {editingItem ? "Atualize os dados da imagem" : "Adicione uma nova imagem à galeria"}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Imagem *</Label>
-                {preview && (
-                  <div className="relative w-full h-48 rounded-lg overflow-hidden border mb-2">
-                    <Image src={preview} alt="Preview" fill className="object-contain" />
-                  </div>
-                )}
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  disabled={uploading}
-                  required={!editingItem}
-                />
-                <p className="text-xs text-muted-foreground">
-                  A imagem será redimensionada automaticamente para o tamanho ideal (até 50MB)
-                </p>
+        <div className="relative">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2 flex items-center">
+                <Camera className="h-8 w-8 mr-3" />
+                Galeria de Imagens
+              </h1>
+              <p className="text-blue-100 text-lg">Gerencie as imagens da galeria visual do site</p>
+            </div>
+            <div className="flex items-center space-x-6">
+              <div className="text-right text-white">
+                <div className="text-2xl font-bold">{gallery.length}</div>
+                <div className="text-blue-100 text-sm">Total de imagens</div>
               </div>
-
-              <div className="space-y-2">
-                <Label>Título *</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Ex: Cultivo Sustentável"
-                  required
-                />
+              <div className="text-right text-white">
+                <div className="text-2xl font-bold flex items-center justify-end">
+                  <Star className="h-5 w-5 mr-1" />
+                  {featuredCount}
+                </div>
+                <div className="text-blue-100 text-sm">Em destaque</div>
               </div>
-
-              <div className="space-y-2">
-                <Label>Descrição</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Descrição da imagem"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Categoria</Label>
-                <Input
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="Ex: Produção, Tecnologia"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="featured"
-                  checked={formData.featured}
-                  onCheckedChange={(checked) => setFormData({ ...formData, featured: checked })}
-                />
-                <Label htmlFor="featured" className="cursor-pointer">
-                  Imagem em destaque (aparece maior na home)
-                </Label>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={uploading}>
-                  {uploading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {file ? "Enviando..." : "Salvando..."}
-                    </>
-                  ) : (
-                    "Salvar"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Galeria de Imagens</CardTitle>
-          <CardDescription>Arraste os itens para reordenar ou clique nas ações para editar/excluir</CardDescription>
+      {/* Ações e Busca */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input
+            placeholder="Buscar por título, descrição ou categoria..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
+          />
+        </div>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="outline"
+            onClick={fetchGallery}
+            className="border-2 border-blue-200/50 hover:border-blue-400 rounded-xl px-4 py-2 transition-all duration-300"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open)
+            if (!open) resetForm()
+          }}>
+            <DialogTrigger asChild>
+              <Button
+                onClick={() => resetForm()}
+                className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 rounded-xl font-semibold"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Nova Imagem
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-0 shadow-2xl bg-gradient-to-br from-white via-blue-50/30 to-cyan-50/20">
+              <DialogHeader className="bg-gradient-to-r from-blue-50 via-cyan-50/50 to-teal-50/30 -m-6 mb-6 p-6 rounded-t-lg border-b border-blue-200/50">
+                <DialogTitle className="text-xl font-bold text-slate-800 flex items-center">
+                  <Camera className="h-6 w-6 mr-3 text-blue-600" />
+                  {editingItem ? "Editar Imagem" : "Nova Imagem"}
+                </DialogTitle>
+                <DialogDescription className="text-slate-600 mt-2">
+                  {editingItem ? "Atualize os dados da imagem" : "Adicione uma nova imagem à galeria"}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <Label>Imagem *</Label>
+                  {preview && (
+                    <div className="relative w-full h-64 rounded-lg overflow-hidden border-2 border-blue-200/50 mb-2">
+                      <Image src={preview} alt="Preview" fill className="object-contain" />
+                    </div>
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                    required={!editingItem}
+                    className="border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    A imagem será redimensionada automaticamente para o tamanho ideal (até 50MB)
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-slate-700">Título *</Label>
+                  <Input
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Ex: Cultivo Sustentável"
+                    required
+                    className="border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-slate-700">Descrição</Label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Descrição da imagem"
+                    rows={3}
+                    className="border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-slate-700">Categoria</Label>
+                  <Input
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="Ex: Produção, Tecnologia"
+                    className="border-2 border-blue-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-3 p-4 bg-blue-50/50 rounded-xl border border-blue-200/50">
+                  <Switch
+                    id="featured"
+                    checked={formData.featured}
+                    onCheckedChange={(checked) => setFormData({ ...formData, featured: checked })}
+                  />
+                  <Label htmlFor="featured" className="cursor-pointer text-sm font-semibold text-slate-700 flex items-center">
+                    <Star className="h-4 w-4 mr-2 text-amber-500" />
+                    Imagem em destaque (aparece maior na home)
+                  </Label>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6 border-t border-blue-200/50">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="border-2 border-gray-300 hover:border-gray-400 rounded-xl px-6 py-2 transition-all duration-300"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={uploading}
+                    onClick={() => {
+                      setButtonClicked(true)
+                      setTimeout(() => setButtonClicked(false), 200)
+                    }}
+                    className={`bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-150 rounded-xl px-6 py-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
+                      buttonClicked
+                        ? 'scale-[0.95] brightness-110 shadow-sm'
+                        : ''
+                    }`}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {file ? "Enviando..." : "Salvando..."}
+                      </>
+                    ) : (
+                      "Salvar"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Grid de Imagens */}
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-white via-blue-50/20 to-cyan-50/10">
+        <CardHeader className="bg-gradient-to-r from-blue-50/80 via-cyan-50/50 to-teal-50/30 border-b border-blue-200/50">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-bold text-slate-800">Galeria de Imagens</CardTitle>
+              <CardDescription className="text-slate-600">
+                {searchTerm ? `Mostrando ${filteredGallery.length} de ${gallery.length} imagens` : `Total: ${gallery.length} imagens`}
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {loading ? (
             <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-              <p className="text-muted-foreground mt-2">Carregando galeria...</p>
+              <FishTableLoading />
+              <p className="text-muted-foreground mt-4">Carregando galeria...</p>
             </div>
-          ) : gallery.length === 0 ? (
+          ) : filteredGallery.length === 0 ? (
             <div className="text-center py-12">
               <ImageIcon className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Nenhuma imagem na galeria ainda</p>
-              <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar primeira imagem
-              </Button>
+              <p className="text-muted-foreground">
+                {searchTerm ? "Nenhuma imagem encontrada" : "Nenhuma imagem na galeria ainda"}
+              </p>
+              {!searchTerm && (
+                <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar primeira imagem
+                </Button>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {gallery.map((item, index) => (
-                <Card key={item.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                  <div className="relative aspect-video bg-muted">
-                    {item.image_url ? (
-                      <Image
-                        src={item.image_url}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                    )}
-                    {item.featured && (
-                      <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-medium">
-                        Destaque
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-1 line-clamp-1">{item.title}</h3>
-                    {item.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{item.description}</p>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveItem(item.id, "up")}
-                          disabled={index === 0}
-                        >
-                          <ArrowUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveItem(item.id, "down")}
-                          disabled={index === gallery.length - 1}
-                        >
-                          <ArrowDown className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <ConfirmationDialog
-                          title="Remover Imagem"
-                          description={`Tem certeza que deseja remover "${item.title}"?`}
-                          onConfirm={() => handleDelete(item.id)}
-                          variant="destructive"
-                        >
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </ConfirmationDialog>
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" key={refreshKey}>
+              {filteredGallery.map((item, index) => {
+                const originalIndex = gallery.findIndex((g) => g.id === item.id)
+                return (
+                  <Card
+                    key={item.id}
+                    className="overflow-hidden group hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-300 bg-white"
+                  >
+                    <div className="relative aspect-video bg-muted">
+                      {item.image_url ? (
+                        <Image
+                          src={item.image_url}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                      {item.featured && (
+                        <div className="absolute top-2 right-2">
+                          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg">
+                            <Star className="h-3 w-3 mr-1" />
+                            Destaque
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold mb-1 line-clamp-1 text-slate-800">{item.title}</h3>
+                      {item.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{item.description}</p>
+                      )}
+                      {item.category && (
+                        <Badge variant="outline" className="mb-3 text-xs">
+                          {item.category}
+                        </Badge>
+                      )}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveItem(item.id, "up")}
+                            disabled={originalIndex === 0}
+                            className="h-8 w-8 p-0 hover:bg-blue-100"
+                            title="Mover para cima"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveItem(item.id, "down")}
+                            disabled={originalIndex === gallery.length - 1}
+                            className="h-8 w-8 p-0 hover:bg-blue-100"
+                            title="Mover para baixo"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(item)}
+                            className="h-8 w-8 p-0 hover:bg-blue-100"
+                            title="Editar"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <ConfirmationDialog
+                            title="Remover Imagem"
+                            description={`Tem certeza que deseja remover "${item.title}"?`}
+                            onConfirm={() => handleDelete(item.id)}
+                            variant="destructive"
+                          >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-red-100"
+                              title="Excluir"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </ConfirmationDialog>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           )}
         </CardContent>

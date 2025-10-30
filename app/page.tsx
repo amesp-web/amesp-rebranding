@@ -439,9 +439,19 @@ export default async function HomePage() {
 
           {gallery && gallery.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-              {gallery.map((item: any, index: number) => {
-                const isFeatured = item.featured || index === 0
-                const isLarge = isFeatured && index === 0
+              {(() => {
+                // Reordenar: imagens destacadas primeiro, depois as demais mantendo display_order
+                const sortedGallery = [...gallery].sort((a: any, b: any) => {
+                  // Se uma é destacada e outra não, destacada vem primeiro
+                  if (a.featured && !b.featured) return -1
+                  if (!a.featured && b.featured) return 1
+                  // Se ambas são destacadas ou não, manter display_order
+                  return (a.display_order || 0) - (b.display_order || 0)
+                })
+                
+                return sortedGallery.map((item: any, index: number) => {
+                  // A primeira imagem da lista reordenada será a destacada grande
+                  const isLarge = index === 0
 
                 if (isLarge) {
                   // Imagem grande em destaque (2 colunas x 2 linhas)
@@ -492,7 +502,8 @@ export default async function HomePage() {
                     </div>
                   </div>
                 )
-              })}
+              })
+              })()}
             </div>
           ) : (
             <div className="text-center py-12">
