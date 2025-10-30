@@ -23,6 +23,9 @@ export function MaricultorToggle({ id, initialActive, onChanged }: { id: string;
         throw new Error(err.error || 'Falha ao atualizar status')
       }
       onChanged?.(next)
+      try {
+        window.dispatchEvent(new CustomEvent('maricultor-status-updated', { detail: { id, is_active: next } }))
+      } catch {}
     } catch (e) {
       // rollback on failure
       setActive((v) => !v)

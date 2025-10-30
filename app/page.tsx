@@ -16,6 +16,7 @@ import {
   Fish,
   Users,
   Award,
+  Camera,
   LogIn,
   UserPlus,
 } from "lucide-react"
@@ -75,15 +76,23 @@ async function getSupabaseData() {
       .eq("active", true)
       .order("name", { ascending: true })
 
-    return { news, gallery: galleryHome, producers, galleryTotalCount: totalCount || 0 }
+    // About content (Quem Somos)
+    let about: any = null
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
+      const res = await fetch(`${baseUrl}/api/admin/about`, { cache: 'no-store' })
+      about = await res.json()
+    } catch {}
+
+    return { news, gallery: galleryHome, producers, galleryTotalCount: totalCount || 0, about }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
-    return { news: null, gallery: null, producers: null, galleryTotalCount: 0 }
+    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null }
   }
 }
 
 export default async function HomePage() {
-  const { news, gallery, producers, galleryTotalCount } = await getSupabaseData()
+  const { news, gallery, producers, galleryTotalCount, about } = await getSupabaseData()
 
   // Use real data or fallback to mock data
   const mockNews = news || [
@@ -550,8 +559,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* About Section */}
-      <section id="sobre" className="relative py-20 bg-muted/30 overflow-hidden">
+             {/* About Section */}
+             <section id="sobre" className="relative py-20 bg-muted/30 overflow-hidden">
         <div className="absolute top-0 left-0 w-full overflow-hidden leading-none">
           <svg
             className="relative block w-full h-10"
@@ -568,76 +577,45 @@ export default async function HomePage() {
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center space-y-4 mb-16">
-            <Badge variant="outline" className="w-fit mx-auto">
-              Quem Somos
-            </Badge>
-            <h2 className="font-sans font-bold text-3xl lg:text-4xl text-balance">
-              Realizamos projetos socioambientais e ações estratégicas
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-              Nossa missão é promover o desenvolvimento sustentável da maricultura, apoiando nossos associados com
-              conhecimento técnico e científico.
-            </p>
-          </div>
+                 <div className="text-center space-y-4 mb-16">
+                   <Badge variant="outline" className="w-fit mx-auto">Quem Somos</Badge>
+                   <h2 className="font-sans font-bold text-3xl lg:text-4xl text-balance">
+                     {about?.content?.title || 'Realizamos projetos socioambientais e ações estratégicas'}
+                   </h2>
+                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
+                     {about?.content?.subtitle || 'Nossa missão é promover o desenvolvimento sustentável da maricultura, apoiando nossos associados com conhecimento técnico e científico.'}
+                   </p>
+                 </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="text-center hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-              <CardHeader>
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <Fish className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-lg">Desenvolvimento Sustentável</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Promovemos práticas sustentáveis na maricultura, respeitando o meio ambiente marinho.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-              <CardHeader>
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-lg">Investigação Científica</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Apoiamos pesquisas e estudos para o avanço da maricultura no estado de São Paulo.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-              <CardHeader>
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <Waves className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-lg">Organização da Maricultura</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Estruturamos e organizamos o setor para melhor atender produtores e consumidores.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-              <CardHeader>
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <Award className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-lg">Excelência Reconhecida</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Certificações internacionais e reconhecimento pela qualidade dos nossos serviços.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
+                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                   {(about?.features || []).slice(0,4).map((f: any, idx: number) => {
+                     const iconMap: Record<string, any> = {
+                       fish: Fish,
+                       users: Users,
+                       waves: Waves,
+                       award: Award,
+                       mappin: MapPin,
+                       mappin2: MapPin,
+                       mapPin: MapPin,
+                       camera: Camera,
+                     }
+                     const key = String(f.icon_key || '').toLowerCase()
+                     const Icon = iconMap[key] || Fish
+                     return (
+                       <Card key={idx} className="text-center hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
+                         <CardHeader>
+                           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                             <Icon className="h-8 w-8 text-primary" />
+                           </div>
+                           <CardTitle className="text-lg">{f.title}</CardTitle>
+                         </CardHeader>
+                         <CardContent>
+                           <CardDescription>{f.description}</CardDescription>
+                         </CardContent>
+                       </Card>
+                     )
+                   })}
+                 </div>
         </div>
       </section>
 

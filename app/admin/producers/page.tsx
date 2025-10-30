@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { MapPin, Search, Phone, Factory, Users, CalendarDays, ChevronRight, User as UserIcon } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import { MaricultorStatusBadge } from "@/components/admin/maricultor-status-badge"
 import { MaricultorToggle } from "@/components/admin/maricultor-toggle"
 
 function normalizeSpecialties(value: any): string[] {
@@ -82,9 +83,9 @@ export default async function ProducersManagement({
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2 flex items-center drop-shadow">
-                <Factory className="h-8 w-8 mr-3" /> Maricultores
+                <Factory className="h-8 w-8 mr-3" /> Produtores
               </h1>
-              <p className="text-blue-50/90 text-lg">Acompanhe e gerencie os maricultores cadastrados</p>
+              <p className="text-blue-50/90 text-lg">Acompanhe e gerencie os produtores cadastrados</p>
             </div>
             <div className="grid grid-cols-2 gap-6 text-white">
               <div className="rounded-xl bg-white/10 backdrop-blur-md px-4 py-3 shadow-lg border border-white/20">
@@ -155,8 +156,8 @@ export default async function ProducersManagement({
       {/* Lista moderna */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/60">
         <CardHeader>
-          <CardTitle className="text-xl font-bold text-slate-800">Lista de Maricultores</CardTitle>
-          <CardDescription className="text-slate-600">Gerencie todos os maricultores cadastrados ({producers?.length || 0} encontrados)</CardDescription>
+          <CardTitle className="text-xl font-bold text-slate-800">Lista de Produtores</CardTitle>
+          <CardDescription className="text-slate-600">Gerencie todos os produtores cadastrados ({producers?.length || 0} encontrados)</CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           {producers && producers.length > 0 ? (
@@ -174,12 +175,7 @@ export default async function ProducersManagement({
                     <div className="flex-1 space-y-2">
                     <div className="flex items-center space-x-2">
                         <h3 className="font-semibold text-lg">{p.full_name || "Maricultor"}</h3>
-                        <Badge
-                          variant={p.is_active ? "secondary" : "secondary"}
-                          className={p.is_active ? "bg-emerald-100 text-emerald-700 border-emerald-200" : ""}
-                        >
-                          {p.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
+                        <MaricultorStatusBadge id={p.id} initialActive={!!p.is_active} />
                         {p.company && <Badge variant="outline" className="bg-primary/5 border-primary/20">{p.company}</Badge>}
                     </div>
 
@@ -214,7 +210,7 @@ export default async function ProducersManagement({
                     </div>
                   </div>
 
-                  <div className="ml-4 flex items-center gap-2">
+                  <div className="ml-4 flex items-center gap-3">
                     <MaricultorToggle id={p.id} initialActive={!!p.is_active} />
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                       <ChevronRight className="h-5 w-5 text-muted-foreground" />
