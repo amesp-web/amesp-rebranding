@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { NewsLikeButton } from "@/components/public/NewsLikeButton"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
 import {
@@ -392,9 +393,14 @@ export default async function HomePage() {
                       {article.category}
                     </Badge>
                   </div>
-                  <div className="absolute bottom-4 right-4 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-background/95 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
-                      <Heart className="h-4 w-4" />
+                  <div className="absolute bottom-4 right-4 flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-background/95 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg">
+                      {/* id fictício para exemplo quando mock */}
+                      {news ? (
+                        <NewsLikeButton id={String(article.id)} initialLikes={article.likes || 0} />
+                      ) : (
+                        <NewsLikeButton id={`mock-${article.id}`} initialLikes={0} />
+                      )}
                     </div>
                     <div className="bg-background/95 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
                       <Share2 className="h-4 w-4" />
