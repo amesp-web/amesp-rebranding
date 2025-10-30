@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -29,6 +29,8 @@ export function NewsForm({ initialData }: NewsFormProps) {
     published: initialData?.published || false,
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialData?.image_url || null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -45,11 +47,18 @@ export function NewsForm({ initialData }: NewsFormProps) {
         throw new Error("User not authenticated")
       }
 
-      const newsData = {
-        ...formData,
-        author_id: user.id,
-        updated_at: new Date().toISOString(),
-      }
+    const { title, excerpt, content, category, image_url, read_time, published } = formData
+    const newsData = {
+      title,
+      excerpt,
+      content,
+      category,
+      image_url,
+      read_time,
+      published,
+      author_id: user.id,
+      updated_at: new Date().toISOString(),
+    }
 
       let result
       if (initialData?.id) {
@@ -75,22 +84,40 @@ export function NewsForm({ initialData }: NewsFormProps) {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      setIsUploading(true)
+      // Preview imediato no cliente
+      const objectUrl = URL.createObjectURL(file)
+      setPreviewUrl(objectUrl)
+
+      // Upload para Supabase Storage (bucket "news")
+      const safeName = file.name
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9_.-]/g, '-')
+      const path = `news/${Date.now()}-${safeName}`
+      const { error: upErr } = await supabase.storage
+        .from('news')
+        .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
+      if (upErr) throw upErr
+
+      const { data } = supabase.storage.from('news').getPublicUrl(path)
+      const publicUrl = data.publicUrl
+      setFormData((prev) => ({ ...prev, image_url: publicUrl }))
+      setPreviewUrl(publicUrl)
+    } catch (err) {
+      console.error('Erro ao enviar imagem:', err)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
-          <Link href="/admin/news">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Link>
-        </Button>
-        <div className="flex items-center space-x-2">
-          <Button type="submit" disabled={isLoading}>
-            <Save className="mr-2 h-4 w-4" />
-            {isLoading ? "Salvando..." : "Salvar"}
-          </Button>
-        </div>
-      </div>
+      {/* Botões movidos para o rodapé do formulário */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -102,6 +129,41 @@ export function NewsForm({ initialData }: NewsFormProps) {
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Digite o título da notícia"
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="image_file">Foto da Notícia</Label>
+            <Input id="image_file" type="file" accept="image/*" onChange={handleFileChange} disabled={isUploading} />
+            {(previewUrl || formData.image_url) && (
+              <div className="mt-2 mx-auto w-full max-w-md">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-black/5 shadow-md bg-white">
+                  <img
+                    src={(previewUrl || formData.image_url) || "/placeholder.svg"}
+                    alt="Preview"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  {/* Overlay com título, estilo semelhante à gallery */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="text-white font-semibold drop-shadow-sm line-clamp-1">
+                        {formData.title || ""}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="image_url">URL da Imagem (opcional)</Label>
+            <Input
+              id="image_url"
+              value={formData.image_url}
+              onChange={(e) => handleChange("image_url", e.target.value)}
+              placeholder="https://exemplo.com/imagem.jpg"
             />
           </div>
 
@@ -150,25 +212,6 @@ export function NewsForm({ initialData }: NewsFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image_url">URL da Imagem</Label>
-            <Input
-              id="image_url"
-              value={formData.image_url}
-              onChange={(e) => handleChange("image_url", e.target.value)}
-              placeholder="https://exemplo.com/imagem.jpg"
-            />
-            {formData.image_url && (
-              <div className="mt-2">
-                <img
-                  src={formData.image_url || "/placeholder.svg"}
-                  alt="Preview"
-                  className="w-full h-32 object-cover rounded-md border"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="read_time">Tempo de Leitura (minutos)</Label>
             <Input
               id="read_time"
@@ -188,6 +231,24 @@ export function NewsForm({ initialData }: NewsFormProps) {
             />
             <Label htmlFor="published">Publicar imediatamente</Label>
           </div>
+          
+          
+        </div>
+      </div>
+
+      {/* Rodapé com ações */}
+      <div className="mt-6 flex items-center justify-between">
+        <Button variant="ghost" asChild>
+          <Link href="/admin/news">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Link>
+        </Button>
+        <div className="flex items-center space-x-2">
+          <Button type="submit" disabled={isLoading}>
+            <Save className="mr-2 h-4 w-4" />
+            {isLoading ? "Salvando..." : "Salvar"}
+          </Button>
         </div>
       </div>
     </form>
