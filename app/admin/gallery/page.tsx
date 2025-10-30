@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, Loader2, Camera, Search, RefreshCw, Star } from "lucide-react"
+import { Plus, Edit, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, Loader2, Camera, Search, RefreshCw, Star, GripVertical } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import Image from "next/image"
@@ -321,7 +321,7 @@ export default function GalleryManagement() {
   const featuredCount = gallery.filter((g) => g.featured).length
 
   // Componente item sortável
-  function SortableCard({ item, index, children }: { item: any; index: number; children: React.ReactNode }) {
+  function SortableCard({ item, index, children, renderHandle }: { item: any; index: number; children: React.ReactNode; renderHandle?: (p: any) => React.ReactNode }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
     const style = {
       transform: CSS.Transform.toString(transform),
@@ -331,7 +331,8 @@ export default function GalleryManagement() {
     } as React.CSSProperties
 
     return (
-      <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <div ref={setNodeRef} style={style}>
+        {renderHandle ? renderHandle({ attributes, listeners }) : null}
         {children}
       </div>
     )
@@ -589,7 +590,17 @@ export default function GalleryManagement() {
                   {filteredGallery.map((item, index) => {
                 const originalIndex = gallery.findIndex((g) => g.id === item.id)
                 return (
-                  <SortableCard key={item.id} item={item} index={index}>
+                  <SortableCard key={item.id} item={item} index={index} renderHandle={({ attributes, listeners }) => (
+                    <button
+                      className="absolute top-2 left-2 z-10 inline-flex items-center justify-center h-7 w-7 rounded-md bg-white/80 border border-blue-200/60 shadow-sm hover:bg-white"
+                      title="Arraste para reordenar"
+                      {...attributes}
+                      {...listeners}
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      <GripVertical className="h-4 w-4 text-slate-600" />
+                    </button>
+                  )}>
                   <Card
                     key={item.id}
                     className="overflow-hidden group hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-300 bg-white"
@@ -640,28 +651,8 @@ export default function GalleryManagement() {
                         </Badge>
                       )}
                       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => moveItem(item.id, "up")}
-                            disabled={originalIndex === 0}
-                            className="h-8 w-8 p-0 hover:bg-blue-100"
-                            title="Mover para cima"
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => moveItem(item.id, "down")}
-                            disabled={originalIndex === gallery.length - 1}
-                            className="h-8 w-8 p-0 hover:bg-blue-100"
-                            title="Mover para baixo"
-                          >
-                            <ArrowDown className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        {/* Setas ocultadas pois a ordenação agora é por arrastar e soltar */}
+                        <div />
                         <div className="flex items-center space-x-1">
                           <Button
                             variant="ghost"
