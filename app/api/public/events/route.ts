@@ -11,7 +11,7 @@ export async function GET() {
     const supabase = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
     const { data, error } = await supabase
       .from('events')
-      .select('id, title, description, banner_url, location, schedule, display_order, created_at, published')
+      .select('id, title, description, banner_url, location, schedule, stands, participants, sponsors, live_url, signup_url, display_order, created_at, published')
       .order('published', { ascending: false })
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: false })
