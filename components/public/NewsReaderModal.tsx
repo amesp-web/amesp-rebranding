@@ -58,11 +58,12 @@ export function NewsReaderModal({ article }: { article: Article }) {
             const data = await r.json()
             if (data?.views != null) setCurrentViews(Number(data.views))
             else setCurrentViews((v) => v + 1)
+            try { window.dispatchEvent(new CustomEvent('news-views-updated', { detail: { id: String(article.id), views: Number(data?.views ?? (currentViews + 1)) } })) } catch {}
           } catch {
             setCurrentViews((v) => v + 1)
+            try { window.dispatchEvent(new CustomEvent('news-views-updated', { detail: { id: String(article.id), views: (currentViews || 0) + 1 } })) } catch {}
           }
           localStorage.setItem(key, '1')
-          try { window.dispatchEvent(new CustomEvent('news-views-updated', { detail: { id: String(article.id), views: (currentViews || 0) + 1 } })) } catch {}
         })
         .catch(() => {})
     } catch {}

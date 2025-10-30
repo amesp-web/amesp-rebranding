@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { NewsLikeButton } from "@/components/public/NewsLikeButton"
 import { NewsReaderModal } from "@/components/public/NewsReaderModal"
+import { ViewsCounter } from "@/components/public/ViewsCounter"
 import { ShareCopyButton } from "@/components/public/ShareCopyButton"
 import Image from "next/image"
 import nextDynamic from "next/dynamic"
@@ -420,10 +421,7 @@ export default async function HomePage() {
                       <Clock className="mr-1 h-3 w-3" />
                       {article.read_time}min
                     </div>
-                    <div className="flex items-center">
-                      <Eye className="mr-1 h-3 w-3" />
-                      {article.views}
-                    </div>
+                    <ViewsCounter id={String(article.id)} initialViews={article.views || 0} />
                   </div>
                   <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2">
                     {article.title}

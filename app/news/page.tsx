@@ -5,6 +5,7 @@ import { Calendar, Clock, Eye, Newspaper } from "lucide-react"
 import { NewsLikeButton } from "@/components/public/NewsLikeButton"
 import { NewsReaderModal } from "@/components/public/NewsReaderModal"
 import { ShareCopyButton } from "@/components/public/ShareCopyButton"
+import { ViewsCounter } from "@/components/public/ViewsCounter"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = 'force-dynamic'
@@ -82,10 +83,7 @@ export default async function AllNewsPage() {
                   <Clock className="mr-1 h-3 w-3" />
                   {article.read_time}min
                 </div>
-                <div className="flex items-center">
-                  <Eye className="mr-1 h-3 w-3" />
-                  {article.views}
-                </div>
+                <ViewsCounter id={String(article.id)} initialViews={article.views || 0} />
               </div>
               <h3 className="text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2">{article.title}</h3>
               <p className="text-muted-foreground line-clamp-3 mb-4">{article.excerpt || ''}</p>
