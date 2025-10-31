@@ -131,62 +131,83 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
             </div>
           )}
           {Array.isArray(event.stands) && event.stands.length > 0 && (
-            <div className="mt-10">
-              <div className="flex items-center gap-3 mb-6 text-slate-800 font-semibold text-xl"><Store className="h-6 w-6" /> Stands</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
-                {event.stands.map((s, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 group">
-                    <div className="relative h-20 w-20 rounded-full bg-white border-2 border-slate-200 p-3 shadow-md group-hover:shadow-lg transition-all group-hover:scale-110 group-hover:border-primary/40 flex items-center justify-center">
-                      {s.logo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={s.logo_url} alt={s.name || 'logo'} className="h-full w-full object-contain" />
-                      ) : (
-                        <Store className="h-8 w-8 text-slate-400" />
-                      )}
+            <div className="mt-12 pt-8 border-t-2 border-slate-200">
+              <div className="flex items-center gap-3 mb-8 px-2">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Store className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-slate-900 font-bold text-2xl">Stands</h3>
+              </div>
+              <div className="rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-lg">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                  {event.stands.map((s, i) => (
+                    <div key={i} className="flex flex-col items-center gap-3 group">
+                      <div className="relative h-24 w-24 rounded-full bg-white border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-primary/50 flex items-center justify-center">
+                        {s.logo_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={s.logo_url} alt={s.name || 'logo'} className="h-full w-full object-contain" />
+                        ) : (
+                          <Store className="h-10 w-10 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="text-sm font-semibold text-slate-900 text-center leading-tight max-w-[100px]">{s.name}</div>
                     </div>
-                    <div className="text-xs font-medium text-slate-800 text-center leading-tight max-w-[80px]">{s.name}</div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
           {Array.isArray(event.participants) && event.participants.length > 0 && (
-            <div className="mt-10">
-              <div className="flex items-center gap-3 mb-6 text-slate-800 font-semibold text-xl"><Users className="h-6 w-6" /> Participantes</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
-                {event.participants.map((p, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 group">
-                    <div className="relative h-20 w-20 rounded-full bg-white border-2 border-slate-200 p-3 shadow-md group-hover:shadow-lg transition-all group-hover:scale-110 group-hover:border-primary/40 flex items-center justify-center">
-                      {p.logo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
-                      ) : (
-                        <Users className="h-8 w-8 text-slate-400" />
-                      )}
+            <div className="mt-12 pt-8 border-t-2 border-slate-200">
+              <div className="flex items-center gap-3 mb-8 px-2">
+                <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <Users className="h-6 w-6 text-blue-700" />
+                </div>
+                <h3 className="text-slate-900 font-bold text-2xl">Participantes</h3>
+              </div>
+              <div className="rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-blue-50/50 to-white p-6 shadow-lg">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                  {event.participants.map((p, i) => (
+                    <div key={i} className="flex flex-col items-center gap-3 group">
+                      <div className="relative h-24 w-24 rounded-full bg-white border-3 border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-blue-500/50 flex items-center justify-center">
+                        {p.logo_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
+                        ) : (
+                          <Users className="h-10 w-10 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="text-sm font-semibold text-slate-900 text-center leading-tight max-w-[100px]">{p.name}</div>
                     </div>
-                    <div className="text-xs font-medium text-slate-800 text-center leading-tight max-w-[80px]">{p.name}</div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
           {Array.isArray(event.sponsors) && event.sponsors.length > 0 && (
-            <div className="mt-10">
-              <div className="flex items-center gap-3 mb-6 text-slate-800 font-semibold text-xl"><Handshake className="h-6 w-6" /> Patrocinadores</div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
-                {event.sponsors.map((p, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 group">
-                    <div className="relative h-20 w-20 rounded-full bg-white border-2 border-slate-200 p-3 shadow-md group-hover:shadow-lg transition-all group-hover:scale-110 group-hover:border-primary/40 flex items-center justify-center">
-                      {p.logo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
-                      ) : (
-                        <Handshake className="h-8 w-8 text-slate-400" />
-                      )}
+            <div className="mt-12 pt-8 border-t-2 border-slate-200">
+              <div className="flex items-center gap-3 mb-8 px-2">
+                <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                  <Handshake className="h-6 w-6 text-emerald-700" />
+                </div>
+                <h3 className="text-slate-900 font-bold text-2xl">Patrocinadores</h3>
+              </div>
+              <div className="rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-emerald-50/50 to-white p-6 shadow-lg">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                  {event.sponsors.map((p, i) => (
+                    <div key={i} className="flex flex-col items-center gap-3 group">
+                      <div className="relative h-24 w-24 rounded-full bg-white border-3 border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-emerald-500/50 flex items-center justify-center">
+                        {p.logo_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
+                        ) : (
+                          <Handshake className="h-10 w-10 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="text-sm font-semibold text-slate-900 text-center leading-tight max-w-[100px]">{p.name}</div>
                     </div>
-                    <div className="text-xs font-medium text-slate-800 text-center leading-tight max-w-[80px]">{p.name}</div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
