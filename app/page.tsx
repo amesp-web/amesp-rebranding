@@ -7,6 +7,7 @@ import { ViewsCounter } from "@/components/public/ViewsCounter"
 import { ShareCopyButton } from "@/components/public/ShareCopyButton"
 import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
+import { FishDecoration } from "@/components/decorative/FishDecoration"
 import nextDynamic from "next/dynamic"
 import {
   Waves,
@@ -159,7 +160,8 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 relative overflow-hidden">
+        <FishDecoration position="top-right" size="sm" opacity={0.8} className="hidden md:block" />
         <div className="container mx-auto px-4 flex h-16 items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -213,6 +215,8 @@ export default async function HomePage() {
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        <FishDecoration position="top-left" size="md" opacity={0.8} className="hidden md:block" />
+        <FishDecoration position="bottom-right" size="sm" opacity={0.8} className="hidden md:block" />
         <div className="container mx-auto px-4 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -347,6 +351,7 @@ export default async function HomePage() {
       </section>
 
       <section id="noticias" className="relative py-20 bg-muted/30 overflow-hidden">
+        <FishDecoration position="top-right" size="sm" opacity={0.8} className="hidden md:block" />
         <div className="absolute top-0 left-0 w-full overflow-hidden leading-none">
           <svg
             className="relative block w-full h-8"
@@ -574,6 +579,7 @@ export default async function HomePage() {
 
              {/* About Section */}
              <section id="sobre" className="relative py-20 bg-muted/30 overflow-hidden">
+        <FishDecoration position="bottom-left" size="sm" opacity={0.8} className="hidden md:block" />
         <div className="absolute top-0 left-0 w-full overflow-hidden leading-none">
           <svg
             className="relative block w-full h-10"
@@ -633,7 +639,8 @@ export default async function HomePage() {
       </section>
 
       {/* Producers Section */}
-      <section id="produtores" className="py-20">
+      <section id="produtores" className="relative py-20 overflow-hidden">
+        <FishDecoration position="top-left" size="sm" opacity={0.8} className="hidden md:block" />
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 mb-16">
             <Badge variant="outline" className="w-fit mx-auto">
@@ -721,6 +728,7 @@ export default async function HomePage() {
       </section>
 
       <section id="contato" className="relative py-20 overflow-hidden">
+        <FishDecoration position="top-right" size="sm" opacity={0.8} className="hidden md:block" />
         <div className="absolute top-0 left-0 w-full overflow-hidden leading-none">
           <svg
             className="relative block w-full h-8"
@@ -846,7 +854,9 @@ export default async function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary text-primary-foreground py-12">
+      <footer className="bg-primary text-primary-foreground py-12 relative overflow-hidden">
+        <FishDecoration position="bottom-left" size="md" opacity={0.8} className="hidden md:block" />
+        <FishDecoration position="bottom-right" size="sm" opacity={0.8} className="hidden md:block" />
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
