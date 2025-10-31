@@ -52,7 +52,7 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-7xl max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div className="relative bg-white w-full max-w-[95rem] max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
         {event.banner_url ? (
           <div className="relative h-80 w-full overflow-hidden flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -139,7 +139,7 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                 <h3 className="text-slate-900 font-bold text-2xl">Stands</h3>
               </div>
               <div className="rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-lg">
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                <div className="flex flex-wrap justify-center gap-6">
                   {event.stands.map((s, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 group">
                       <div className="relative h-24 w-24 rounded-full bg-white border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-primary/50 flex items-center justify-center">
@@ -166,10 +166,10 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                 <h3 className="text-slate-900 font-bold text-2xl">Participantes</h3>
               </div>
               <div className="rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-blue-50/50 to-white p-6 shadow-lg">
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                <div className="flex flex-wrap justify-center gap-6">
                   {event.participants.map((p, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 group">
-                      <div className="relative h-24 w-24 rounded-full bg-white border-3 border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-blue-500/50 flex items-center justify-center">
+                      <div className="relative h-24 w-24 rounded-full bg-white border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-blue-500/50 flex items-center justify-center">
                         {p.logo_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
@@ -193,10 +193,10 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                 <h3 className="text-slate-900 font-bold text-2xl">Patrocinadores</h3>
               </div>
               <div className="rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-emerald-50/50 to-white p-6 shadow-lg">
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                <div className="flex flex-wrap justify-center gap-6">
                   {event.sponsors.map((p, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 group">
-                      <div className="relative h-24 w-24 rounded-full bg-white border-3 border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-emerald-500/50 flex items-center justify-center">
+                      <div className="relative h-24 w-24 rounded-full bg-white border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-emerald-500/50 flex items-center justify-center">
                         {p.logo_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
@@ -211,9 +211,6 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
               </div>
             </div>
           )}
-          <div className="mt-6 flex justify-end">
-            <Button onClick={onClose}>Fechar</Button>
-          </div>
         </div>
       </div>
     </div>
