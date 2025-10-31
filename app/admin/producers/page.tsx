@@ -136,7 +136,11 @@ export default async function ProducersManagement({
                 variant="outline"
                 size="sm"
                 asChild
-                className={`rounded-full px-4 shadow-sm ${params.filter === 'active' ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15' : ''}`}
+                className={`rounded-full px-4 shadow-sm ${
+                  params.filter === 'active' 
+                    ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200' 
+                    : 'hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'
+                }`}
               >
                 <Link href="/admin/producers?filter=active">Ativos</Link>
               </Button>
@@ -144,7 +148,11 @@ export default async function ProducersManagement({
                 variant="outline"
                 size="sm"
                 asChild
-                className={`rounded-full px-4 shadow-sm ${params.filter === 'inactive' ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15' : ''}`}
+                className={`rounded-full px-4 shadow-sm ${
+                  params.filter === 'inactive' 
+                    ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200' 
+                    : 'hover:bg-red-50 hover:text-red-700 hover:border-red-200'
+                }`}
               >
                 <Link href="/admin/producers?filter=inactive">Inativos</Link>
               </Button>

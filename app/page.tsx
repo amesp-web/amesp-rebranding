@@ -243,7 +243,7 @@ export default async function HomePage() {
             <Button
               variant="ghost"
               size="sm"
-              className="hidden sm:inline-flex border border-border/50 hover:border-primary/30 hover:bg-primary/5"
+              className="hidden sm:inline-flex border border-border/50 hover:border-primary/30 hover:bg-primary/5 text-foreground hover:text-primary"
               asChild
             >
               <a href="/login" className="flex items-center space-x-2">
