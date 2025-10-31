@@ -78,7 +78,13 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   <CardTitle className="text-sm font-semibold">Banner</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button {...dragHandle} className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <GripVertical className="h-4 w-4 text-gray-500" />
                   </button>
                   <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
@@ -134,7 +140,13 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   <CardTitle className="text-sm font-semibold">Título</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button {...dragHandle} className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <GripVertical className="h-4 w-4 text-gray-500" />
                   </button>
                   <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
@@ -166,7 +178,13 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   <CardTitle className="text-sm font-semibold">Foto Principal</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button {...dragHandle} className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <GripVertical className="h-4 w-4 text-gray-500" />
                   </button>
                   <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
@@ -222,7 +240,13 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   <CardTitle className="text-sm font-semibold">Descrição</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button {...dragHandle} className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <GripVertical className="h-4 w-4 text-gray-500" />
                   </button>
                   <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
@@ -267,7 +291,13 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   <CardTitle className="text-sm font-semibold">Galeria de Fotos</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button {...dragHandle} className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <GripVertical className="h-4 w-4 text-gray-500" />
                   </button>
                   <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
@@ -351,7 +381,13 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   <CardTitle className="text-sm font-semibold">Foto Redimensionada</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button {...dragHandle} className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <GripVertical className="h-4 w-4 text-gray-500" />
                   </button>
                   <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
@@ -443,7 +479,13 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   <CardTitle className="text-sm font-semibold">Logos</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button {...dragHandle} className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <GripVertical className="h-4 w-4 text-gray-500" />
                   </button>
                   <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
@@ -578,7 +620,13 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   <CardTitle className="text-sm font-semibold">Equipe</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button {...dragHandle} className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
                     <GripVertical className="h-4 w-4 text-gray-500" />
                   </button>
                   <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
