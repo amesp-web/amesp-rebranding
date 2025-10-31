@@ -6,6 +6,7 @@ import EventsReaderModal, { type PublicEvent } from './EventsReaderModal'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
 
 function parseDateFlexible(value: string) {
   // YYYY-MM-DD (tratar como data local, sem fuso)
@@ -73,10 +74,7 @@ export default function HomeEventsSection() {
     return () => { mounted = false }
   }, [])
 
-  const first = events[0]
-  const dateRange = useMemo(() => formatDateRange(first?.schedule as any[]), [first])
-
-  // Header + Card NO MESMO LAYOUT original da Home (mantendo visual)
+  // Header + Carrossel NO MESMO LAYOUT original da Home (mantendo visual)
   return (
     <>
       <div className="text-center space-y-4 mb-16">
@@ -91,35 +89,84 @@ export default function HomeEventsSection() {
         </p>
       </div>
 
-      <Card className="max-w-4xl mx-auto overflow-hidden border-0 shadow-xl">
-        <div className="grid md:grid-cols-2">
-          <div className="relative h-64 md:h-auto">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={(first?.banner_url) || "/professional-conference-room-with-aquaculture-expe.jpg"}
-              alt={first?.title || 'Workshop Nacional da Maricultura'}
-              className="w-full h-full object-cover block"
-            />
-          </div>
-          <CardContent className="p-8 flex flex-col justify-center bg-gradient-to-br from-card to-card/50">
-            <div className="space-y-4">
-              <Badge variant="secondary" className="w-fit bg-primary/10 border-primary text-primary font-medium">
-                <Calendar className="mr-2 h-4 w-4" />
-                {dateRange || '30 de Agosto a 1 de Setembro de 2024'}
-              </Badge>
-              <CardTitle className="text-2xl font-sans">{first?.title || 'I Workshop Nacional da Maricultura'}</CardTitle>
-              <CardDescription className="text-base">
-                <div className="flex items-center mb-2">
-                  <MapPin className="mr-2 h-4 w-4" />
-                  {first?.location || 'Ubatuba - SP'}
-                </div>
-                {(first?.description ? truncate(first.description, 50) : 'Um evento único para discutir o futuro da maricultura brasileira, com palestras, workshops práticos e networking entre profissionais do setor.')} 
-              </CardDescription>
-              <Button className="w-fit hover:scale-105 transition-transform" onClick={() => first && setSelected(first)}>Saiba Mais</Button>
+      {events.length > 0 ? (
+        <Carousel className="max-w-4xl mx-auto">
+          <CarouselContent>
+            {events.map((event) => {
+              const dateRange = formatDateRange(event?.schedule as any[])
+              return (
+                <CarouselItem key={event.id}>
+                  <Card className="overflow-hidden border-0 shadow-xl">
+                    <div className="grid md:grid-cols-2">
+                      <div className="relative h-64 md:h-auto">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={event.banner_url || "/professional-conference-room-with-aquaculture-expe.jpg"}
+                          alt={event.title || 'Workshop Nacional da Maricultura'}
+                          className="w-full h-full object-cover block"
+                        />
+                      </div>
+                      <CardContent className="p-8 flex flex-col justify-center bg-gradient-to-br from-card to-card/50">
+                        <div className="space-y-4">
+                          <Badge variant="secondary" className="w-fit bg-primary/10 border-primary text-primary font-medium">
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {dateRange || 'Data a definir'}
+                          </Badge>
+                          <CardTitle className="text-2xl font-sans">{event.title || 'Evento'}</CardTitle>
+                          <CardDescription className="text-base">
+                            <div className="flex items-center mb-2">
+                              <MapPin className="mr-2 h-4 w-4" />
+                              {event.location || 'Local a definir'}
+                            </div>
+                            {truncate(event.description, 50) || 'Descrição do evento...'} 
+                          </CardDescription>
+                          <Button className="w-fit hover:scale-105 transition-transform" onClick={() => setSelected(event)}>Saiba Mais</Button>
+                        </div>
+                      </CardContent>
+                    </div>
+                  </Card>
+                </CarouselItem>
+              )
+            })}
+          </CarouselContent>
+          {events.length > 1 && (
+            <>
+              <CarouselPrevious className="left-2 md:left-[-3rem] bg-white/90 hover:bg-white shadow-lg border-2" />
+              <CarouselNext className="right-2 md:right-[-3rem] bg-white/90 hover:bg-white shadow-lg border-2" />
+            </>
+          )}
+        </Carousel>
+      ) : (
+        <Card className="max-w-4xl mx-auto overflow-hidden border-0 shadow-xl">
+          <div className="grid md:grid-cols-2">
+            <div className="relative h-64 md:h-auto">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/professional-conference-room-with-aquaculture-expe.jpg"
+                alt="Workshop Nacional da Maricultura"
+                className="w-full h-full object-cover block"
+              />
             </div>
-          </CardContent>
-        </div>
-      </Card>
+            <CardContent className="p-8 flex flex-col justify-center bg-gradient-to-br from-card to-card/50">
+              <div className="space-y-4">
+                <Badge variant="secondary" className="w-fit bg-primary/10 border-primary text-primary font-medium">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  30 de Agosto a 1 de Setembro de 2024
+                </Badge>
+                <CardTitle className="text-2xl font-sans">I Workshop Nacional da Maricultura</CardTitle>
+                <CardDescription className="text-base">
+                  <div className="flex items-center mb-2">
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Ubatuba - SP
+                  </div>
+                  Um evento único para discutir o futuro da maricultura brasileira, com palestras, workshops práticos e networking entre profissionais do setor.
+                </CardDescription>
+                <Button className="w-fit hover:scale-105 transition-transform" disabled>Em breve</Button>
+              </div>
+            </CardContent>
+          </div>
+        </Card>
+      )}
 
       <EventsReaderModal event={selected} open={!!selected} onClose={() => setSelected(null)} />
     </>
