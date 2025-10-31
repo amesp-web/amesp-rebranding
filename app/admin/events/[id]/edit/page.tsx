@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import Link from "next/link"
 
-type ScheduleDay = { date: string; items: { time: string; title: string; description?: string }[] }
+type ScheduleDay = { date: string; items: { time: string; title: string; description?: string; avatar_url?: string }[] }
 
 export default function EditEventPage({ params }: { params: { id: string } }) {
   const id = params.id
@@ -50,7 +50,7 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
 
   const onChange = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }))
   const addDay = () => setSchedule((d) => [...d, { date: "", items: [] }])
-  const addItem = (idx: number) => setSchedule((d) => d.map((day, i) => i === idx ? { ...day, items: [...day.items, { time: "", title: "", description: "" }] } : day))
+  const addItem = (idx: number) => setSchedule((d) => d.map((day, i) => i === idx ? { ...day, items: [...day.items, { time: "", title: "", description: "", avatar_url: "" }] } : day))
   const setDay = (i: number, k: string, v: any) => setSchedule((d) => d.map((day, idx) => idx === i ? { ...day, [k]: v } : day))
   const setItem = (di: number, ii: number, k: string, v: any) => setSchedule((d) => d.map((day, idx) => idx === di ? { ...day, items: day.items.map((it, j) => j === ii ? { ...it, [k]: v } : it) } : day))
 
@@ -150,16 +150,45 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
               </div>
               <div className="space-y-3">
                 {day.items.map((it, ii) => (
-                  <div key={ii} className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                  <div key={ii} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
                     <div className="md:col-span-1">
                       <Label>Hora</Label>
                       <Input placeholder="HH:MM" value={it.time} onChange={(e) => setItem(di, ii, 'time', e.target.value)} />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-1 flex flex-col items-center">
+                      <Label className="mb-1">Avatar</Label>
+                      <label className="cursor-pointer">
+                        <div className="h-12 w-12 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors">
+                          {it.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={it.avatar_url} alt="Avatar" className="h-full w-full rounded-full object-cover" />
+                          ) : (
+                            <span className="text-slate-400 text-xs">+</span>
+                          )}
+                        </div>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const f = e.target.files?.[0]
+                            if (f) {
+                              try {
+                                const url = await upload(f)
+                                setItem(di, ii, 'avatar_url', url)
+                              } catch {
+                                toast.error('Falha ao enviar imagem')
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div className="md:col-span-4">
                       <Label>Tema</Label>
                       <Input value={it.title} onChange={(e) => setItem(di, ii, 'title', e.target.value)} />
                     </div>
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-6">
                       <Label>Descrição</Label>
                       <Input value={it.description || ''} onChange={(e) => setItem(di, ii, 'description', e.target.value)} />
                     </div>

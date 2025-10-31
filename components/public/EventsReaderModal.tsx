@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { X, MapPin, Calendar, ExternalLink, Play, Users, Store, Handshake } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-type ScheduleDay = { date: string; items: { time: string; title: string; description?: string }[] }
+type ScheduleDay = { date: string; items: { time: string; title: string; description?: string; avatar_url?: string }[] }
 
 export type PublicEvent = {
   id: string
@@ -114,6 +114,12 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                       {d.items?.map((it, j) => (
                         <div key={j} className="flex gap-4 text-sm relative pl-3 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-primary/40 before:to-primary/60 before:rounded-full">
                           <div className="w-20 shrink-0 text-slate-700 font-semibold leading-6 pt-0.5">{it.time}</div>
+                          {it.avatar_url && (
+                            <div className="h-12 w-12 shrink-0 rounded-full border-2 border-primary/20 overflow-hidden bg-white shadow-sm">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={it.avatar_url} alt={it.title} className="h-full w-full object-cover" />
+                            </div>
+                          )}
                           <div className="flex-1 min-w-0">
                             <div className="font-bold text-slate-900 break-words leading-6">{it.title}</div>
                             {it.description && (
