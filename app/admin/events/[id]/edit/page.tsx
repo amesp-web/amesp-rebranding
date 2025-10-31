@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import Link from "next/link"
-import { X } from "lucide-react"
+import { X, Calendar, ArrowLeft, Save } from "lucide-react"
 
 type ScheduleDay = { date: string; items: { time: string; title: string; description?: string; avatar_url?: string }[] }
 
@@ -79,16 +79,26 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Editar Evento</h1>
-        <Button variant="outline" asChild><Link href="/admin/events">Voltar</Link></Button>
+    <div className="space-y-8">
+      {/* Header moderno, padrão das páginas admin */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 p-8 shadow-xl">
+        <div className="relative flex items-center">
+          <div className="flex items-center gap-3">
+            <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+              <Calendar className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Editar Evento</h1>
+              <p className="text-white/90">Atualize as informações do evento</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white via-blue-50/30 to-cyan-50/20">
-        <CardHeader>
-          <CardTitle>Informações do Evento</CardTitle>
-          <CardDescription>Atualize os campos abaixo</CardDescription>
+        <CardHeader className="bg-gradient-to-r from-blue-50 via-cyan-50/50 to-teal-50/30 border-b border-blue-200/50">
+          <CardTitle className="text-xl font-bold text-slate-800">Informações do Evento</CardTitle>
+          <CardDescription className="text-slate-600">Atualize os campos abaixo</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -238,9 +248,24 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
         </Card>
       ))}
 
-      <div className="flex justify-end gap-3">
-        <Button variant="outline" asChild><Link href="/admin/events">Cancelar</Link></Button>
-        <Button onClick={onSubmit} disabled={loading}>{loading ? 'Salvando...' : 'Salvar alterações'}</Button>
+      {/* Rodapé com ações */}
+      <div className="mt-8 pt-6 border-t border-blue-200/50 flex items-center justify-between">
+        <Button variant="outline" asChild className="border-2 border-gray-300 hover:border-gray-400 rounded-xl px-6 py-2 transition-all duration-300">
+          <Link href="/admin/events">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Cancelar
+          </Link>
+        </Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={onSubmit}
+            disabled={loading}
+            className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-150 rounded-xl px-6 py-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {loading ? 'Salvando...' : 'Salvar alterações'}
+          </Button>
+        </div>
       </div>
     </div>
   )
