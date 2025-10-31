@@ -20,16 +20,16 @@ interface FishConfig {
 function generateFishConfig(count: number): FishConfig[] {
   const configs: FishConfig[] = []
   
-  // Posições estratégicas (evitando centro onde tem conteúdo)
+  // Posições estratégicas (evitando centro onde tem conteúdo e área da foto na hero)
   const positionZones = [
     { top: "5%", left: "2%" },
-    { top: "10%", left: "85%" },
+    { top: "10%", left: "5%" },
     { top: "80%", left: "5%" },
-    { top: "75%", left: "88%" },
-    { top: "20%", left: "15%" },
-    { top: "60%", left: "20%" },
-    { top: "30%", left: "80%" },
-    { top: "70%", left: "75%" },
+    { top: "75%", left: "5%" },
+    { top: "20%", left: "10%" },
+    { top: "60%", left: "15%" },
+    { top: "85%", left: "10%" },
+    { top: "90%", left: "20%" },
   ]
 
   const sizes: ("sm" | "md" | "lg")[] = ["sm", "md", "lg"]

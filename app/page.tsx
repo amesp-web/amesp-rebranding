@@ -160,50 +160,103 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 relative overflow-hidden">
-        <FishDecoration position="top-right" size="sm" opacity={0.8} className="hidden md:block" />
-        <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Image
-                src="/amesp_logo.png"
-                alt="AMESP - Associação dos Maricultores do Estado de São Paulo"
-                width={120}
-                height={40}
-                className="h-10 w-auto"
-              />
-            </div>
+      {/* Header Modernizado */}
+      <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-gradient-to-r from-background via-background/98 to-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 relative overflow-hidden shadow-sm">
+        {/* Elementos decorativos sutis */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-2 left-4 opacity-20">
+            <Image
+              src="/fishdecor.png"
+              alt=""
+              width={32}
+              height={32}
+              className="w-8 h-8 object-contain"
+              unoptimized
+            />
           </div>
-          <nav className="hidden md:flex items-center space-x-6">
-            <a href="#sobre" className="text-sm font-medium hover:text-primary transition-colors">
+          <div className="absolute bottom-2 right-8 opacity-15 rotate-12">
+            <Image
+              src="/fishdecor.png"
+              alt=""
+              width={24}
+              height={24}
+              className="w-6 h-6 object-contain"
+              unoptimized
+            />
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 flex h-20 items-center justify-between relative">
+          {/* Logo */}
+          <div className="flex items-center space-x-4">
+            <Image
+              src="/amesp_logo.png"
+              alt="AMESP - Associação dos Maricultores do Estado de São Paulo"
+              width={130}
+              height={44}
+              className="h-11 w-auto"
+            />
+          </div>
+
+          {/* Navegação */}
+          <nav className="hidden lg:flex items-center space-x-1">
+            <a
+              href="#sobre"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+            >
               Sobre Nós
             </a>
-            <a href="#noticias" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#noticias"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+            >
               Notícias
             </a>
-            <a href="#galeria" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#galeria"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+            >
               Galeria
             </a>
-            <a href="#produtores" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#produtores"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+            >
               Produtores
             </a>
-            <a href="#eventos" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#eventos"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+            >
               Eventos
             </a>
-            <a href="#contato" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#contato"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+            >
               Contato
             </a>
           </nav>
+
+          {/* Botões de ação */}
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex border border-border/50 hover:border-primary/30 hover:bg-primary/5"
+              asChild
+            >
               <a href="/login" className="flex items-center space-x-2">
                 <LogIn className="h-4 w-4" />
                 <span>Entrar</span>
               </a>
             </Button>
-            <Button size="sm" className="flex items-center space-x-2" asChild>
-              <a href="/maricultor/cadastro">
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
+              asChild
+            >
+              <a href="/maricultor/cadastro" className="flex items-center space-x-2">
                 <UserPlus className="h-4 w-4" />
                 <span className="hidden sm:inline">Cadastrar-se</span>
                 <span className="sm:hidden">Cadastro</span>
@@ -211,12 +264,15 @@ export default async function HomePage() {
             </Button>
           </div>
         </div>
+
+        {/* Linha decorativa inferior */}
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       </header>
 
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
-        <FishSwarm count={5} className="hidden md:block" />
+        <FishSwarm count={3} className="hidden md:block" />
         <div className="container mx-auto px-4 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -252,6 +308,17 @@ export default async function HomePage() {
                   className="w-full h-auto"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
+                {/* Peixe decorativo escondido no canto superior direito */}
+                <div className="absolute -top-3 -right-3 opacity-40 z-10 pointer-events-none">
+                  <Image
+                    src="/fishdecor.png"
+                    alt=""
+                    width={64}
+                    height={64}
+                    className="w-12 h-12 md:w-16 md:h-16 object-contain rotate-12"
+                    unoptimized
+                  />
+                </div>
               </div>
               <div className="absolute -bottom-6 -right-6 bg-card border rounded-xl p-4 shadow-lg">
                 <div className="flex items-center space-x-3">
@@ -856,7 +923,18 @@ export default async function HomePage() {
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground py-12 relative overflow-hidden">
         <FishSwarm count={5} className="hidden md:block" />
-        <div className="container mx-auto px-4">
+        {/* Alga decorativa no canto direito */}
+        <div className="absolute -bottom-8 right-0 pointer-events-none select-none opacity-60">
+          <Image
+            src="/algadecor.png"
+            alt=""
+            width={200}
+            height={200}
+            className="h-auto w-48 md:w-64 object-contain"
+            unoptimized
+          />
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
