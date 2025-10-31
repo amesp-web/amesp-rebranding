@@ -111,7 +111,7 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                         <div key={j} className="flex gap-5 text-base relative pl-4 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-gradient-to-b before:from-primary/40 before:to-primary/60 before:rounded-full">
                           <div className="w-24 shrink-0 text-slate-700 font-semibold leading-7 pt-0.5">{it.time}</div>
                           {it.avatar_url && (
-                            <div className="h-14 w-14 shrink-0 rounded-full border-2 border-primary/20 overflow-hidden bg-white shadow-sm">
+                            <div className="h-20 w-20 shrink-0 rounded-full border-3 border-primary/20 overflow-hidden bg-white shadow-md">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={it.avatar_url} alt={it.title} className="h-full w-full object-cover" />
                             </div>
@@ -132,9 +132,10 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
           )}
           {Array.isArray(event.stands) && event.stands.length > 0 && (
             <div className="mt-12 pt-8 border-t-2 border-slate-200">
-              <div className="flex items-center gap-3 mb-8 px-2">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Store className="h-6 w-6 text-primary" />
+              <div className="flex items-center gap-4 mb-8 px-2">
+                <div className="relative h-14 w-14 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
+                  <Store className="h-7 w-7 text-white" />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent"></div>
                 </div>
                 <h3 className="text-slate-900 font-bold text-2xl">Stands</h3>
               </div>
@@ -142,7 +143,8 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                 <div className="flex flex-wrap justify-center gap-6">
                   {event.stands.map((s, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 group">
-                      <div className="relative h-24 w-24 rounded-full bg-white border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-primary/50 flex items-center justify-center">
+                      <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-white to-slate-50 border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl group-hover:shadow-primary/30 transition-all group-hover:scale-110 group-hover:border-primary/50 flex items-center justify-center overflow-hidden">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         {s.logo_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={s.logo_url} alt={s.name || 'logo'} className="h-full w-full object-contain" />
@@ -159,9 +161,10 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
           )}
           {Array.isArray(event.participants) && event.participants.length > 0 && (
             <div className="mt-12 pt-8 border-t-2 border-slate-200">
-              <div className="flex items-center gap-3 mb-8 px-2">
-                <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-blue-700" />
+              <div className="flex items-center gap-4 mb-8 px-2">
+                <div className="relative h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                  <Users className="h-7 w-7 text-white" />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent"></div>
                 </div>
                 <h3 className="text-slate-900 font-bold text-2xl">Participantes</h3>
               </div>
@@ -169,7 +172,8 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                 <div className="flex flex-wrap justify-center gap-6">
                   {event.participants.map((p, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 group">
-                      <div className="relative h-24 w-24 rounded-full bg-white border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-blue-500/50 flex items-center justify-center">
+                      <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-white to-slate-50 border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl group-hover:shadow-blue-500/30 transition-all group-hover:scale-110 group-hover:border-blue-500/50 flex items-center justify-center overflow-hidden">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         {p.logo_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
@@ -186,9 +190,10 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
           )}
           {Array.isArray(event.sponsors) && event.sponsors.length > 0 && (
             <div className="mt-12 pt-8 border-t-2 border-slate-200">
-              <div className="flex items-center gap-3 mb-8 px-2">
-                <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                  <Handshake className="h-6 w-6 text-emerald-700" />
+              <div className="flex items-center gap-4 mb-8 px-2">
+                <div className="relative h-14 w-14 rounded-xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                  <Handshake className="h-7 w-7 text-white" />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent"></div>
                 </div>
                 <h3 className="text-slate-900 font-bold text-2xl">Patrocinadores</h3>
               </div>
@@ -196,7 +201,8 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                 <div className="flex flex-wrap justify-center gap-6">
                   {event.sponsors.map((p, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 group">
-                      <div className="relative h-24 w-24 rounded-full bg-white border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110 group-hover:border-emerald-500/50 flex items-center justify-center">
+                      <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-white to-slate-50 border-[3px] border-slate-300 p-4 shadow-lg group-hover:shadow-xl group-hover:shadow-emerald-500/30 transition-all group-hover:scale-110 group-hover:border-emerald-500/50 flex items-center justify-center overflow-hidden">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         {p.logo_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
