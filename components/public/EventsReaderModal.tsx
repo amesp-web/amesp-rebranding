@@ -52,46 +52,42 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative bg-white w-full max-w-7xl max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
         {event.banner_url ? (
-          <div className="relative h-72 w-full overflow-hidden">
+          <div className="relative h-80 w-full overflow-hidden flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={event.banner_url!} alt={event.title} className="h-full w-full object-cover block" />
-            <button className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow" onClick={onClose}>
-              <X className="h-5 w-5" />
-            </button>
           </div>
-        ) : (
-          <button className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </button>
-        )}
-        <div className="px-7 pt-6 pb-8 max-h-[78vh] overflow-y-auto bg-gradient-to-b from-white to-slate-50">
-          <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 mb-4">
+        ) : null}
+        <button className="absolute top-4 right-4 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white transition-colors" onClick={onClose}>
+          <X className="h-5 w-5" />
+        </button>
+        <div className="px-8 pt-8 pb-10 overflow-y-auto bg-gradient-to-b from-white to-slate-50 flex-1">
+          <h2 className="text-3xl font-bold mb-3">{event.title}</h2>
+          <div className="flex flex-wrap items-center gap-4 text-base text-slate-600 mb-6">
             {dateRange && (
-              <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {dateRange}</span>
+              <span className="inline-flex items-center gap-2"><Calendar className="h-5 w-5" /> {dateRange}</span>
             )}
             {event.location && (
-              <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" /> {event.location}</span>
+              <span className="inline-flex items-center gap-2"><MapPin className="h-5 w-5" /> {event.location}</span>
             )}
           </div>
           {(event.live_url || event.signup_url) && (
-            <div className="flex flex-wrap gap-3 mb-6">
+            <div className="flex flex-wrap gap-4 mb-8">
               {event.live_url && (
-                <a href={event.live_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow">
-                  <Play className="h-4 w-4" /> Assistir ao vivo <ExternalLink className="h-4 w-4 opacity-80" />
+                <a href={event.live_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow text-base font-medium">
+                  <Play className="h-5 w-5" /> Assistir ao vivo <ExternalLink className="h-5 w-5 opacity-80" />
                 </a>
               )}
               {event.signup_url && (
-                <a href={event.signup_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700 transition-colors shadow">
-                  Inscrição <ExternalLink className="h-4 w-4 opacity-80" />
+                <a href={event.signup_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-600 text-white hover:bg-sky-700 transition-colors shadow text-base font-medium">
+                  Inscrição <ExternalLink className="h-5 w-5 opacity-80" />
                 </a>
               )}
             </div>
           )}
           {event.description && (
-            <p className="text-slate-700 leading-relaxed mb-6 whitespace-pre-wrap">{event.description}</p>
+            <p className="text-lg text-slate-700 leading-relaxed mb-8 whitespace-pre-wrap">{event.description}</p>
           )}
           {Array.isArray(event.schedule) && event.schedule.length > 0 && (
             <div className="mt-2 space-y-6">
@@ -100,30 +96,30 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                 const dayName = dayDate.toLocaleDateString('pt-BR', { weekday: 'long' })
                 const dayFormatted = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(dayDate)
                 return (
-                  <div key={i} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-5 shadow-md hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-200">
-                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-base shadow-md">
+                  <div key={i} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-6 shadow-md hover:shadow-lg transition-shadow">
+                    <div className="flex items-center gap-4 mb-5 pb-4 border-b border-slate-200">
+                      <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-lg shadow-md">
                         {dayDate.getDate()}
                       </div>
                       <div>
-                        <div className="font-bold text-slate-900 capitalize text-lg">{dayName}</div>
-                        <div className="text-sm text-slate-600">{dayFormatted}</div>
+                        <div className="font-bold text-slate-900 capitalize text-xl">{dayName}</div>
+                        <div className="text-base text-slate-600">{dayFormatted}</div>
                       </div>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {d.items?.map((it, j) => (
-                        <div key={j} className="flex gap-4 text-sm relative pl-3 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-primary/40 before:to-primary/60 before:rounded-full">
-                          <div className="w-20 shrink-0 text-slate-700 font-semibold leading-6 pt-0.5">{it.time}</div>
+                        <div key={j} className="flex gap-5 text-base relative pl-4 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-gradient-to-b before:from-primary/40 before:to-primary/60 before:rounded-full">
+                          <div className="w-24 shrink-0 text-slate-700 font-semibold leading-7 pt-0.5">{it.time}</div>
                           {it.avatar_url && (
-                            <div className="h-12 w-12 shrink-0 rounded-full border-2 border-primary/20 overflow-hidden bg-white shadow-sm">
+                            <div className="h-14 w-14 shrink-0 rounded-full border-2 border-primary/20 overflow-hidden bg-white shadow-sm">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img src={it.avatar_url} alt={it.title} className="h-full w-full object-cover" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-slate-900 break-words leading-6">{it.title}</div>
+                            <div className="font-bold text-slate-900 break-words leading-7 text-base">{it.title}</div>
                             {it.description && (
-                              <div className="text-slate-600 leading-5 mt-1 break-words text-xs">{it.description}</div>
+                              <div className="text-slate-600 leading-6 mt-1.5 break-words text-sm">{it.description}</div>
                             )}
                           </div>
                         </div>
@@ -135,8 +131,8 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
             </div>
           )}
           {Array.isArray(event.stands) && event.stands.length > 0 && (
-            <div className="mt-8">
-              <div className="flex items-center gap-2 mb-5 text-slate-800 font-semibold text-lg"><Store className="h-5 w-5" /> Stands</div>
+            <div className="mt-10">
+              <div className="flex items-center gap-3 mb-6 text-slate-800 font-semibold text-xl"><Store className="h-6 w-6" /> Stands</div>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
                 {event.stands.map((s, i) => (
                   <div key={i} className="flex flex-col items-center gap-2 group">
@@ -155,8 +151,8 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
             </div>
           )}
           {Array.isArray(event.participants) && event.participants.length > 0 && (
-            <div className="mt-8">
-              <div className="flex items-center gap-2 mb-5 text-slate-800 font-semibold text-lg"><Users className="h-5 w-5" /> Participantes</div>
+            <div className="mt-10">
+              <div className="flex items-center gap-3 mb-6 text-slate-800 font-semibold text-xl"><Users className="h-6 w-6" /> Participantes</div>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
                 {event.participants.map((p, i) => (
                   <div key={i} className="flex flex-col items-center gap-2 group">
@@ -175,8 +171,8 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
             </div>
           )}
           {Array.isArray(event.sponsors) && event.sponsors.length > 0 && (
-            <div className="mt-8">
-              <div className="flex items-center gap-2 mb-5 text-slate-800 font-semibold text-lg"><Handshake className="h-5 w-5" /> Patrocinadores</div>
+            <div className="mt-10">
+              <div className="flex items-center gap-3 mb-6 text-slate-800 font-semibold text-xl"><Handshake className="h-6 w-6" /> Patrocinadores</div>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
                 {event.sponsors.map((p, i) => (
                   <div key={i} className="flex flex-col items-center gap-2 group">
