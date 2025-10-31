@@ -94,38 +94,55 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
             <p className="text-slate-700 leading-relaxed mb-6 whitespace-pre-wrap">{event.description}</p>
           )}
           {Array.isArray(event.schedule) && event.schedule.length > 0 && (
-            <div className="mt-2 space-y-4">
-              {event.schedule.map((d, i) => (
-                <div key={i} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="font-medium mb-2">{new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(d.date))}</div>
-                  <div className="space-y-3">
-                    {d.items?.map((it, j) => (
-                      <div key={j} className="flex gap-4 text-sm">
-                        <div className="w-16 shrink-0 text-slate-500 font-medium leading-6 pt-0.5">{it.time}</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-slate-900 break-words leading-6">{it.title}</div>
-                          {it.description && (
-                            <div className="text-slate-600 leading-5 mt-0.5 break-words">{it.description}</div>
-                          )}
-                        </div>
+            <div className="mt-2 space-y-6">
+              {event.schedule.map((d, i) => {
+                const dayDate = new Date(d.date)
+                const dayName = dayDate.toLocaleDateString('pt-BR', { weekday: 'long' })
+                const dayFormatted = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(dayDate)
+                return (
+                  <div key={i} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-5 shadow-md hover:shadow-lg transition-shadow">
+                    <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-200">
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-base shadow-md">
+                        {dayDate.getDate()}
                       </div>
-                    ))}
+                      <div>
+                        <div className="font-bold text-slate-900 capitalize text-lg">{dayName}</div>
+                        <div className="text-sm text-slate-600">{dayFormatted}</div>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      {d.items?.map((it, j) => (
+                        <div key={j} className="flex gap-4 text-sm relative pl-3 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-primary/40 before:to-primary/60 before:rounded-full">
+                          <div className="w-20 shrink-0 text-slate-700 font-semibold leading-6 pt-0.5">{it.time}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-slate-900 break-words leading-6">{it.title}</div>
+                            {it.description && (
+                              <div className="text-slate-600 leading-5 mt-1 break-words text-xs">{it.description}</div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
           {Array.isArray(event.stands) && event.stands.length > 0 && (
             <div className="mt-8">
-              <div className="flex items-center gap-2 mb-4 text-slate-800 font-semibold"><Store className="h-4 w-4" /> Stands</div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-2 mb-5 text-slate-800 font-semibold text-lg"><Store className="h-5 w-5" /> Stands</div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
                 {event.stands.map((s, i) => (
-                  <div key={i} className="rounded-2xl border border-slate-200 p-3 flex items-center gap-3 bg-white/90 shadow-sm hover:shadow-md transition-shadow">
-                    {s.logo_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={s.logo_url} alt={s.name || 'logo'} className="h-12 w-12 object-contain bg-white rounded" />
-                    )}
-                    <div className="text-sm font-medium text-slate-800">{s.name}</div>
+                  <div key={i} className="flex flex-col items-center gap-2 group">
+                    <div className="relative h-20 w-20 rounded-full bg-white border-2 border-slate-200 p-3 shadow-md group-hover:shadow-lg transition-all group-hover:scale-110 group-hover:border-primary/40 flex items-center justify-center">
+                      {s.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={s.logo_url} alt={s.name || 'logo'} className="h-full w-full object-contain" />
+                      ) : (
+                        <Store className="h-8 w-8 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="text-xs font-medium text-slate-800 text-center leading-tight max-w-[80px]">{s.name}</div>
                   </div>
                 ))}
               </div>
@@ -133,15 +150,19 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
           )}
           {Array.isArray(event.participants) && event.participants.length > 0 && (
             <div className="mt-8">
-              <div className="flex items-center gap-2 mb-4 text-slate-800 font-semibold"><Users className="h-4 w-4" /> Participantes</div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-2 mb-5 text-slate-800 font-semibold text-lg"><Users className="h-5 w-5" /> Participantes</div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
                 {event.participants.map((p, i) => (
-                  <div key={i} className="rounded-2xl border border-slate-200 p-3 flex items-center gap-3 bg-white/90 shadow-sm hover:shadow-md transition-shadow">
-                    {p.logo_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.logo_url} alt={p.name || 'logo'} className="h-12 w-12 object-contain bg-white rounded" />
-                    )}
-                    <div className="text-sm font-medium text-slate-800">{p.name}</div>
+                  <div key={i} className="flex flex-col items-center gap-2 group">
+                    <div className="relative h-20 w-20 rounded-full bg-white border-2 border-slate-200 p-3 shadow-md group-hover:shadow-lg transition-all group-hover:scale-110 group-hover:border-primary/40 flex items-center justify-center">
+                      {p.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
+                      ) : (
+                        <Users className="h-8 w-8 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="text-xs font-medium text-slate-800 text-center leading-tight max-w-[80px]">{p.name}</div>
                   </div>
                 ))}
               </div>
@@ -149,15 +170,19 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
           )}
           {Array.isArray(event.sponsors) && event.sponsors.length > 0 && (
             <div className="mt-8">
-              <div className="flex items-center gap-2 mb-4 text-slate-800 font-semibold"><Handshake className="h-4 w-4" /> Patrocinadores</div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-2 mb-5 text-slate-800 font-semibold text-lg"><Handshake className="h-5 w-5" /> Patrocinadores</div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
                 {event.sponsors.map((p, i) => (
-                  <div key={i} className="rounded-2xl border border-slate-200 p-3 flex items-center gap-3 bg-white/90 shadow-sm hover:shadow-md transition-shadow">
-                    {p.logo_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.logo_url} alt={p.name || 'logo'} className="h-12 w-12 object-contain bg-white rounded" />
-                    )}
-                    <div className="text-sm font-medium text-slate-800">{p.name}</div>
+                  <div key={i} className="flex flex-col items-center gap-2 group">
+                    <div className="relative h-20 w-20 rounded-full bg-white border-2 border-slate-200 p-3 shadow-md group-hover:shadow-lg transition-all group-hover:scale-110 group-hover:border-primary/40 flex items-center justify-center">
+                      {p.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.logo_url} alt={p.name || 'logo'} className="h-full w-full object-contain" />
+                      ) : (
+                        <Handshake className="h-8 w-8 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="text-xs font-medium text-slate-800 text-center leading-tight max-w-[80px]">{p.name}</div>
                   </div>
                 ))}
               </div>
