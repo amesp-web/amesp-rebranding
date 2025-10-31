@@ -11,8 +11,9 @@ import { Switch } from "@/components/ui/switch"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
-import { ArrowLeft, Save, ImagePlus } from "lucide-react"
+import { ArrowLeft, Save, ImagePlus, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { AIAssistantModal } from "./AIAssistantModal"
 
 interface NewsFormProps {
   initialData?: any
@@ -31,10 +32,20 @@ export function NewsForm({ initialData }: NewsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialData?.image_url || null)
+  const [aiModalOpen, setAIModalOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const triggerFileSelect = () => fileInputRef.current?.click()
+
+  const handleAISuggestion = (suggestion: { title: string; content: string; excerpt: string }) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: suggestion.title,
+      content: suggestion.content,
+      excerpt: suggestion.excerpt,
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,7 +135,18 @@ export function NewsForm({ initialData }: NewsFormProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title">Título *</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="title">Título *</Label>
+              <Button
+                type="button"
+                onClick={() => setAIModalOpen(true)}
+                variant="outline"
+                className="inline-flex items-center gap-2 border-2 border-purple-300 hover:border-purple-400 text-purple-700 hover:text-purple-800 hover:bg-purple-50 rounded-xl px-4 py-2 transition-all"
+              >
+                <Sparkles className="h-4 w-4" />
+                Assistente Criativo IA
+              </Button>
+            </div>
             <Input
               id="title"
               value={formData.title}
@@ -295,6 +317,13 @@ export function NewsForm({ initialData }: NewsFormProps) {
           </Button>
         </div>
       </div>
+
+      {/* Modal do Assistente Criativo IA */}
+      <AIAssistantModal
+        isOpen={aiModalOpen}
+        onClose={() => setAIModalOpen(false)}
+        onApply={handleAISuggestion}
+      />
     </form>
   )
 }
