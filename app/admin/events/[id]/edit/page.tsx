@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import Link from "next/link"
+import { X } from "lucide-react"
 
 type ScheduleDay = { date: string; items: { time: string; title: string; description?: string; avatar_url?: string }[] }
 
@@ -53,6 +54,7 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
   const addItem = (idx: number) => setSchedule((d) => d.map((day, i) => i === idx ? { ...day, items: [...day.items, { time: "", title: "", description: "", avatar_url: "" }] } : day))
   const setDay = (i: number, k: string, v: any) => setSchedule((d) => d.map((day, idx) => idx === i ? { ...day, [k]: v } : day))
   const setItem = (di: number, ii: number, k: string, v: any) => setSchedule((d) => d.map((day, idx) => idx === di ? { ...day, items: day.items.map((it, j) => j === ii ? { ...it, [k]: v } : it) } : day))
+  const removeItem = (di: number, ii: number) => setSchedule((d) => d.map((day, idx) => idx === di ? { ...day, items: day.items.filter((_, j) => j !== ii) } : day))
 
   const upload = async (file: File) => {
     const safeName = file.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_.-]/g, '-')
@@ -150,7 +152,7 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
               </div>
               <div className="space-y-3">
                 {day.items.map((it, ii) => (
-                  <div key={ii} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+                  <div key={ii} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start relative">
                     <div className="md:col-span-1">
                       <Label>Hora</Label>
                       <Input placeholder="HH:MM" value={it.time} onChange={(e) => setItem(di, ii, 'time', e.target.value)} />
@@ -188,9 +190,20 @@ export default function EditEventPage({ params }: { params: { id: string } }) {
                       <Label>Tema</Label>
                       <Input value={it.title} onChange={(e) => setItem(di, ii, 'title', e.target.value)} />
                     </div>
-                    <div className="md:col-span-6">
+                    <div className="md:col-span-5">
                       <Label>Descrição</Label>
                       <Input value={it.description || ''} onChange={(e) => setItem(di, ii, 'description', e.target.value)} />
+                    </div>
+                    <div className="md:col-span-1 flex items-end">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => removeItem(di, ii)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
