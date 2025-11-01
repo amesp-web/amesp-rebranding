@@ -720,6 +720,8 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
 }
 
 export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlocks: (blocks: Block[]) => void }) {
+  const blocksContainerRef = useRef<HTMLDivElement>(null)
+
   const addBlock = (type: BlockType) => {
     const newBlock: Block = {
       id: `${type}-${Date.now()}`,
@@ -727,6 +729,21 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
       data: type === 'gallery' ? { images: [], layout: 'grid' } : type === 'team' ? { members: [] } : type === 'logo' ? { size: 'medium', logos: [] } : {},
     }
     setBlocks([...blocks, newBlock])
+    
+    // Scroll para o novo bloco após um pequeno delay
+    setTimeout(() => {
+      if (blocksContainerRef.current) {
+        const lastBlock = blocksContainerRef.current.lastElementChild
+        if (lastBlock) {
+          lastBlock.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Adiciona um efeito visual de destaque
+          lastBlock.classList.add('animate-pulse')
+          setTimeout(() => {
+            lastBlock.classList.remove('animate-pulse')
+          }, 1000)
+        }
+      }
+    }, 100)
   }
 
   const updateBlock = (id: string, data: any) => {
@@ -747,35 +764,39 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
       {/* Painel de blocos disponíveis */}
-      <Card className="lg:col-span-1 border-0 shadow-lg bg-gradient-to-br from-blue-50/30 via-white to-cyan-50/20">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold text-slate-800">Blocos Disponíveis</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
+      <div className="lg:col-span-1">
+        <Card className="border-0 shadow-lg overflow-hidden max-w-xs sticky top-24 max-h-[calc(100vh-7rem)]">
+          <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 pb-4">
+            <CardTitle className="text-lg font-bold text-white">Blocos Disponíveis</CardTitle>
+            <p className="text-sm text-white/90">Clique para adicionar ao editor</p>
+          </CardHeader>
+          <CardContent className="space-y-2 pt-4 pb-4 bg-gradient-to-br from-blue-50/30 via-white to-cyan-50/20 overflow-y-auto max-h-[calc(100vh-16rem)]">
           {BLOCK_TYPES.map((bt) => {
             const Icon = bt.icon
             return (
-              <Button
+              <button
                 key={bt.type}
-                variant="outline"
-                className="w-full justify-start"
+                type="button"
+                className="w-fit px-4 py-2 border border-slate-200 rounded-md bg-white text-slate-900 font-medium flex items-center justify-start hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:border-blue-300 transition-all"
                 onClick={() => addBlock(bt.type)}
               >
-                <Icon className="mr-2 h-4 w-4" />
-                {bt.label}
-              </Button>
+                <Icon className="mr-2 h-4 w-4 text-blue-600" />
+                <span>{bt.label}</span>
+              </button>
             )
           })}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
       {/* Área de edição */}
-      <div className="lg:col-span-3 space-y-4">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white via-blue-50/30 to-cyan-50/20">
-          <CardHeader className="bg-gradient-to-r from-blue-50 via-cyan-50/50 to-teal-50/30 border-b border-blue-200/50">
-            <CardTitle className="text-xl font-bold text-slate-800">Editor de Blocos</CardTitle>
+      <div className="lg:col-span-4 space-y-4">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-white via-blue-50/30 to-cyan-50/20 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 border-b-0">
+            <CardTitle className="text-xl font-bold text-white">Editor de Blocos</CardTitle>
+            <p className="text-sm text-white/90">Organize seus blocos arrastando-os</p>
           </CardHeader>
           <CardContent className="pt-6">
             {blocks.length === 0 ? (
@@ -786,7 +807,7 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
             ) : (
               <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                 <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-4">
+                  <div ref={blocksContainerRef} className="space-y-4">
                     {blocks.map((block) => (
                       <SortableBlock
                         key={block.id}
