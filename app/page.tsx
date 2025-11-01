@@ -5,6 +5,7 @@ import { NewsLikeButton } from "@/components/public/NewsLikeButton"
 import { NewsReaderModal } from "@/components/public/NewsReaderModal"
 import { ViewsCounter } from "@/components/public/ViewsCounter"
 import { ShareCopyButton } from "@/components/public/ShareCopyButton"
+import { ProjectsDropdown } from "@/components/public/ProjectsDropdown"
 import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
 import { FishDecoration } from "@/components/decorative/FishDecoration"
@@ -161,9 +162,9 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
       {/* Header Modernizado */}
-      <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-gradient-to-r from-background via-background/98 to-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 relative overflow-hidden shadow-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-gradient-to-r from-background via-background/98 to-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 relative shadow-sm">
         {/* Elementos decorativos sutis */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
           <div className="absolute top-2 left-4 opacity-20">
             <Image
               src="/fishdecor.png"
@@ -224,6 +225,7 @@ export default async function HomePage() {
             >
               Produtores
             </a>
+            <ProjectsDropdown />
             <a
               href="#eventos"
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
