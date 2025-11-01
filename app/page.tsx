@@ -999,8 +999,15 @@ export default async function HomePage() {
                 <Button variant="ghost" size="sm" className="text-primary-foreground/80 hover:text-primary-foreground">
                   Facebook
                 </Button>
-                <Button variant="ghost" size="sm" className="text-primary-foreground/80 hover:text-primary-foreground">
-                  Instagram
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-primary-foreground/80 hover:text-primary-foreground"
+                  asChild
+                >
+                  <a href="https://www.instagram.com/amesp.maricultura/" target="_blank" rel="noopener noreferrer">
+                    Instagram
+                  </a>
                 </Button>
               </div>
             </div>
