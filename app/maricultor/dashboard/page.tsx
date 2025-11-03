@@ -122,6 +122,29 @@ export default function MaricultorDashboard() {
     return 'Agora mesmo'
   }
 
+  const calculateProfileCompletion = () => {
+    if (!profile) return 0
+    
+    const fields = [
+      profile.full_name,
+      profile.contact_phone,
+      profile.cep,
+      profile.logradouro,
+      profile.numero,
+      profile.cidade,
+      profile.estado,
+      profile.company,
+      profile.specialties,
+      profile.latitude,
+      profile.longitude
+    ]
+    
+    const filledFields = fields.filter(field => field !== null && field !== undefined && field !== '').length
+    const totalFields = fields.length
+    
+    return Math.round((filledFields / totalFields) * 100)
+  }
+
   const handleSaveProfile = async () => {
     if (!user?.id) return
     setSaving(true)
@@ -228,51 +251,18 @@ export default function MaricultorDashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8 max-w-sm">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Perfil</p>
-                  <p className="text-2xl font-bold text-primary">85%</p>
+                  <p className="text-sm text-muted-foreground">Completude do Perfil</p>
+                  <p className="text-2xl font-bold text-primary">{calculateProfileCompletion()}%</p>
+                  {calculateProfileCompletion() < 100 && (
+                    <p className="text-xs text-muted-foreground mt-1">Complete seu perfil para aparecer no mapa</p>
+                  )}
                 </div>
                 <User className="h-8 w-8 text-primary/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Eventos</p>
-                  <p className="text-2xl font-bold text-primary">3</p>
-                </div>
-                <Calendar className="h-8 w-8 text-primary/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Notícias</p>
-                  <p className="text-2xl font-bold text-primary">12</p>
-                </div>
-                <FileText className="h-8 w-8 text-primary/60" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Relatórios</p>
-                  <p className="text-2xl font-bold text-primary">5</p>
-                </div>
-                <BarChart3 className="h-8 w-8 text-primary/60" />
               </div>
             </CardContent>
           </Card>
