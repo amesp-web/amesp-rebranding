@@ -227,6 +227,12 @@ export default async function HomePage() {
             </a>
             <ProjectsDropdown />
             <a
+              href="/downloads"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+            >
+              Downloads
+            </a>
+            <a
               href="#eventos"
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
             >
