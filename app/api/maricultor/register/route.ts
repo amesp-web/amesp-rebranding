@@ -38,30 +38,54 @@ export async function POST(req: Request) {
     // Se não recebemos latitude/longitude, geocodificamos no servidor
     let lat = latitude ?? null
     let lon = longitude ?? null
+    
+    console.log('🗺️ Geocodificação - Estado inicial:', { lat, lon, logradouro, cidade, estado, cep })
+    
     if ((lat == null || lon == null) && (logradouro || cidade || estado || cep)) {
       try {
         const apiKey = process.env.GEOAPIFY_API_KEY || process.env.NEXT_PUBLIC_GEOAPIFY_KEY
-        if (apiKey) {
+        console.log('🔑 API Key presente:', !!apiKey)
+        
+        if (!apiKey) {
+          console.error('❌ GEOAPIFY_API_KEY não configurada! Geocodificação impossível.')
+        } else {
           const parts = [logradouro, cidade, estado, 'Brasil']
           const text = parts.filter(Boolean).join(', ')
-          const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(text)}&limit=1&lang=pt&filter=countrycode:br${cep ? `&postcode=${encodeURIComponent(cep)}` : ''}&apiKey=${apiKey}`
+          const cleanCep = cep ? String(cep).replace(/\D/g, '') : ''
+          const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(text)}&limit=1&lang=pt&filter=countrycode:br${cleanCep ? `&postcode=${cleanCep}` : ''}&apiKey=${apiKey}`
+          
+          console.log('🌐 URL Geoapify:', url.replace(apiKey, 'API_KEY_HIDDEN'))
+          
           const res = await fetch(url, { cache: 'no-store' })
           const data = await res.json()
+          
+          console.log('📍 Resposta Geoapify:', JSON.stringify(data, null, 2))
+          
           const p = data?.features?.[0]?.properties
           lat = p?.lat ?? data?.features?.[0]?.geometry?.coordinates?.[1] ?? null
           lon = p?.lon ?? data?.features?.[0]?.geometry?.coordinates?.[0] ?? null
+          
+          console.log('✅ Coordenadas extraídas:', { lat, lon })
+          
+          if (!lat || !lon) {
+            console.warn('⚠️ Geocodificação retornou resultado vazio ou sem coordenadas')
+          }
         }
       } catch (geoErr) {
-        console.warn('⚠️ Falha ao geocodificar no servidor:', geoErr)
+        console.error('❌ Falha ao geocodificar no servidor:', geoErr)
       }
     }
+    
+    console.log('📍 Coordenadas finais para salvar:', { latitude: lat, longitude: lon })
 
     // Monta payload inicial
     // Conjunto de colunas esperadas — evita enviar chaves supérfluas
     const allowedKeys = new Set([
-      'id', 'full_name', 'contact_phone', 'logradouro', 'cidade', 'estado',
+      'id', 'full_name', 'contact_phone', 'logradouro', 'cidade', 'estado', 'cep',
       'company', 'specialties', 'latitude', 'longitude', 'updated_at', 'created_at', 'is_active'
     ])
+    const cleanCep = cep ? String(cep).replace(/\D/g, '') : null
+    
     const basePayload: Record<string, any> = {
       id,
       full_name,
@@ -69,6 +93,7 @@ export async function POST(req: Request) {
       logradouro,
       cidade,
       estado,
+      cep: cleanCep,
       company,
       specialties,
       latitude: lat,
