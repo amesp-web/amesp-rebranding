@@ -116,26 +116,42 @@ export function AdminHeader({ user, adminProfile }: AdminHeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {displayName}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p>
+            <DropdownMenuContent align="end" className="w-72 p-2">
+              {/* Header do Usuário Modernizado */}
+              <div className="px-3 py-4 mb-2 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center ring-2 ring-blue-200 ring-offset-2 shadow-md">
+                    <span className="text-lg font-bold text-white">
+                      {isLoading ? '...' : userInitial}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">
+                      {isLoading ? <Skeleton className="h-4 w-32" /> : displayName}
+                    </p>
+                    <p className="text-xs text-slate-600 truncate mt-0.5">
+                      {user?.email || ''}
+                    </p>
+                    <Badge variant="secondary" className="mt-1.5 text-xs bg-blue-100 text-blue-700 border-blue-200">
+                      {userRole === 'admin' ? 'Administrador' : userRole}
+                    </Badge>
+                  </div>
                 </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Configurações</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sair</span>
+              </div>
+              
+              <DropdownMenuSeparator className="my-2 bg-slate-200" />
+              
+              {/* Sair */}
+              <DropdownMenuItem 
+                className="cursor-pointer rounded-lg px-3 py-3 hover:bg-red-50 transition-all group" 
+                onClick={handleLogout}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-red-50 to-red-100/50 group-hover:from-red-100 group-hover:to-red-200 flex items-center justify-center transition-all shadow-sm">
+                    <LogOut className="h-4 w-4 text-red-600 group-hover:text-red-700 transition-colors" />
+                  </div>
+                  <span className="text-sm font-semibold text-red-600 group-hover:text-red-700 transition-colors">Sair</span>
+                </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
