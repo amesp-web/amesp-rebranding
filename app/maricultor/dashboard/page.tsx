@@ -338,7 +338,7 @@ export default function MaricultorDashboard() {
                     )
                   })
                 )}
-                <Button variant="outline" className="w-full bg-transparent" asChild>
+                <Button variant="outline" className="w-full bg-transparent hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-colors" asChild>
                   <a href="/news" target="_blank" rel="noopener noreferrer">Ver Todas as Notícias</a>
                 </Button>
               </CardContent>
@@ -405,7 +405,7 @@ export default function MaricultorDashboard() {
                     )
                   })
                 )}
-                <Button variant="outline" className="w-full bg-transparent" asChild>
+                <Button variant="outline" className="w-full bg-transparent hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300 transition-colors" asChild>
                   <a href="/#eventos" target="_blank" rel="noopener noreferrer">Ver Todos os Eventos</a>
                 </Button>
               </CardContent>
@@ -438,7 +438,7 @@ export default function MaricultorDashboard() {
                         <p className="text-sm text-muted-foreground">{profile?.company || user.user_metadata?.company}</p>
                       )}
                     </div>
-                    <Button variant="outline" className="w-full bg-transparent" onClick={() => setEditing(true)}>
+                    <Button variant="outline" className="w-full bg-transparent hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-colors" onClick={() => setEditing(true)}>
                       <Settings className="h-4 w-4 mr-2" />
                       Editar Perfil
                     </Button>
@@ -527,8 +527,8 @@ export default function MaricultorDashboard() {
                       </div>
                     </div>
                     <div className="flex gap-3">
-                      <Button variant="outline" className="bg-transparent" onClick={() => setEditing(false)} disabled={saving}>Cancelar</Button>
-                      <Button onClick={handleSaveProfile} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
+                      <Button variant="outline" className="bg-transparent hover:bg-slate-50 hover:text-slate-600 hover:border-slate-300 transition-colors" onClick={() => setEditing(false)} disabled={saving}>Cancelar</Button>
+                      <Button className="hover:bg-blue-600 hover:shadow-lg transition-all" onClick={handleSaveProfile} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
                     </div>
                   </>
                 )}
