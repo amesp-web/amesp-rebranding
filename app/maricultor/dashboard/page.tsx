@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -122,7 +122,7 @@ export default function MaricultorDashboard() {
     return 'Agora mesmo'
   }
 
-  const calculateProfileCompletion = () => {
+  const profileCompletion = useMemo(() => {
     if (!profile) return 0
     
     // Apenas campos visíveis no formulário de edição
@@ -142,7 +142,7 @@ export default function MaricultorDashboard() {
     const totalFields = fields.length
     
     return Math.round((filledFields / totalFields) * 100)
-  }
+  }, [profile])
 
   const handleSaveProfile = async () => {
     if (!user?.id) return
@@ -256,8 +256,8 @@ export default function MaricultorDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Completude do Perfil</p>
-                  <p className="text-2xl font-bold text-primary">{calculateProfileCompletion()}%</p>
-                  {calculateProfileCompletion() < 100 && (
+                  <p className="text-2xl font-bold text-primary">{profileCompletion}%</p>
+                  {profileCompletion < 100 && (
                     <p className="text-xs text-muted-foreground mt-1">Complete seu perfil para aparecer no mapa</p>
                   )}
                 </div>
