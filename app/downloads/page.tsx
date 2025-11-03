@@ -219,17 +219,18 @@ export default function DownloadsPublicPage() {
                   <CardContent className="p-6 relative z-10">
                     {/* Preview do PDF (mostra primeira página automaticamente) ou Ícone */}
                     {download.file_name.toLowerCase().endsWith('.pdf') ? (
-                      <div className="mb-4 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300 bg-white">
-                        <object
-                          data={`${download.file_url}#page=1&view=FitH`}
-                          type="application/pdf"
-                          className="w-full h-64 pointer-events-none"
-                        >
-                          {/* Fallback para ícone se o navegador não suportar */}
-                          <div className={`h-64 w-full rounded-2xl bg-gradient-to-br ${theme.iconBg} flex items-center justify-center`}>
-                            <FileText className={`h-16 w-16 ${theme.iconColor}`} />
-                          </div>
-                        </object>
+                      <div className="mb-4 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300 bg-white relative" style={{ height: '320px' }}>
+                        <iframe
+                          src={`${download.file_url}#toolbar=0&navpanes=0&scrollbar=0&page=1&view=FitH&zoom=105`}
+                          className="w-full border-0 absolute"
+                          title={download.title}
+                          style={{ 
+                            pointerEvents: 'none',
+                            height: '400px',
+                            top: '-20px',
+                            left: '0'
+                          }}
+                        />
                       </div>
                     ) : (
                       <div className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${theme.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
