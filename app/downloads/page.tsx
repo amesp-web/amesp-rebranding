@@ -217,10 +217,25 @@ export default function DownloadsPublicPage() {
                   <div className={`absolute inset-0 bg-gradient-to-br ${theme.hoverGradient} via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}></div>
                   
                   <CardContent className="p-6 relative z-10">
-                    {/* Ícone com gradiente temático */}
-                    <div className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${theme.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                      <FileText className={`h-10 w-10 ${theme.iconColor}`} />
-                    </div>
+                    {/* Preview do PDF (mostra primeira página automaticamente) ou Ícone */}
+                    {download.file_name.toLowerCase().endsWith('.pdf') ? (
+                      <div className="mb-4 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300 bg-white">
+                        <object
+                          data={`${download.file_url}#page=1&view=FitH`}
+                          type="application/pdf"
+                          className="w-full h-64 pointer-events-none"
+                        >
+                          {/* Fallback para ícone se o navegador não suportar */}
+                          <div className={`h-64 w-full rounded-2xl bg-gradient-to-br ${theme.iconBg} flex items-center justify-center`}>
+                            <FileText className={`h-16 w-16 ${theme.iconColor}`} />
+                          </div>
+                        </object>
+                      </div>
+                    ) : (
+                      <div className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${theme.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                        <FileText className={`h-10 w-10 ${theme.iconColor}`} />
+                      </div>
+                    )}
 
                     {/* Título */}
                     <h3 className="font-bold text-xl text-slate-900 mb-3 line-clamp-2 min-h-[3.5rem]">
