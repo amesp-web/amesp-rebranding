@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 import { createBrowserClient } from "@supabase/ssr"
-import { LogOut, User, Settings, Fish, Calendar, FileText, BarChart3, Bell } from "lucide-react"
+import { LogOut, User, Settings, Fish, Calendar, FileText, Lock, DollarSign } from "lucide-react"
 
 export default function MaricultorDashboard() {
   const [user, setUser] = useState<any>(null)
@@ -482,28 +482,25 @@ export default function MaricultorDashboard() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/50">
+            {/* Mensalidades */}
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/50 relative overflow-hidden">
               <CardHeader>
-                <CardTitle>Ações Rápidas</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Mensalidades
+                </CardTitle>
+                <CardDescription>Gerencie suas mensalidades e pagamentos</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Relatório de Produção
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Agendar Visita Técnica
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <Bell className="h-4 w-4 mr-2" />
-                  Configurar Alertas
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Análise de Dados
-                </Button>
+              <CardContent className="space-y-4">
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                    <Lock className="h-8 w-8 text-primary/60" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-700 mb-2">Em Breve</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                    Funcionalidade de gerenciamento de mensalidades estará disponível em breve.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
