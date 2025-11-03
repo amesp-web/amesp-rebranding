@@ -1,24 +1,73 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Menu, X, LogIn, UserPlus, ChevronDown } from "lucide-react"
 import Link from "next/link"
+import { ProjectReaderModal } from "@/components/public/ProjectReaderModal"
 
-type MobileMenuProps = {
-  projects: Array<{ id: string; name: string; slug: string; submenu_label: string }>
+type Project = {
+  id: string
+  name: string
+  slug: string
+  submenu_label: string
+  content?: any
+  published?: boolean
 }
 
-export function MobileMenu({ projects }: MobileMenuProps) {
+type MobileMenuProps = {
+  projects: Project[]
+}
+
+export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [projectsExpanded, setProjectsExpanded] = useState(false)
-  
-  // Forçar array vazio se projects for undefined/null (Safari fix)
-  const safeProjects = projects || []
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [fullProjects, setFullProjects] = useState<Map<string, Project>>(new Map())
+  const [projects, setProjects] = useState<Project[]>([])
+
+  // Carregar projetos completos ao montar
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/public/projects', { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          setProjects(data || [])
+          
+          // Pré-carregar conteúdo completo de cada projeto
+          const projectsMap = new Map<string, Project>()
+          await Promise.all(
+            data.map(async (proj: Project) => {
+              try {
+                const fullRes = await fetch(`/api/admin/projects/${proj.id}`)
+                if (fullRes.ok) {
+                  const fullData = await fullRes.json()
+                  projectsMap.set(proj.id, fullData)
+                }
+              } catch (err) {
+                console.error(`Erro ao carregar projeto ${proj.id}:`, err)
+              }
+            })
+          )
+          setFullProjects(projectsMap)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar projetos:', error)
+        setProjects(initialProjects || [])
+      }
+    }
+    loadProjects()
+  }, [initialProjects])
 
   const closeMenu = () => {
     setIsOpen(false)
     setProjectsExpanded(false)
+  }
+
+  const openProject = (projectId: string) => {
+    setSelectedProjectId(projectId)
+    closeMenu()
   }
 
   return (
@@ -108,16 +157,15 @@ export function MobileMenu({ projects }: MobileMenuProps) {
               <div 
                 className={`ml-4 mt-1 space-y-1 bg-slate-50/50 rounded-lg overflow-hidden transition-all duration-200 ${projectsExpanded ? 'max-h-96 p-2 opacity-100' : 'max-h-0 p-0 opacity-0'}`}
               >
-                {safeProjects.length > 0 ? (
-                  safeProjects.map((project) => (
-                    <a
+                {projects.length > 0 ? (
+                  projects.map((project) => (
+                    <button
                       key={project.id}
-                      href={`/projects/${project.slug}`}
-                      onClick={closeMenu}
-                      className="block px-4 py-2 text-sm text-slate-600 hover:text-primary hover:bg-white rounded-lg transition-all"
+                      onClick={() => openProject(project.id)}
+                      className="block w-full text-left px-4 py-2 text-sm text-slate-600 hover:text-primary hover:bg-white rounded-lg transition-all"
                     >
                       {project.submenu_label || project.name}
-                    </a>
+                    </button>
                   ))
                 ) : (
                   <p className="px-4 py-2 text-xs text-muted-foreground">Nenhum projeto publicado</p>
@@ -172,6 +220,15 @@ export function MobileMenu({ projects }: MobileMenuProps) {
           </div>
         </div>
       </div>
+
+      {/* Modal de Leitura de Projeto */}
+      {selectedProjectId && fullProjects.has(selectedProjectId) && (
+        <ProjectReaderModal
+          isOpen={!!selectedProjectId}
+          onClose={() => setSelectedProjectId(null)}
+          project={fullProjects.get(selectedProjectId)!}
+        />
+      )}
     </>
   )
 }
