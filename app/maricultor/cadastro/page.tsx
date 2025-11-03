@@ -9,7 +9,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { UserPlus, Mail, Lock, User, Phone, MapPin, ArrowLeft, Fish } from "lucide-react"
+import { UserPlus, Mail, Lock, User, Phone, MapPin, ArrowLeft, Fish, Eye, EyeOff } from "lucide-react"
 
 export default function MaricultorCadastroPage() {
   const router = useRouter()
@@ -37,6 +37,10 @@ export default function MaricultorCadastroPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [cepLoading, setCepLoading] = useState(false)
+  const [cepError, setCepError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const getSupabaseClient = () => {
     try {
@@ -63,20 +67,106 @@ export default function MaricultorCadastroPage() {
       .slice(0, 8)
       .replace(/(\d{5})(\d{1,3})?/, (_, a: string, b?: string) => (b ? `${a}-${b}` : a))
     setFormData((prev) => ({ ...prev, cep: masked }))
+    setCepError("")
+    
+    // Limpar endereço se CEP incompleto
+    if (onlyDigits.length < 8) {
+      setAddressLocked(false)
+      if (onlyDigits.length === 0) {
+        setFormData((prev) => ({ ...prev, logradouro: '', cidade: '', estado: '' }))
+      }
+      return
+    }
+    
     if (onlyDigits.length !== 8) return
+    
+    setCepLoading(true)
+    setCepError("")
+    
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${onlyDigits}/json/`, { cache: 'no-store' })
-      const data = await res.json()
-      if (data?.erro) return
-      const logradouro = data.logradouro || ''
-      const cidade = data.localidade || ''
-      const estado = data.uf || ''
+      console.log('🔍 Buscando CEP:', onlyDigits)
+      
+      let logradouro = ''
+      let cidade = ''
+      let estado = ''
+      let encontrado = false
+      
+      // Tentativa 1: ViaCEP
+      try {
+        const resViaCep = await fetch(`https://viacep.com.br/ws/${onlyDigits}/json/`, { 
+          cache: 'no-store',
+          headers: { 'Accept': 'application/json' }
+        })
+        
+        if (resViaCep.ok) {
+          const dataViaCep = await resViaCep.json()
+          console.log('📦 Resposta ViaCEP:', dataViaCep)
+          
+          if (!dataViaCep?.erro) {
+            logradouro = dataViaCep.logradouro || ''
+            cidade = dataViaCep.localidade || ''
+            estado = dataViaCep.uf || ''
+            encontrado = true
+            console.log('✅ CEP encontrado no ViaCEP')
+          }
+        }
+      } catch (errViaCep) {
+        console.warn('⚠️ ViaCEP falhou, tentando BrasilAPI...')
+      }
+      
+      // Tentativa 2: BrasilAPI (fallback)
+      if (!encontrado) {
+        try {
+          const resBrasilAPI = await fetch(`https://brasilapi.com.br/api/cep/v1/${onlyDigits}`, {
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+          })
+          
+          if (resBrasilAPI.ok) {
+            const dataBrasilAPI = await resBrasilAPI.json()
+            console.log('📦 Resposta BrasilAPI:', dataBrasilAPI)
+            
+            logradouro = dataBrasilAPI.street || ''
+            cidade = dataBrasilAPI.city || ''
+            estado = dataBrasilAPI.state || ''
+            encontrado = true
+            console.log('✅ CEP encontrado no BrasilAPI')
+          }
+        } catch (errBrasilAPI) {
+          console.warn('⚠️ BrasilAPI também falhou')
+        }
+      }
+      
+      // Se não encontrou em nenhuma API
+      if (!encontrado || (!cidade && !estado)) {
+        setCepError('CEP não encontrado. Verifique o número digitado.')
+        setAddressLocked(false)
+        return
+      }
+      
+      // Se encontrou cidade/estado mas não o logradouro (CEP genérico)
+      if (!logradouro && cidade && estado) {
+        setFormData((prev) => ({ ...prev, logradouro: '', cidade, estado }))
+        setCepError('') // Não é erro, só CEP genérico
+        setAddressLocked(false) // Permite edição do logradouro
+        console.log('⚠️ CEP genérico encontrado (sem logradouro). Cidade/Estado preenchidos.')
+        return
+      }
+      
+      // Sucesso completo
       setFormData((prev) => ({ ...prev, logradouro, cidade, estado }))
-      // Trava: não buscamos sugestões nem lat/lon no cliente; backend fará a geocodificação
       setAddressLocked(true)
       setSuggestions([])
       setShowSuggestions(false)
-    } catch {}
+      console.log('✅ Endereço completo preenchido via CEP:', { logradouro, cidade, estado })
+      
+    } catch (err) {
+      console.error('❌ Erro ao buscar CEP:', err)
+      setCepError('Erro ao buscar CEP. Verifique sua conexão e tente novamente.')
+      setAddressLocked(false)
+    } finally {
+      setCepLoading(false)
+    }
   }
 
   // Autocomplete com Geoapify (desativado quando endereço estiver travado por CEP)
@@ -338,15 +428,33 @@ export default function MaricultorCadastroPage() {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                      className="w-full pl-10 pr-12 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
                       placeholder="Mínimo 6 caracteres"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
+                  {formData.password && formData.password.length < 6 && (
+                    <p className="text-xs text-amber-600 flex items-center gap-1">
+                      <span>⚠️</span>
+                      A senha deve ter no mínimo 6 caracteres
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -354,15 +462,45 @@ export default function MaricultorCadastroPage() {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                      className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60 ${
+                        formData.confirmPassword && formData.password !== formData.confirmPassword 
+                          ? 'border-red-300 focus:ring-red-200' 
+                          : formData.confirmPassword && formData.password === formData.confirmPassword
+                          ? 'border-green-300 focus:ring-green-200'
+                          : 'border-transparent'
+                      }`}
                       placeholder="Repita sua senha"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
+                  {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                    <p className="text-xs text-red-600 flex items-center gap-1">
+                      <span>✗</span>
+                      As senhas não coincidem
+                    </p>
+                  )}
+                  {formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 6 && (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <span>✓</span>
+                      As senhas coincidem!
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -393,10 +531,42 @@ export default function MaricultorCadastroPage() {
                       value={formData.cep}
                       onChange={handleCepChange}
                       maxLength={9}
-                      className="w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
+                      className={`w-full px-4 py-3 border-2 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60 ${
+                        cepError ? 'border-red-300 focus:ring-red-200' : 'border-transparent'
+                      } ${cepLoading ? 'opacity-70' : ''}`}
                       placeholder="Ex: 01001-000"
+                      disabled={cepLoading}
                     />
+                    {cepLoading && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                      </div>
+                    )}
                   </div>
+                  {cepError && (
+                    <p className="text-xs text-red-600 flex items-center gap-1">
+                      <span>⚠️</span>
+                      {cepError}
+                    </p>
+                  )}
+                  {formData.cep && !cepError && !cepLoading && addressLocked && (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <span>✓</span>
+                      Endereço encontrado com sucesso!
+                    </p>
+                  )}
+                  {formData.cep && !cepError && !cepLoading && !addressLocked && formData.cidade && (
+                    <p className="text-xs text-blue-600 flex items-center gap-1">
+                      <span>ℹ️</span>
+                      CEP genérico. Cidade/Estado preenchidos. Complete o logradouro abaixo.
+                    </p>
+                  )}
+                  {!formData.cep && (
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <span>💡</span>
+                      Digite seu CEP para preencher o endereço automaticamente
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -411,11 +581,15 @@ export default function MaricultorCadastroPage() {
                       name="logradouro"
                       value={formData.logradouro}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                      placeholder="Rua e complemento"
+                      className={`w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60 ${
+                        !formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''
+                      }`}
+                      placeholder={!formData.cep || formData.cep.length < 9 ? "Preencha o CEP primeiro" : "Rua e complemento"}
                       ref={logradouroRef}
                       onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                      disabled={!formData.cep || formData.cep.length < 9 || addressLocked}
+                      readOnly={addressLocked}
                     />
                     {/* Dica opcional removida: Geoapify funciona mesmo sem cidade/UF */}
                     {showSuggestions && (
@@ -451,9 +625,12 @@ export default function MaricultorCadastroPage() {
                       name="numero"
                       value={formData.numero}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                      placeholder="nº"
+                      className={`w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60 ${
+                        !formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''
+                      }`}
+                      placeholder={!formData.cep || formData.cep.length < 9 ? "CEP primeiro" : "nº"}
                       inputMode="numeric"
+                      disabled={!formData.cep || formData.cep.length < 9}
                     />
                   </div>
                 </div>
@@ -467,8 +644,12 @@ export default function MaricultorCadastroPage() {
                     name="cidade"
                     value={formData.cidade}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                    placeholder="Ex: Ubatuba"
+                    className={`w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60 ${
+                      !formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''
+                    }`}
+                    placeholder={!formData.cep || formData.cep.length < 9 ? "Preencha o CEP primeiro" : "Ex: Ubatuba"}
+                    disabled={!formData.cep || formData.cep.length < 9}
+                    readOnly={formData.cidade && (formData.cep.length === 9)}
                   />
                 </div>
 
@@ -479,7 +660,10 @@ export default function MaricultorCadastroPage() {
                     value={formData.estado}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all text-foreground"
+                    className={`w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all text-foreground ${
+                      !formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''
+                    }`}
+                    disabled={!formData.cep || formData.cep.length < 9 || (formData.estado && formData.cep.length === 9)}
                   >
                     <option value="" disabled>Selecione</option>
                     {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
