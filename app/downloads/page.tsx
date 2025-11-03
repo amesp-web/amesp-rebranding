@@ -97,39 +97,52 @@ export default async function DownloadsPublicPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {downloads.map((download: any, index: number) => {
-              // Definir cores e ícones baseados no índice para variedade
-              const themes = [
-                { 
+              // Detectar tipo de manual baseado em palavras-chave no título/descrição
+              const titleLower = download.title.toLowerCase()
+              const descLower = (download.description || '').toLowerCase()
+              const fullText = `${titleLower} ${descLower}`
+              
+              // Definir temas específicos por categoria
+              const themes = {
+                algas: { 
                   gradient: 'from-emerald-50 via-teal-50/30 to-white',
                   iconBg: 'from-emerald-100 to-teal-100',
                   iconColor: 'text-emerald-600',
                   hoverGradient: 'from-emerald-500/5',
                   buttonGradient: 'from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700'
                 },
-                { 
+                mexilhao: { 
                   gradient: 'from-blue-50 via-cyan-50/30 to-white',
                   iconBg: 'from-blue-100 to-cyan-100',
                   iconColor: 'text-blue-600',
                   hoverGradient: 'from-blue-500/5',
                   buttonGradient: 'from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
                 },
-                { 
+                ostra: { 
                   gradient: 'from-purple-50 via-pink-50/30 to-white',
                   iconBg: 'from-purple-100 to-pink-100',
                   iconColor: 'text-purple-600',
                   hoverGradient: 'from-purple-500/5',
                   buttonGradient: 'from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
                 },
-                { 
+                default: { 
                   gradient: 'from-orange-50 via-amber-50/30 to-white',
                   iconBg: 'from-orange-100 to-amber-100',
                   iconColor: 'text-orange-600',
                   hoverGradient: 'from-orange-500/5',
                   buttonGradient: 'from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700'
                 },
-              ]
+              }
               
-              const theme = themes[index % themes.length]
+              // Detectar categoria por palavras-chave
+              let theme = themes.default
+              if (fullText.includes('alga') || fullText.includes('kappaphycus') || fullText.includes('alvarezii')) {
+                theme = themes.algas
+              } else if (fullText.includes('mexilh') || fullText.includes('mytilus') || fullText.includes('perna')) {
+                theme = themes.mexilhao
+              } else if (fullText.includes('ostra') || fullText.includes('crassostrea') || fullText.includes('gigas')) {
+                theme = themes.ostra
+              }
               
               return (
                 <Card key={download.id} className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br ${theme.gradient}`}>
