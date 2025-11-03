@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 import { createBrowserClient } from "@supabase/ssr"
-import { LogOut, User, Settings, Fish, Calendar, FileText, Lock, DollarSign } from "lucide-react"
+import { LogOut, User, Settings, Fish, Calendar, FileText, Lock, DollarSign, Waves, Activity, Eye, ArrowUpRight, MapPin } from "lucide-react"
 
 export default function MaricultorDashboard() {
   const [user, setUser] = useState<any>(null)
@@ -240,28 +240,64 @@ export default function MaricultorDashboard() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Bem-vindo, {profile?.full_name || user.user_metadata?.name || user.email}!</h1>
-          <p className="text-muted-foreground">
-            Gerencie suas atividades de maricultura e acompanhe as novidades do setor.
-          </p>
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Hero Header - Gradiente Oceânico */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 p-8 border-0 shadow-2xl">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMSkiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
+          <div className="relative z-10">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                <Fish className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h1 className="text-3xl md:text-4xl font-bold text-white">Bem-vindo, {profile?.full_name || user.user_metadata?.name || 'Maricultor'}!</h1>
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                    Produtor
+                  </Badge>
+                </div>
+                <p className="text-white/90 mt-1">Gerencie suas atividades de maricultura e acompanhe as novidades do setor</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-6 text-white/80 text-sm">
+              <div className="flex items-center space-x-2">
+                <Activity className="h-4 w-4" />
+                <span>Sistema operacional</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4" />
+                <span>{profile?.cidade || 'Localização'} - {profile?.estado || 'UF'}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8 max-w-sm">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Completude do Perfil</p>
-                  <p className="text-2xl font-bold text-primary">{profileCompletion}%</p>
-                  {profileCompletion < 100 && (
-                    <p className="text-xs text-muted-foreground mt-1">Complete seu perfil para aparecer no mapa</p>
-                  )}
+        {/* Quick Stats - Perfil */}
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-md">
+          <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-blue-50 via-cyan-50/50 to-teal-50/30 border-blue-200/50">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <CardHeader className="pb-3 relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Completude do Perfil</CardTitle>
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 group-hover:from-primary/30 group-hover:to-primary/20 transition-colors flex items-center justify-center shadow-md">
+                  <User className="h-5 w-5 text-primary" />
                 </div>
-                <User className="h-8 w-8 text-primary/60" />
+              </div>
+              <div className="flex items-baseline space-x-2">
+                <span className="text-4xl font-bold text-primary">{profileCompletion}%</span>
+                <ArrowUpRight className="h-4 w-4 text-primary/60" />
+              </div>
+            </CardHeader>
+            <CardContent className="relative z-10">
+              <div className="flex items-center justify-between">
+                {profileCompletion < 100 ? (
+                  <p className="text-xs text-muted-foreground">Complete seu perfil para aparecer no mapa</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Perfil completo</p>
+                )}
+                <Badge variant="secondary" className={`text-xs ${profileCompletion === 100 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
+                  {profileCompletion === 100 ? 'Completo' : 'Incompleto'}
+                </Badge>
               </div>
             </CardContent>
           </Card>
@@ -272,13 +308,20 @@ export default function MaricultorDashboard() {
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Recent News */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
-                  <span>Últimas Notícias</span>
-                </CardTitle>
-                <CardDescription>Fique por dentro das novidades do setor</CardDescription>
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-slate-50 via-blue-50/30 to-white">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center space-x-2 text-xl">
+                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
+                        <FileText className="h-4 w-4 text-primary" />
+                      </div>
+                      <span>Últimas Notícias</span>
+                    </CardTitle>
+                    <CardDescription className="mt-1">Fique por dentro das novidades do setor</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {news.length === 0 ? (
@@ -302,13 +345,20 @@ export default function MaricultorDashboard() {
             </Card>
 
             {/* Upcoming Events */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5" />
-                  <span>Próximos Eventos</span>
-                </CardTitle>
-                <CardDescription>Eventos e workshops para maricultores</CardDescription>
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-purple-50 via-pink-50/30 to-white">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center space-x-2 text-xl">
+                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                        <Calendar className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <span>Próximos Eventos</span>
+                    </CardTitle>
+                    <CardDescription className="mt-1">Eventos e workshops para maricultores</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {events.length === 0 ? (
@@ -365,12 +415,15 @@ export default function MaricultorDashboard() {
           {/* Right Column */}
           <div className="space-y-6">
             {/* Profile Card */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="h-5 w-5" />
-                  <span>Meu Perfil</span>
-                </CardTitle>
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-emerald-50 via-teal-50/30 to-white">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+                    <User className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <CardTitle>Meu Perfil</CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {!editing ? (
@@ -483,13 +536,20 @@ export default function MaricultorDashboard() {
             </Card>
 
             {/* Mensalidades */}
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/50 relative overflow-hidden">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Mensalidades
-                </CardTitle>
-                <CardDescription>Gerencie suas mensalidades e pagamentos</CardDescription>
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-amber-50 via-orange-50/30 to-white">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      Mensalidades
+                    </CardTitle>
+                    <CardDescription className="mt-1">Gerencie suas mensalidades e pagamentos</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center py-8">
