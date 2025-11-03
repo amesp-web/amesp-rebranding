@@ -1,31 +1,50 @@
+'use client'
+
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download as DownloadIcon, FileText, ArrowLeft } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Download as DownloadIcon, FileText, ArrowLeft, Search, X } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
-async function getDownloads() {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-    const res = await fetch(`${baseUrl}/api/admin/downloads`, {
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' }
-    })
+export default function DownloadsPublicPage() {
+  const [downloads, setDownloads] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
 
-    if (!res.ok) {
-      console.error('Erro ao buscar downloads:', await res.text())
-      return []
+  // Carregar downloads ao montar o componente
+  useEffect(() => {
+    async function loadDownloads() {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
+        const res = await fetch(`${baseUrl}/api/admin/downloads`, {
+          cache: 'no-store',
+          headers: { 'Content-Type': 'application/json' }
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setDownloads(data)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar downloads:', error)
+      } finally {
+        setLoading(false)
+      }
     }
+    loadDownloads()
+  }, [])
 
-    return await res.json()
-  } catch (error) {
-    console.error('Erro ao buscar downloads:', error)
-    return []
-  }
-}
-
-export default async function DownloadsPublicPage() {
-  const downloads = await getDownloads()
+  // Filtrar downloads baseado no termo de busca
+  const filteredDownloads = downloads.filter((download) => {
+    if (!searchTerm) return true
+    const search = searchTerm.toLowerCase()
+    const title = download.title.toLowerCase()
+    const description = (download.description || '').toLowerCase()
+    const fileName = download.file_name.toLowerCase()
+    return title.includes(search) || description.includes(search) || fileName.includes(search)
+  })
 
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return 'N/A'
@@ -84,7 +103,43 @@ export default async function DownloadsPublicPage() {
 
       {/* Conteúdo */}
       <div className="container mx-auto px-4 py-12">
-        {downloads.length === 0 ? (
+        {/* Campo de Busca */}
+        {!loading && downloads.length > 0 && (
+          <div className="max-w-2xl mx-auto mb-12">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Buscar manuais por título, descrição ou nome do arquivo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 pr-12 h-14 text-lg border-2 border-slate-200 focus:border-blue-400 rounded-2xl shadow-lg"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+            {searchTerm && (
+              <p className="text-sm text-muted-foreground mt-3 text-center">
+                {filteredDownloads.length === 0 
+                  ? 'Nenhum manual encontrado' 
+                  : `${filteredDownloads.length} ${filteredDownloads.length === 1 ? 'manual encontrado' : 'manuais encontrados'}`
+                }
+              </p>
+            )}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          </div>
+        ) : filteredDownloads.length === 0 && !searchTerm ? (
           <Card className="max-w-md mx-auto border-0 shadow-xl">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FileText className="h-16 w-16 text-muted-foreground/30 mb-4" />
@@ -94,9 +149,22 @@ export default async function DownloadsPublicPage() {
               </p>
             </CardContent>
           </Card>
+        ) : filteredDownloads.length === 0 && searchTerm ? (
+          <Card className="max-w-md mx-auto border-0 shadow-xl">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Search className="h-16 w-16 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">Nenhum manual encontrado</h3>
+              <p className="text-sm text-muted-foreground text-center mb-4">
+                Não encontramos resultados para "{searchTerm}"
+              </p>
+              <Button onClick={() => setSearchTerm('')} variant="outline">
+                Limpar busca
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {downloads.map((download: any, index: number) => {
+            {filteredDownloads.map((download: any, index: number) => {
               // Detectar tipo de manual baseado em palavras-chave no título/descrição
               const titleLower = download.title.toLowerCase()
               const descLower = (download.description || '').toLowerCase()
