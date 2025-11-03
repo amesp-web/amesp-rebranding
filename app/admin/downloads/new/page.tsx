@@ -26,9 +26,9 @@ export default function NewDownloadPage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Validar tamanho (100MB)
-      if (file.size > 100 * 1024 * 1024) {
-        toast.error('Arquivo muito grande! Máximo: 100MB')
+      // Validar tamanho (50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error('Arquivo muito grande! Máximo: 50MB')
         return
       }
       setSelectedFile(file)
@@ -178,7 +178,7 @@ export default function NewDownloadPage() {
                   <div className="text-center">
                     <p className="font-medium text-slate-900">Clique para selecionar o arquivo</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      PDF, DOC, XLS, ZIP, JPG, PNG (máx. 100MB)
+                      PDF, DOC, XLS, ZIP, JPG, PNG (máx. 50MB)
                     </p>
                   </div>
                 </div>

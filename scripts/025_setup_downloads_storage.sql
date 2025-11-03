@@ -4,8 +4,10 @@
 -- IMPORTANTE: Crie o bucket 'downloads' manualmente via Dashboard > Storage > New bucket
 -- Configurações recomendadas:
 --   - Nome: downloads
---   - Público: SIM
---   - Limite de tamanho: 100MB por arquivo
+--   - Bucket type: Standard bucket
+--   - Público: SIM (toggle ON)
+--   - Restrict file size: SIM (toggle ON) - Limite: 50 MB
+--   - Restrict MIME types: SIM (toggle ON)
 --   - MIME types permitidos: application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/zip, image/jpeg, image/jpg, image/png
 
 -- Política para leitura pública de arquivos de download
