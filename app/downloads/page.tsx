@@ -96,52 +96,91 @@ export default async function DownloadsPublicPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {downloads.map((download: any) => (
-              <Card key={download.id} className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-slate-50 via-indigo-50/30 to-white">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                
-                <CardContent className="p-6 relative z-10">
-                  {/* Ícone */}
-                  <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <FileText className="h-8 w-8 text-indigo-600" />
-                  </div>
+            {downloads.map((download: any, index: number) => {
+              // Definir cores e ícones baseados no índice para variedade
+              const themes = [
+                { 
+                  gradient: 'from-emerald-50 via-teal-50/30 to-white',
+                  iconBg: 'from-emerald-100 to-teal-100',
+                  iconColor: 'text-emerald-600',
+                  hoverGradient: 'from-emerald-500/5',
+                  buttonGradient: 'from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700'
+                },
+                { 
+                  gradient: 'from-blue-50 via-cyan-50/30 to-white',
+                  iconBg: 'from-blue-100 to-cyan-100',
+                  iconColor: 'text-blue-600',
+                  hoverGradient: 'from-blue-500/5',
+                  buttonGradient: 'from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
+                },
+                { 
+                  gradient: 'from-purple-50 via-pink-50/30 to-white',
+                  iconBg: 'from-purple-100 to-pink-100',
+                  iconColor: 'text-purple-600',
+                  hoverGradient: 'from-purple-500/5',
+                  buttonGradient: 'from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+                },
+                { 
+                  gradient: 'from-orange-50 via-amber-50/30 to-white',
+                  iconBg: 'from-orange-100 to-amber-100',
+                  iconColor: 'text-orange-600',
+                  hoverGradient: 'from-orange-500/5',
+                  buttonGradient: 'from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700'
+                },
+              ]
+              
+              const theme = themes[index % themes.length]
+              
+              return (
+                <Card key={download.id} className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br ${theme.gradient}`}>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${theme.hoverGradient} via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}></div>
+                  
+                  <CardContent className="p-6 relative z-10">
+                    {/* Ícone com gradiente temático */}
+                    <div className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${theme.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                      <FileText className={`h-10 w-10 ${theme.iconColor}`} />
+                    </div>
 
-                  {/* Título */}
-                  <h3 className="font-semibold text-lg text-slate-900 mb-2 line-clamp-2 min-h-[3.5rem]">
-                    {download.title}
-                  </h3>
+                    {/* Título */}
+                    <h3 className="font-bold text-xl text-slate-900 mb-3 line-clamp-2 min-h-[3.5rem]">
+                      {download.title}
+                    </h3>
 
-                  {/* Descrição */}
-                  {download.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4 min-h-[4rem]">
-                      {download.description}
-                    </p>
-                  )}
+                    {/* Descrição */}
+                    {download.description && (
+                      <p className="text-sm text-slate-600 line-clamp-3 mb-4 min-h-[4rem]">
+                        {download.description}
+                      </p>
+                    )}
 
-                  {/* Meta informações */}
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
-                    <span className="flex items-center gap-1">
-                      <FileText className="h-3 w-3" />
-                      {download.file_name.split('.').pop()?.toUpperCase()}
-                    </span>
-                    <span>{formatFileSize(download.file_size)}</span>
-                  </div>
+                    {/* Meta informações com estilo melhorado */}
+                    <div className="flex items-center gap-4 text-xs font-medium text-slate-500 mb-5 pb-4 border-b border-slate-200">
+                      <span className="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-lg">
+                        <FileText className="h-3.5 w-3.5" />
+                        {download.file_name.split('.').pop()?.toUpperCase()}
+                      </span>
+                      <span className="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-lg">
+                        <DownloadIcon className="h-3.5 w-3.5" />
+                        {formatFileSize(download.file_size)}
+                      </span>
+                    </div>
 
-                  {/* Botão de Download */}
-                  <a
-                    href={download.file_url}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg group-hover:shadow-xl transition-all">
-                      <DownloadIcon className="h-4 w-4 mr-2" />
-                      Baixar Manual
-                    </Button>
-                  </a>
-                </CardContent>
-              </Card>
-            ))}
+                    {/* Botão de Download com gradiente temático */}
+                    <a
+                      href={download.file_url}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button className={`w-full bg-gradient-to-r ${theme.buttonGradient} shadow-lg group-hover:shadow-xl transition-all font-semibold`}>
+                        <DownloadIcon className="h-4 w-4 mr-2" />
+                        Baixar Manual
+                      </Button>
+                    </a>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>
