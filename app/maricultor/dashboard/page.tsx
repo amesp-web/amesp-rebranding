@@ -339,7 +339,7 @@ export default function MaricultorDashboard() {
                   })
                 )}
                 <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <a href="/news">Ver Todas as Notícias</a>
+                  <a href="/news" target="_blank" rel="noopener noreferrer">Ver Todas as Notícias</a>
                 </Button>
               </CardContent>
             </Card>
@@ -406,7 +406,7 @@ export default function MaricultorDashboard() {
                   })
                 )}
                 <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <a href="/#eventos">Ver Todos os Eventos</a>
+                  <a href="/#eventos" target="_blank" rel="noopener noreferrer">Ver Todos os Eventos</a>
                 </Button>
               </CardContent>
             </Card>
