@@ -6,6 +6,7 @@ import { NewsReaderModal } from "@/components/public/NewsReaderModal"
 import { ViewsCounter } from "@/components/public/ViewsCounter"
 import { ShareCopyButton } from "@/components/public/ShareCopyButton"
 import { ProjectsDropdown } from "@/components/public/ProjectsDropdown"
+import { MobileMenu } from "@/components/public/MobileMenu"
 import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
 import { FishDecoration } from "@/components/decorative/FishDecoration"
@@ -93,15 +94,22 @@ async function getSupabaseData() {
       about = await res.json()
     } catch {}
 
-    return { news, gallery: galleryHome, producers, galleryTotalCount: totalCount || 0, about }
+    // Projects for menu
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("id, name, slug, submenu_label")
+      .eq("published", true)
+      .order("display_order", { ascending: true })
+
+    return { news, gallery: galleryHome, producers, galleryTotalCount: totalCount || 0, about, projects: projects || [] }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
-    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null }
+    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null, projects: [] }
   }
 }
 
 export default async function HomePage() {
-  const { news, gallery, producers, galleryTotalCount, about } = await getSupabaseData()
+  const { news, gallery, producers, galleryTotalCount, about, projects } = await getSupabaseData()
 
   // Use real data or fallback to mock data
   const mockNews = news || [
@@ -199,59 +207,59 @@ export default async function HomePage() {
             />
           </div>
 
-          {/* Navegação */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          {/* Navegação Desktop */}
+          <nav className="hidden xl:flex items-center space-x-0.5">
             <a
               href="#sobre"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
             >
               Sobre Nós
             </a>
             <a
               href="#noticias"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
             >
               Notícias
             </a>
             <a
               href="#galeria"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
             >
               Galeria
             </a>
             <a
               href="#produtores"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
             >
               Produtores
             </a>
             <ProjectsDropdown />
             <a
               href="/downloads"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
             >
               Downloads
             </a>
             <a
               href="#eventos"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
             >
               Eventos
             </a>
             <a
               href="#contato"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
             >
               Contato
             </a>
           </nav>
 
-          {/* Botões de ação */}
-          <div className="flex items-center space-x-3">
+          {/* Botões de ação - Desktop */}
+          <div className="hidden xl:flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
-              className="hidden sm:inline-flex border border-border/50 hover:border-primary/30 hover:bg-primary/5 text-foreground hover:text-primary"
+              className="border border-border/50 hover:border-primary/30 hover:bg-primary/5 text-foreground hover:text-primary"
               asChild
             >
               <a href="/login" className="flex items-center space-x-2">
@@ -266,11 +274,13 @@ export default async function HomePage() {
             >
               <a href="/maricultor/cadastro" className="flex items-center space-x-2">
                 <UserPlus className="h-4 w-4" />
-                <span className="hidden sm:inline">Cadastrar-se</span>
-                <span className="sm:hidden">Cadastro</span>
+                <span>Cadastrar-se</span>
               </a>
             </Button>
           </div>
+
+          {/* Menu Mobile/Tablet */}
+          <MobileMenu projects={projects} />
         </div>
 
         {/* Linha decorativa inferior */}
