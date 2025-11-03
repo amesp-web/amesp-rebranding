@@ -84,15 +84,19 @@ export default function MaricultorDashboard() {
     // Buscar eventos publicados
     async function fetchEvents() {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('events')
           .select('id, title, location, schedule')
           .eq('published', true)
           .order('created_at', { ascending: false })
           .limit(2)
+        
+        console.log('📅 Eventos buscados:', data)
+        console.log('❌ Erro ao buscar eventos:', error)
+        
         setEvents(data || [])
       } catch (error) {
-        console.error('Erro ao buscar eventos:', error)
+        console.error('❌ Erro ao buscar eventos:', error)
       }
     }
 
@@ -322,7 +326,26 @@ export default function MaricultorDashboard() {
                   <p className="text-sm text-muted-foreground text-center py-4">Nenhum evento publicado ainda</p>
                 ) : (
                   events.map((event) => {
-                    const firstDate = event.schedule?.date || event.schedule?.[0]?.date
+                    console.log('🎯 Renderizando evento:', event)
+                    console.log('📋 Schedule:', event.schedule)
+                    
+                    // Tratar schedule que pode ser objeto ou array
+                    let firstDate = null
+                    if (event.schedule) {
+                      if (typeof event.schedule === 'string') {
+                        try {
+                          const parsed = JSON.parse(event.schedule)
+                          firstDate = parsed?.date || parsed?.[0]?.date || parsed?.attractions?.[0]?.date
+                        } catch {
+                          firstDate = null
+                        }
+                      } else if (Array.isArray(event.schedule)) {
+                        firstDate = event.schedule[0]?.date
+                      } else if (typeof event.schedule === 'object') {
+                        firstDate = event.schedule.date || event.schedule.attractions?.[0]?.date
+                      }
+                    }
+                    
                     const eventDate = firstDate ? new Date(firstDate + 'T00:00:00') : null
                     const day = eventDate ? eventDate.getDate() : '?'
                     const month = eventDate ? eventDate.toLocaleString('pt-BR', { month: 'short' }).toUpperCase() : '?'
