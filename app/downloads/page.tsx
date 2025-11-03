@@ -59,7 +59,7 @@ export default function DownloadsPublicPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
       {/* Header moderno similar ao de galeria e notícias */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-500 to-pink-400">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400">
         {/* SVG Waves */}
         <div className="absolute inset-0">
           <svg className="absolute bottom-0 w-full h-32" viewBox="0 0 1440 320" preserveAspectRatio="none">
@@ -92,7 +92,7 @@ export default function DownloadsPublicPage() {
           {/* Voltar para Home */}
           <div className="flex justify-center mt-8">
             <Link href="/">
-              <Button variant="secondary" className="bg-white/90 hover:bg-white text-indigo-600 shadow-lg">
+              <Button variant="secondary" className="bg-white/90 hover:bg-white text-blue-600 shadow-lg">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar para a Home
               </Button>

@@ -1,7 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { Calendar, Clock, Eye, Newspaper } from "lucide-react"
+import Link from "next/link"
+import { Calendar, Clock, Eye, Newspaper, ArrowLeft } from "lucide-react"
 import { NewsLikeButton } from "@/components/public/NewsLikeButton"
 import { NewsReaderModal } from "@/components/public/NewsReaderModal"
 import { ShareCopyButton } from "@/components/public/ShareCopyButton"
@@ -21,32 +23,54 @@ export default async function AllNewsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="space-y-8">
-      {/* Header inspirado na galeria da Home */}
-      <header className="relative overflow-hidden rounded-2xl border-0 shadow-xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/40 to-cyan-50/30" />
-        <div className="absolute inset-0 pointer-events-none">
-          <svg className="absolute bottom-0 w-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="rgb(59 130 246 / 0.12)"/>
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
+      {/* Header moderno similar ao de galeria e downloads */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400">
+        {/* SVG Waves */}
+        <div className="absolute inset-0">
+          <svg className="absolute bottom-0 w-full h-32" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path fill="white" fillOpacity="0.3" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,144C960,149,1056,139,1152,128C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <path fill="white" fillOpacity="0.2" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,165.3C960,149,1056,171,1152,186.7C1248,203,1344,213,1392,218.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
           </svg>
         </div>
-        <div className="relative px-6 py-10 text-center">
+
+        <div className="relative z-10 container mx-auto px-4 py-16 md:py-20">
+          {/* Logo */}
           <div className="flex justify-center mb-4">
-            <Image src="/amesp_logo.png" alt="AMESP" width={140} height={40} className="h-10 w-auto" />
+            <Image src="/amesp_logo.png" alt="AMESP" width={180} height={60} className="h-16 w-auto" />
           </div>
-          <Badge variant="secondary" className="w-fit mx-auto bg-primary/10 text-primary border-primary/20 mb-3">Notícias</Badge>
-          <h1 className="font-sans font-bold text-3xl lg:text-4xl text-balance">Acompanhe as novidades da maricultura</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-2">Todas as publicações em um só lugar: eventos, ações e conquistas do setor.</p>
-          <div className="mt-6">
-            <a href="/" className="inline-flex items-center text-sm text-primary hover:underline">
-              ← Voltar para a Home
-            </a>
+
+          {/* Badge */}
+          <div className="flex justify-center mb-4">
+            <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 backdrop-blur-sm">
+              Notícias
+            </span>
+          </div>
+
+          {/* Título e Subtítulo */}
+          <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-3">
+            Acompanhe as Novidades da Maricultura
+          </h1>
+          <p className="text-white/90 text-center text-lg max-w-2xl mx-auto mb-6">
+            Todas as publicações em um só lugar: eventos, ações e conquistas do setor
+          </p>
+
+          {/* Voltar para Home */}
+          <div className="flex justify-center mt-8">
+            <Link href="/">
+              <Button variant="secondary" className="bg-white/90 hover:bg-white text-blue-600 shadow-lg">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar para a Home
+              </Button>
+            </Link>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Grid de notícias */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 py-12">
+
+        {/* Grid de notícias */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {(news || []).map((article: any, index: number) => (
           <Card key={article.id} className={`group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden rounded-2xl border-0 shadow-lg bg-gradient-to-br from-card to-card/50 backdrop-blur-sm ${index === 0 ? "md:col-span-2 lg:col-span-1" : ""}`}>
             <div className="relative overflow-hidden rounded-t-2xl">
@@ -102,6 +126,7 @@ export default async function AllNewsPage() {
             </CardContent>
           </Card>
         ))}
+        </div>
       </div>
     </div>
   )
