@@ -216,7 +216,7 @@ export default function NewDownloadPage() {
           variant="outline"
           onClick={() => router.push('/admin/downloads')}
           disabled={uploading}
-          className="flex-1 hover:bg-slate-50 hover:text-slate-600 hover:border-slate-300 transition-colors"
+          className="flex-1 border-2 border-gray-300 hover:border-gray-400 rounded-xl transition-all duration-300"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Cancelar
@@ -224,7 +224,7 @@ export default function NewDownloadPage() {
         <Button
           onClick={handleSubmit}
           disabled={uploading || !title.trim() || !selectedFile}
-          className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
+          className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-150 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {uploading ? (
             <>
