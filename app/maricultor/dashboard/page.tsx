@@ -15,6 +15,8 @@ export default function MaricultorDashboard() {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [profile, setProfile] = useState<any>(null)
+  const [news, setNews] = useState<any[]>([])
+  const [events, setEvents] = useState<any[]>([])
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -63,9 +65,57 @@ export default function MaricultorDashboard() {
     getUser()
   }, [supabase.auth])
 
+  useEffect(() => {
+    // Buscar notícias publicadas
+    async function fetchNews() {
+      try {
+        const { data } = await supabase
+          .from('news')
+          .select('id, title, excerpt, created_at, image_url')
+          .eq('published', true)
+          .order('created_at', { ascending: false })
+          .limit(3)
+        setNews(data || [])
+      } catch (error) {
+        console.error('Erro ao buscar notícias:', error)
+      }
+    }
+
+    // Buscar eventos publicados
+    async function fetchEvents() {
+      try {
+        const { data } = await supabase
+          .from('events')
+          .select('id, title, location, schedule')
+          .eq('published', true)
+          .order('created_at', { ascending: false })
+          .limit(2)
+        setEvents(data || [])
+      } catch (error) {
+        console.error('Erro ao buscar eventos:', error)
+      }
+    }
+
+    fetchNews()
+    fetchEvents()
+  }, [])
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = "/"
+  }
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const minutes = Math.floor(diff / (1000 * 60))
+    
+    if (days > 0) return `Há ${days} dia${days > 1 ? 's' : ''}`
+    if (hours > 0) return `Há ${hours} hora${hours > 1 ? 's' : ''}`
+    if (minutes > 0) return `Há ${minutes} minuto${minutes > 1 ? 's' : ''}`
+    return 'Agora mesmo'
   }
 
   const handleSaveProfile = async () => {
@@ -238,18 +288,22 @@ export default function MaricultorDashboard() {
                 <CardDescription>Fique por dentro das novidades do setor</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="border-l-4 border-primary pl-4">
-                  <h4 className="font-semibold">Nova Técnica de Cultivo Sustentável</h4>
-                  <p className="text-sm text-muted-foreground">Pesquisadores desenvolvem método inovador...</p>
-                  <p className="text-xs text-muted-foreground mt-1">Há 2 dias</p>
-                </div>
-                <div className="border-l-4 border-accent pl-4">
-                  <h4 className="font-semibold">Workshop Nacional de Maricultura</h4>
-                  <p className="text-sm text-muted-foreground">Evento reúne 200 especialistas...</p>
-                  <p className="text-xs text-muted-foreground mt-1">Há 5 dias</p>
-                </div>
-                <Button variant="outline" className="w-full bg-transparent">
-                  Ver Todas as Notícias
+                {news.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Nenhuma notícia publicada ainda</p>
+                ) : (
+                  news.map((item, idx) => {
+                    const timeAgo = item.created_at ? formatTimeAgo(new Date(item.created_at)) : ''
+                    return (
+                      <div key={item.id} className={`border-l-4 ${idx === 0 ? 'border-primary' : 'border-accent'} pl-4`}>
+                        <h4 className="font-semibold line-clamp-1">{item.title}</h4>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{item.excerpt || 'Sem descrição disponível'}</p>
+                        {timeAgo && <p className="text-xs text-muted-foreground mt-1">{timeAgo}</p>}
+                      </div>
+                    )
+                  })
+                )}
+                <Button variant="outline" className="w-full bg-transparent" asChild>
+                  <a href="/news">Ver Todas as Notícias</a>
                 </Button>
               </CardContent>
             </Card>
@@ -264,21 +318,33 @@ export default function MaricultorDashboard() {
                 <CardDescription>Eventos e workshops para maricultores</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-start space-x-4 p-4 rounded-lg bg-muted/50">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-primary">15</div>
-                    <div className="text-xs text-muted-foreground">DEZ</div>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">Curso de Certificação</h4>
-                    <p className="text-sm text-muted-foreground">Certificação internacional para produtores</p>
-                    <Badge variant="outline" className="mt-1">
-                      Presencial
-                    </Badge>
-                  </div>
-                </div>
-                <Button variant="outline" className="w-full bg-transparent">
-                  Ver Todos os Eventos
+                {events.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Nenhum evento publicado ainda</p>
+                ) : (
+                  events.map((event) => {
+                    const firstDate = event.schedule?.date || event.schedule?.[0]?.date
+                    const eventDate = firstDate ? new Date(firstDate + 'T00:00:00') : null
+                    const day = eventDate ? eventDate.getDate() : '?'
+                    const month = eventDate ? eventDate.toLocaleString('pt-BR', { month: 'short' }).toUpperCase() : '?'
+                    
+                    return (
+                      <div key={event.id} className="flex items-start space-x-4 p-4 rounded-lg bg-muted/50">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-primary">{day}</div>
+                          <div className="text-xs text-muted-foreground">{month}</div>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold line-clamp-1">{event.title}</h4>
+                          {event.location && (
+                            <p className="text-sm text-muted-foreground line-clamp-1">{event.location}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+                <Button variant="outline" className="w-full bg-transparent" asChild>
+                  <a href="/#eventos">Ver Todos os Eventos</a>
                 </Button>
               </CardContent>
             </Card>
