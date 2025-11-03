@@ -50,11 +50,11 @@ export function ProjectReaderModal({ project, onClose }: ProjectReaderModalProps
       case 'banner':
         if (!block.data?.image_url) return null
         return (
-          <div key={block.id} className="w-full max-w-full relative overflow-hidden mb-8">
+          <div key={block.id} className="w-full max-w-full relative overflow-hidden">
             <img
               src={block.data.image_url}
               alt="Banner"
-              className="w-full h-auto max-h-[500px] object-contain"
+              className="w-full h-auto max-h-[500px] object-cover"
             />
           </div>
         )
@@ -294,7 +294,7 @@ export function ProjectReaderModal({ project, onClose }: ProjectReaderModalProps
                 <p className="text-slate-500">Nenhum conteúdo disponível</p>
               </div>
             ) : (
-              <div className="min-h-full py-8">
+              <div className="min-h-full">
                 {blocks.map((block) => renderBlock(block))}
               </div>
             )}

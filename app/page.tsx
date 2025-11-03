@@ -996,8 +996,15 @@ export default async function HomePage() {
             <div>
               <h4 className="font-medium mb-4">Siga-nos</h4>
               <div className="flex space-x-4">
-                <Button variant="ghost" size="sm" className="text-primary-foreground/80 hover:text-primary-foreground">
-                  Facebook
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-primary-foreground/80 hover:text-primary-foreground"
+                  asChild
+                >
+                  <a href="https://www.facebook.com/amesp.maricultores" target="_blank" rel="noopener noreferrer">
+                    Facebook
+                  </a>
                 </Button>
                 <Button 
                   variant="ghost" 
