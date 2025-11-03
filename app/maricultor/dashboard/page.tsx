@@ -125,18 +125,17 @@ export default function MaricultorDashboard() {
   const calculateProfileCompletion = () => {
     if (!profile) return 0
     
+    // Apenas campos visíveis no formulário de edição
     const fields = [
-      profile.full_name,
-      profile.contact_phone,
-      profile.cep,
-      profile.logradouro,
-      profile.numero,
-      profile.cidade,
-      profile.estado,
-      profile.company,
-      profile.specialties,
-      profile.latitude,
-      profile.longitude
+      profile.full_name,      // Nome completo
+      profile.contact_phone,  // Telefone
+      profile.cep,            // CEP
+      profile.logradouro,     // Logradouro
+      profile.numero,         // Número
+      profile.cidade,         // Cidade
+      profile.estado,         // UF
+      profile.company,        // Empresa/Fazenda
+      profile.specialties     // Especialidades
     ]
     
     const filledFields = fields.filter(field => field !== null && field !== undefined && field !== '').length
