@@ -275,7 +275,7 @@ export default function MaricultorDashboard() {
         {/* Quick Stats - Perfil */}
         <div className="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-md">
           <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-blue-50 via-cyan-50/50 to-teal-50/30 border-blue-200/50">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <CardHeader className="pb-3 relative z-10">
               <div className="flex items-center justify-between mb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Completude do Perfil</CardTitle>
@@ -309,7 +309,7 @@ export default function MaricultorDashboard() {
           <div className="lg:col-span-2 space-y-6">
             {/* Recent News */}
             <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-slate-50 via-blue-50/30 to-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
               <CardHeader className="relative z-10">
                 <div className="flex items-center justify-between">
                   <div>
@@ -346,7 +346,7 @@ export default function MaricultorDashboard() {
 
             {/* Upcoming Events */}
             <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-purple-50 via-pink-50/30 to-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
               <CardHeader className="relative z-10">
                 <div className="flex items-center justify-between">
                   <div>
@@ -416,7 +416,7 @@ export default function MaricultorDashboard() {
           <div className="space-y-6">
             {/* Profile Card */}
             <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-emerald-50 via-teal-50/30 to-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
               <CardHeader className="relative z-10">
                 <div className="flex items-center space-x-2">
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
@@ -425,7 +425,7 @@ export default function MaricultorDashboard() {
                   <CardTitle>Meu Perfil</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 relative z-10">
                 {!editing ? (
                   <>
                     <div className="text-center">
@@ -537,7 +537,7 @@ export default function MaricultorDashboard() {
 
             {/* Mensalidades */}
             <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-amber-50 via-orange-50/30 to-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
               <CardHeader className="relative z-10">
                 <div className="flex items-center space-x-2">
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
