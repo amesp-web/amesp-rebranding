@@ -5,9 +5,10 @@ interface EmailOptions {
   to: string
   subject: string
   html: string
+  replyTo?: string
 }
 
-export async function sendEmail({ to, subject, html }: EmailOptions) {
+export async function sendEmail({ to, subject, html, replyTo }: EmailOptions) {
   // Verificar se as configurações do Gmail estão disponíveis
   if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
     console.log('📧 EMAIL SIMULADO (Gmail não configurado):')
@@ -31,7 +32,8 @@ export async function sendEmail({ to, subject, html }: EmailOptions) {
       from: `"${process.env.GMAIL_FROM_NAME || 'AMESP'}" <${process.env.GMAIL_FROM_EMAIL || process.env.GMAIL_USER}>`,
       to,
       subject,
-      html
+      html,
+      ...(replyTo && { replyTo }) // Adiciona replyTo se fornecido
     }
 
     // Enviar e-mail

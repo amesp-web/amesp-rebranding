@@ -9,6 +9,7 @@ import { ProjectsDropdown } from "@/components/public/ProjectsDropdown"
 import { MobileMenu } from "@/components/public/MobileMenu"
 import { AboutSection } from "@/components/public/AboutSection"
 import { HeroButtons } from "@/components/public/HeroButtons"
+import { ContactForm } from "@/components/public/ContactForm"
 import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
 import { FishDecoration } from "@/components/decorative/FishDecoration"
@@ -804,102 +805,7 @@ export default async function HomePage() {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <Card className="border-0 shadow-xl bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm">
-              <CardHeader className="pb-6 text-center">
-                <div className="flex items-center justify-center space-x-3 mb-4">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <Mail className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl">Envie uma mensagem</CardTitle>
-                    <CardDescription className="text-base">
-                      Preencha o formulário abaixo e entraremos em contato em breve.
-                    </CardDescription>
-                  </div>
-                </div>
-
-                {/* Contact info inline */}
-                <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground mt-6 pt-6 border-t border-border/50">
-                  <div className="flex items-center space-x-2">
-                    <Phone className="h-4 w-4 text-primary" />
-                    <span>(12) 3833-8000</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Mail className="h-4 w-4 text-primary" />
-                    <span>contato@amespmaricultura.org.br</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <span>Ubatuba - SP, Brasil</span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6 px-8 pb-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground">Nome Completo *</label>
-                    <input
-                      className="w-full px-4 py-3 border border-border/50 rounded-xl bg-background focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/60"
-                      placeholder="Digite seu nome completo"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground">E-mail *</label>
-                    <input
-                      className="w-full px-4 py-3 border border-border/50 rounded-xl bg-background focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/60"
-                      type="email"
-                      placeholder="seu@email.com"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground">Telefone</label>
-                    <input
-                      className="w-full px-4 py-3 border border-border/50 rounded-xl bg-background focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/60"
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground">Empresa/Organização</label>
-                    <input
-                      className="w-full px-4 py-3 border border-border/50 rounded-xl bg-background focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-muted-foreground/60"
-                      placeholder="Nome da sua empresa"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-foreground">Assunto *</label>
-                  <select className="w-full px-4 py-3 border border-border/50 rounded-xl bg-background focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all">
-                    <option>Selecione o assunto</option>
-                    <option>Informações sobre associação</option>
-                    <option>Consultoria técnica</option>
-                    <option>Parcerias</option>
-                    <option>Eventos e workshops</option>
-                    <option>Outros</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-foreground">Mensagem *</label>
-                  <textarea
-                    className="w-full px-4 py-3 border border-border/50 rounded-xl bg-background focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all h-40 resize-none placeholder:text-muted-foreground/60"
-                    placeholder="Descreva detalhadamente como podemos ajudá-lo. Inclua informações relevantes sobre seu projeto ou necessidade..."
-                  ></textarea>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input type="checkbox" id="newsletter" className="rounded border-border" />
-                  <label htmlFor="newsletter" className="text-sm text-muted-foreground">
-                    Desejo receber newsletters e atualizações sobre maricultura
-                  </label>
-                </div>
-                <Button className="w-full py-4 text-base font-semibold hover:scale-[1.02] transition-transform shadow-lg">
-                  Enviar Mensagem
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  * Campos obrigatórios. Responderemos em até 24 horas úteis.
-                </p>
-              </CardContent>
-            </Card>
+            <ContactForm />
           </div>
         </div>
       </section>
