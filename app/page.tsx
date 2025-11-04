@@ -63,17 +63,13 @@ async function getSupabaseData() {
     const { createClient } = await import("@/lib/supabase/server")
     const supabase = await createClient()
 
-    // 🚀 OTIMIZAÇÃO: Executar TODAS as queries em paralelo
-    // 🔧 FIX: Buscar about e home-info DIRETO do banco (sem fetch interno)
+    // 🚀 OTIMIZAÇÃO: Executar TODAS as queries em paralelo do Supabase
     const [
       newsResult,
       galleryAllResult,
       totalCountResult,
       producersResult,
-      projectsResult,
-      aboutContentResult,
-      aboutFeaturesResult,
-      homeInfoResult
+      projectsResult
     ] = await Promise.all([
       // News
       supabase
@@ -110,28 +106,7 @@ async function getSupabaseData() {
         .from("projects")
         .select("id, name, slug, submenu_label")
         .eq("published", true)
-        .order("display_order", { ascending: true }),
-      
-      // About Content (direto do banco)
-      supabase
-        .from("about_content")
-        .select("*")
-        .order("id", { ascending: true })
-        .limit(1)
-        .single(),
-      
-      // About Features (direto do banco)
-      supabase
-        .from("about_features")
-        .select("*")
-        .order("display_order", { ascending: true }),
-      
-      // Home Info (direto do banco)
-      supabase
-        .from("home_info")
-        .select("*")
-        .limit(1)
-        .single()
+        .order("display_order", { ascending: true })
     ])
 
     // Processar galeria: separar featured das outras
@@ -150,11 +125,41 @@ async function getSupabaseData() {
       }
     }
 
-    // Montar objeto about (formato da API)
+    // 🔧 Buscar about e home-info via Supabase Service Client (igual à API)
+    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const serviceClient = createServiceClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+    
+    const [aboutContentResult, aboutFeaturesResult, homeInfoResult] = await Promise.all([
+      serviceClient
+        .from("about_content")
+        .select("*")
+        .order("id", { ascending: true })
+        .limit(1)
+        .single(),
+      
+      serviceClient
+        .from("about_features")
+        .select("*")
+        .order("display_order", { ascending: true }),
+      
+      serviceClient
+        .from("home_info")
+        .select("*")
+        .limit(1)
+        .single()
+    ])
+    
+    // Montar objetos no formato esperado (igual à API)
     const about = {
-      content: aboutContentResult.data || null,
+      content: aboutContentResult.data,
       features: aboutFeaturesResult.data || []
     }
+    
+    const homeInfo = homeInfoResult.data
 
     return { 
       news: newsResult.data, 
@@ -163,7 +168,7 @@ async function getSupabaseData() {
       galleryTotalCount: totalCountResult.count || 0, 
       about, 
       projects: projectsResult.data || [], 
-      homeInfo: homeInfoResult.data || null
+      homeInfo
     }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
