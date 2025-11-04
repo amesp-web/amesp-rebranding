@@ -13,7 +13,6 @@ export function ContactForm() {
     email: "",
     phone: "",
     company: "",
-    subject: "",
     message: "",
     newsletter: false
   })
@@ -22,6 +21,41 @@ export function ContactForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
+    
+    // Aplicar máscara de telefone
+    if (name === 'phone') {
+      const onlyDigits = value.replace(/\D/g, '')
+      let masked = onlyDigits
+      
+      // Máscara: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+      if (onlyDigits.length <= 10) {
+        // Telefone fixo: (XX) XXXX-XXXX
+        masked = onlyDigits
+          .slice(0, 10)
+          .replace(/(\d{2})(\d{0,4})(\d{0,4})/, (_, ddd, part1, part2) => {
+            if (part2) return `(${ddd}) ${part1}-${part2}`
+            if (part1) return `(${ddd}) ${part1}`
+            if (ddd) return `(${ddd}`
+            return ''
+          })
+      } else {
+        // Celular: (XX) XXXXX-XXXX
+        masked = onlyDigits
+          .slice(0, 11)
+          .replace(/(\d{2})(\d{5})(\d{0,4})/, (_, ddd, part1, part2) => {
+            if (part2) return `(${ddd}) ${part1}-${part2}`
+            if (part1) return `(${ddd}) ${part1}`
+            return `(${ddd}`
+          })
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        phone: masked
+      }))
+      return
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
@@ -32,7 +66,7 @@ export function ContactForm() {
     e.preventDefault()
     
     // Validações
-    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+    if (!formData.name || !formData.email || !formData.message) {
       toast.error("Por favor, preencha todos os campos obrigatórios")
       return
     }
@@ -68,7 +102,6 @@ export function ContactForm() {
             email: "",
             phone: "",
             company: "",
-            subject: "",
             message: "",
             newsletter: false
           })
@@ -187,24 +220,6 @@ export function ContactForm() {
                 placeholder="Nome da sua empresa"
               />
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-foreground">Assunto *</label>
-            <select
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-border/50 rounded-xl bg-background focus:bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-              required
-            >
-              <option value="">Selecione o assunto</option>
-              <option value="Informações sobre associação">Informações sobre associação</option>
-              <option value="Consultoria técnica">Consultoria técnica</option>
-              <option value="Parcerias">Parcerias</option>
-              <option value="Eventos e workshops">Eventos e workshops</option>
-              <option value="Outros">Outros</option>
-            </select>
           </div>
           
           <div className="space-y-2">

@@ -31,7 +31,6 @@ Confirmação de sucesso na tela
 ### **Obrigatórios:**
 - ✅ Nome Completo
 - ✅ E-mail
-- ✅ Assunto
 - ✅ Mensagem
 
 ### **Opcionais:**
@@ -88,7 +87,6 @@ Certifique-se que está rodando: `npm run dev -- -p 3001`
    - **Email:** seu-email-teste@gmail.com
    - **Telefone:** (12) 99999-9999 (opcional)
    - **Empresa:** Teste Ltda (opcional)
-   - **Assunto:** Informações sobre associação
    - **Mensagem:** Esta é uma mensagem de teste do formulário de contato.
 2. Marque (opcional): ☑️ Desejo receber newsletters
 3. Clique em **"Enviar Mensagem"**
@@ -106,7 +104,7 @@ Certifique-se que está rodando: `npm run dev -- -p 3001`
 
 **No email `graziduete@gmail.com`:**
 - ✅ Email chegou de: `AMESP - Associação dos Maricultores <noreplyamesp@gmail.com>`
-- ✅ Assunto: `Nova Mensagem de Contato - Informações sobre associação`
+- ✅ Assunto: `Nova Mensagem de Contato - João Silva`
 - ✅ Template bonito com gradiente oceânico
 - ✅ Todos os dados do formulário
 

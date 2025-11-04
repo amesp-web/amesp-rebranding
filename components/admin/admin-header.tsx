@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Bell, Menu, Settings, LogOut, ChevronDown, User } from "lucide-react"
+import { Menu, LogOut, ChevronDown } from "lucide-react"
 import { useState, useEffect } from "react"
+import { NotificationBell } from "@/components/admin/NotificationBell"
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -69,19 +70,7 @@ export function AdminHeader({ user, adminProfile }: AdminHeaderProps) {
         {/* Right side - Actions and user menu */}
         <div className="flex items-center space-x-4">
           {/* Notifications */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="relative hover:bg-blue-50 rounded-full h-10 w-10"
-          >
-            <Bell className="h-5 w-5 text-gray-600" />
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-            >
-              3
-            </Badge>
-          </Button>
+          <NotificationBell />
 
           {/* User Menu */}
           <DropdownMenu>

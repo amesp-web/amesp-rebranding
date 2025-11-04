@@ -1,17 +1,54 @@
 // app/api/contact/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email-sender'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, phone, company, subject, message, newsletter } = await request.json()
+    const { name, email, phone, company, message, newsletter } = await request.json()
 
     // Validações
-    if (!name || !email || !subject || !message) {
+    if (!name || !email || !message) {
       return NextResponse.json(
         { success: false, error: 'Campos obrigatórios não preenchidos' },
         { status: 400 }
       )
+    }
+
+    // Se usuário marcou newsletter, salvar no banco
+    if (newsletter) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+      if (supabaseUrl && serviceRoleKey) {
+        const supabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        })
+
+        // Tentar inserir (upsert para evitar duplicados)
+        const { error: dbError } = await supabase
+          .from('newsletter_subscribers')
+          .upsert({
+            email,
+            name,
+            phone: phone || null,
+            company: company || null,
+            is_active: true,
+            source: 'contact_form'
+          }, {
+            onConflict: 'email'
+          })
+
+        if (dbError) {
+          console.error('⚠️ Erro ao salvar inscrito na newsletter:', dbError)
+          // Não falhar o envio do email por causa disso
+        } else {
+          console.log('✅ Inscrito salvo na newsletter:', email)
+        }
+      }
     }
 
     // Email de destino (quem recebe as mensagens)
@@ -80,14 +117,10 @@ export async function POST(request: NextRequest) {
                           ` : ''}
                           
                           ${company ? `
-                          <p style="margin: 0 0 8px 0; color: #334155; font-size: 14px;">
+                          <p style="margin: 0; color: #334155; font-size: 14px;">
                             <strong style="color: #0ea5e9;">🏢 Empresa:</strong> ${company}
                           </p>
                           ` : ''}
-                          
-                          <p style="margin: 0; color: #334155; font-size: 14px;">
-                            <strong style="color: #0ea5e9;">📋 Assunto:</strong> ${subject}
-                          </p>
                         </td>
                       </tr>
                     </table>
@@ -138,7 +171,7 @@ export async function POST(request: NextRequest) {
     // Enviar email
     const emailResult = await sendEmail({
       to: recipientEmail,
-      subject: `Nova Mensagem de Contato - ${subject}`,
+      subject: `Nova Mensagem de Contato - ${name}`,
       html: emailTemplate,
       replyTo: email // Importante! Para poder responder direto ao cliente
     })
@@ -152,6 +185,35 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ Email de contato enviado para:', recipientEmail, '| De:', email)
+    
+    // Criar notificação no sistema
+    try {
+      const notificationPayload = {
+        type: 'contact',
+        title: `Nova mensagem de contato de ${name}`,
+        message: message.substring(0, 150) + (message.length > 150 ? '...' : ''),
+        link: null, // Pode adicionar link para uma página de "mensagens" no futuro
+        icon: 'Mail',
+        priority: 'normal',
+        metadata: {
+          email,
+          phone,
+          company,
+          newsletter
+        }
+      }
+
+      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'}/api/admin/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(notificationPayload)
+      })
+      
+      console.log('✅ Notificação criada para novo contato')
+    } catch (notifError) {
+      console.error('⚠️ Erro ao criar notificação (não crítico):', notifError)
+      // Não falha o fluxo se notificação der erro
+    }
     
     return NextResponse.json({ 
       success: true, 

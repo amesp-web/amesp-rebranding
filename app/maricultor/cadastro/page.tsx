@@ -52,9 +52,45 @@ export default function MaricultorCadastroPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    
+    // Aplicar máscara de telefone
+    if (name === 'phone') {
+      const onlyDigits = value.replace(/\D/g, '')
+      let masked = onlyDigits
+      
+      // Máscara: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+      if (onlyDigits.length <= 10) {
+        // Telefone fixo: (XX) XXXX-XXXX
+        masked = onlyDigits
+          .slice(0, 10)
+          .replace(/(\d{2})(\d{0,4})(\d{0,4})/, (_, ddd, part1, part2) => {
+            if (part2) return `(${ddd}) ${part1}-${part2}`
+            if (part1) return `(${ddd}) ${part1}`
+            if (ddd) return `(${ddd}`
+            return ''
+          })
+      } else {
+        // Celular: (XX) XXXXX-XXXX
+        masked = onlyDigits
+          .slice(0, 11)
+          .replace(/(\d{2})(\d{5})(\d{0,4})/, (_, ddd, part1, part2) => {
+            if (part2) return `(${ddd}) ${part1}-${part2}`
+            if (part1) return `(${ddd}) ${part1}`
+            return `(${ddd}`
+          })
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        phone: masked
+      }))
+      return
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }))
   }
 
@@ -302,6 +338,31 @@ export default function MaricultorCadastroPage() {
               return
             }
 
+            // Criar notificação de novo maricultor cadastrado
+            try {
+              await fetch('/api/admin/notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'maricultor',
+                  title: `Novo maricultor cadastrado: ${formData.name}`,
+                  message: `Email: ${formData.email} | Cidade: ${formData.cidade || 'Não informada'}`,
+                  link: null,
+                  icon: 'UserPlus',
+                  priority: 'normal',
+                  metadata: {
+                    maricultor_id: userId,
+                    email: formData.email,
+                    city: formData.cidade,
+                    company: formData.company
+                  }
+                })
+              })
+              console.log('✅ Notificação de novo maricultor criada')
+            } catch (notifError) {
+              console.error('⚠️ Erro ao criar notificação (não crítico):', notifError)
+            }
+
             // Confirma e-mail automaticamente (para evitar bloqueio no primeiro login)
             try {
               await fetch('/api/auth/confirm-user', {
@@ -512,10 +573,12 @@ export default function MaricultorCadastroPage() {
                     <input
                       type="tel"
                       name="phone"
+                      inputMode="tel"
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
                       placeholder="(11) 99999-9999"
+                      maxLength={15}
                     />
                   </div>
                 </div>
