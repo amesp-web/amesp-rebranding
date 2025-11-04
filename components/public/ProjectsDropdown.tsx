@@ -33,21 +33,34 @@ export function ProjectsDropdown() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        console.log('🔍 Buscando projetos para dropdown...')
         const res = await fetch('/api/public/projects', { cache: 'no-store' })
+        
+        if (!res.ok) {
+          console.error('Erro ao buscar projetos:', res.status)
+          setProjects([])
+          return
+        }
+        
         const data = await res.json()
-        console.log('📦 Projetos recebidos:', data)
-        setProjects(data || [])
+        
+        // Garantir que data é um array válido
+        if (!data || !Array.isArray(data)) {
+          console.error('Resposta da API não é um array:', data)
+          setProjects([])
+          return
+        }
+        
+        setProjects(data)
         
         // Pré-carregar todos os projetos em background
-        if (data && Array.isArray(data)) {
+        if (data.length > 0) {
           const loadPromises = data.map(async (project: Project) => {
             try {
               const fullRes = await fetch(`/api/admin/projects/${project.id}`, { cache: 'force-cache' })
               const fullProject = await fullRes.json()
               return { id: project.id, project: fullProject }
             } catch (e) {
-              console.error('⚠️ Erro ao pré-carregar projeto:', project.name)
+              console.error('Erro ao pré-carregar projeto:', project.name)
               return null
             }
           })
@@ -61,11 +74,11 @@ export function ProjectsDropdown() {
               }
             })
             setFullProjects(newMap)
-            console.log('✅ Todos os projetos pré-carregados!')
           })
         }
       } catch (error) {
-        console.error('❌ Erro ao buscar projetos:', error)
+        console.error('Erro ao buscar projetos:', error)
+        setProjects([])
       }
     }
     fetchProjects()
@@ -80,9 +93,6 @@ export function ProjectsDropdown() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  // Sempre mostrar o dropdown, mesmo sem projetos (para debug)
-  console.log('📊 Total de projetos no estado:', projects.length)
 
   return (
     <div ref={dropdownRef} className="relative z-[100]">

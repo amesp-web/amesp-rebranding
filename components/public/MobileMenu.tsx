@@ -32,28 +32,40 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
       try {
         const res = await fetch('/api/public/projects', { cache: 'no-store' })
         
-        if (res.ok) {
-          const data = await res.json()
-          setProjects(data || [])
-          
-          // Pré-carregar conteúdo completo
-          if (data && data.length > 0) {
-            const projectsMap = new Map<string, Project>()
-            await Promise.all(
-              data.map(async (proj: Project) => {
-                try {
-                  const fullRes = await fetch(`/api/admin/projects/${proj.id}`)
-                  if (fullRes.ok) {
-                    const fullData = await fullRes.json()
-                    projectsMap.set(proj.id, fullData)
-                  }
-                } catch (err) {
-                  console.error(`Erro ao carregar projeto ${proj.id}:`, err)
+        if (!res.ok) {
+          console.error('Erro ao buscar projetos:', res.status)
+          setProjects([])
+          return
+        }
+        
+        const data = await res.json()
+        
+        // Garantir que data é um array válido
+        if (!data || !Array.isArray(data)) {
+          console.error('Resposta da API não é um array:', data)
+          setProjects([])
+          return
+        }
+        
+        setProjects(data)
+        
+        // Pré-carregar conteúdo completo
+        if (data.length > 0) {
+          const projectsMap = new Map<string, Project>()
+          await Promise.all(
+            data.map(async (proj: Project) => {
+              try {
+                const fullRes = await fetch(`/api/admin/projects/${proj.id}`)
+                if (fullRes.ok) {
+                  const fullData = await fullRes.json()
+                  projectsMap.set(proj.id, fullData)
                 }
-              })
-            )
-            setFullProjects(projectsMap)
-          }
+              } catch (err) {
+                console.error(`Erro ao carregar projeto ${proj.id}:`, err)
+              }
+            })
+          )
+          setFullProjects(projectsMap)
         }
       } catch (error) {
         console.error('Erro ao carregar projetos:', error)
