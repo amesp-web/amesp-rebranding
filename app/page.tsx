@@ -120,6 +120,9 @@ async function getSupabaseData() {
 
 export default async function HomePage() {
   const { news, gallery, producers, galleryTotalCount, about, projects, homeInfo } = await getSupabaseData()
+  
+  // Garantir que projects é um array válido e serializável
+  const safeProjects = Array.isArray(projects) ? projects : []
 
   // Use real data or fallback to mock data
   const mockNews = news || [
@@ -290,7 +293,7 @@ export default async function HomePage() {
           </div>
 
           {/* Menu Mobile/Tablet */}
-          <MobileMenu projects={projects} />
+          <MobileMenu projects={safeProjects} />
         </div>
 
         {/* Linha decorativa inferior */}
