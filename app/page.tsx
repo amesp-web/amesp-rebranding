@@ -62,34 +62,18 @@ async function getSupabaseData() {
   try {
     const { createClient } = await import("@/lib/supabase/server")
     const supabase = await createClient()
-    
-    // 🔧 FIX: Detectar URL correta baseado no ambiente
-    // No servidor (SSR), usamos VERCEL_URL ou localhost
-    const getBaseUrl = () => {
-      // Se estiver no servidor (Node.js)
-      if (typeof window === 'undefined') {
-        // Em produção (Vercel), usa a URL do deployment
-        if (process.env.VERCEL_URL) {
-          return `https://${process.env.VERCEL_URL}`
-        }
-        // Em desenvolvimento, usa localhost
-        return 'http://localhost:3001'
-      }
-      // No cliente, usa a URL atual
-      return ''
-    }
-    
-    const baseUrl = getBaseUrl()
 
     // 🚀 OTIMIZAÇÃO: Executar TODAS as queries em paralelo
+    // 🔧 FIX: Buscar about e home-info DIRETO do banco (sem fetch interno)
     const [
       newsResult,
       galleryAllResult,
       totalCountResult,
       producersResult,
       projectsResult,
-      aboutResponse,
-      homeInfoResponse
+      aboutContentResult,
+      aboutFeaturesResult,
+      homeInfoResult
     ] = await Promise.all([
       // News
       supabase
@@ -128,21 +112,26 @@ async function getSupabaseData() {
         .eq("published", true)
         .order("display_order", { ascending: true }),
       
-      // About (com tratamento de erro e URL correta)
-      fetch(`${baseUrl}/api/admin/about`, { cache: 'no-store' })
-        .then(res => res.ok ? res.json() : null)
-        .catch((err) => {
-          console.error('Failed to fetch about:', err)
-          return null
-        }),
+      // About Content (direto do banco)
+      supabase
+        .from("about_content")
+        .select("*")
+        .order("id", { ascending: true })
+        .limit(1)
+        .single(),
       
-      // Home Info (com tratamento de erro e URL correta)
-      fetch(`${baseUrl}/api/admin/home-info`, { cache: 'no-store' })
-        .then(res => res.ok ? res.json() : null)
-        .catch((err) => {
-          console.error('Failed to fetch home-info:', err)
-          return null
-        })
+      // About Features (direto do banco)
+      supabase
+        .from("about_features")
+        .select("*")
+        .order("display_order", { ascending: true }),
+      
+      // Home Info (direto do banco)
+      supabase
+        .from("home_info")
+        .select("*")
+        .limit(1)
+        .single()
     ])
 
     // Processar galeria: separar featured das outras
@@ -161,14 +150,20 @@ async function getSupabaseData() {
       }
     }
 
+    // Montar objeto about (formato da API)
+    const about = {
+      content: aboutContentResult.data || null,
+      features: aboutFeaturesResult.data || []
+    }
+
     return { 
       news: newsResult.data, 
       gallery: galleryHome, 
       producers: producersResult.data, 
       galleryTotalCount: totalCountResult.count || 0, 
-      about: aboutResponse, 
+      about, 
       projects: projectsResult.data || [], 
-      homeInfo: homeInfoResponse 
+      homeInfo: homeInfoResult.data || null
     }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
