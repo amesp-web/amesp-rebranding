@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/server"
-import { Newspaper, Users, Camera, MapPin, Eye, TrendingUp, Calendar, Award, Waves, Activity, ArrowUpRight, DollarSign, Lock } from "lucide-react"
+import { Newspaper, Users, Camera, MapPin, Eye, TrendingUp, Calendar, Waves, Activity, ArrowUpRight, DollarSign, Lock } from "lucide-react"
 import Link from "next/link"
 
 export default async function AdminDashboard() {
@@ -278,65 +278,6 @@ export default async function AdminDashboard() {
               <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                 Funcionalidade de gestão financeira estará disponível em breve.
               </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Ações Rápidas - Mover para baixo ou manter */}
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-white via-teal-50/20 to-cyan-50/10 backdrop-blur-sm">
-          <CardHeader className="pb-4 border-b border-teal-100/50">
-            <div className="flex items-center space-x-3">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-teal-500/20 via-cyan-500/20 to-blue-500/20 flex items-center justify-center shadow-lg">
-                <Award className="h-6 w-6 text-teal-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-bold text-slate-800">Atalhos Rápidos</CardTitle>
-                <CardDescription className="text-slate-600">Acesso rápido às principais funcionalidades</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Link
-                href="/admin/news/new"
-                className="group relative overflow-hidden flex flex-col items-center justify-center p-6 border-2 border-blue-100/50 rounded-2xl hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-blue-50/50 via-white to-cyan-50/30 cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md">
-                  <Newspaper className="h-7 w-7 text-blue-600" />
-                </div>
-                <span className="text-sm font-semibold text-center text-slate-700">Nova Notícia</span>
-              </Link>
-              <Link
-                href="/admin/producers/new"
-                className="group relative overflow-hidden flex flex-col items-center justify-center p-6 border-2 border-teal-100/50 rounded-2xl hover:border-teal-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-teal-50/50 via-white to-cyan-50/30 cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-teal-500/20 to-teal-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md">
-                  <MapPin className="h-7 w-7 text-teal-600" />
-                </div>
-                <span className="text-sm font-semibold text-center text-slate-700">Novo Produtor</span>
-              </Link>
-              <Link
-                href="/admin/gallery/new"
-                className="group relative overflow-hidden flex flex-col items-center justify-center p-6 border-2 border-cyan-100/50 rounded-2xl hover:border-cyan-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-cyan-50/50 via-white to-blue-50/30 cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md">
-                  <Camera className="h-7 w-7 text-cyan-600" />
-                </div>
-                <span className="text-sm font-semibold text-center text-slate-700">Nova Imagem</span>
-              </Link>
-              <Link
-                href="/admin/news"
-                className="group relative overflow-hidden flex flex-col items-center justify-center p-6 border-2 border-indigo-100/50 rounded-2xl hover:border-indigo-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-indigo-50/50 via-white to-blue-50/30 cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md">
-                  <Calendar className="h-7 w-7 text-indigo-600" />
-                </div>
-                <span className="text-sm font-semibold text-center text-slate-700">Ver Todas</span>
-              </Link>
             </div>
           </CardContent>
         </Card>
