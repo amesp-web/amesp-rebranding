@@ -628,7 +628,7 @@ export default function MaricultorCadastroPage() {
                       className={`w-full px-4 py-3 border-0 rounded-xl bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60 ${
                         !formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
-                      placeholder={!formData.cep || formData.cep.length < 9 ? "CEP primeiro" : "nº"}
+                      placeholder="Nº"
                       inputMode="numeric"
                       disabled={!formData.cep || formData.cep.length < 9}
                     />
