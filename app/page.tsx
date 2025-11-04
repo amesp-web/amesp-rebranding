@@ -2,19 +2,41 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { NewsLikeButton } from "@/components/public/NewsLikeButton"
-import { NewsReaderModal } from "@/components/public/NewsReaderModal"
 import { ViewsCounter } from "@/components/public/ViewsCounter"
 import { ShareCopyButton } from "@/components/public/ShareCopyButton"
 import { ProjectsDropdown } from "@/components/public/ProjectsDropdown"
 import { MobileMenu } from "@/components/public/MobileMenu"
 import { AboutSection } from "@/components/public/AboutSection"
 import { HeroButtons } from "@/components/public/HeroButtons"
-import { ContactForm } from "@/components/public/ContactForm"
 import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
 import { FishDecoration } from "@/components/decorative/FishDecoration"
-import { FishSwarm } from "@/components/decorative/FishSwarm"
 import nextDynamic from "next/dynamic"
+
+// 🚀 OTIMIZAÇÃO: Lazy load de componentes abaixo da dobra
+const ContactForm = nextDynamic(
+  () => import("@/components/public/ContactForm").then(mod => ({ default: mod.ContactForm })),
+  {
+    loading: () => (
+      <div className="animate-pulse bg-muted/20 h-[500px] rounded-xl border border-border/50" />
+    ),
+    ssr: false // Não renderizar no servidor (economia de processamento)
+  }
+)
+
+const FishSwarm = nextDynamic(
+  () => import("@/components/decorative/FishSwarm").then(mod => ({ default: mod.FishSwarm })),
+  {
+    ssr: false // Apenas decorativo, não precisa de SSR
+  }
+)
+
+const NewsReaderModal = nextDynamic(
+  () => import("@/components/public/NewsReaderModal").then(mod => ({ default: mod.NewsReaderModal })),
+  {
+    ssr: false // Modal só carrega quando clicado
+  }
+)
 import {
   Waves,
   Heart,
@@ -40,79 +62,91 @@ async function getSupabaseData() {
   try {
     const { createClient } = await import("@/lib/supabase/server")
     const supabase = await createClient()
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
 
-    // Fetch real news data
-    const { data: news } = await supabase
-      .from("news")
-      .select("*")
-      .eq("published", true)
-      .order("display_order", { ascending: true })
-      .order("created_at", { ascending: false })
-      .limit(3)
+    // 🚀 OTIMIZAÇÃO: Executar TODAS as queries em paralelo
+    const [
+      newsResult,
+      galleryAllResult,
+      totalCountResult,
+      producersResult,
+      projectsResult,
+      aboutResponse,
+      homeInfoResponse
+    ] = await Promise.all([
+      // News
+      supabase
+        .from("news")
+        .select("*")
+        .eq("published", true)
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: false })
+        .limit(3),
+      
+      // Gallery (buscar todas de uma vez)
+      supabase
+        .from("gallery")
+        .select("*")
+        .order("featured", { ascending: false })
+        .order("display_order", { ascending: true, nullsFirst: false })
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      
+      // Gallery count
+      supabase
+        .from("gallery")
+        .select("*", { count: "exact", head: true }),
+      
+      // Producers
+      supabase
+        .from("producers")
+        .select("*")
+        .eq("active", true)
+        .order("name", { ascending: true }),
+      
+      // Projects
+      supabase
+        .from("projects")
+        .select("id, name, slug, submenu_label")
+        .eq("published", true)
+        .order("display_order", { ascending: true }),
+      
+      // About (com tratamento de erro)
+      fetch(`${baseUrl}/api/admin/about`, { cache: 'no-store' })
+        .then(res => res.json())
+        .catch(() => null),
+      
+      // Home Info (com tratamento de erro)
+      fetch(`${baseUrl}/api/admin/home-info`, { cache: 'no-store' })
+        .then(res => res.json())
+        .catch(() => null)
+    ])
 
-    // Buscar imagem destacada (mais recente) e mais 4 imagens comuns
-    let featuredId: string | null = null
+    // Processar galeria: separar featured das outras
     let galleryHome: any[] = []
-
-    const { data: featured } = await supabase
-      .from("gallery")
-      .select("*")
-      .eq("featured", true)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-
-    if (featured && featured.length > 0) {
-      featuredId = featured[0].id
-      galleryHome.push(featured[0])
+    const allGallery = galleryAllResult.data || []
+    
+    if (allGallery.length > 0) {
+      const featured = allGallery.find(img => img.featured === true)
+      if (featured) {
+        galleryHome.push(featured)
+        const others = allGallery.filter(img => img.id !== featured.id).slice(0, 4)
+        galleryHome = [...galleryHome, ...others]
+      } else {
+        // Se não houver featured, pegar as 5 primeiras
+        galleryHome = allGallery.slice(0, 5)
+      }
     }
 
-    const { data: others } = await supabase
-      .from("gallery")
-      .select("*")
-      .neq("id", featuredId || "00000000-0000-0000-0000-000000000000")
-      .order("display_order", { ascending: true, nullsFirst: false })
-      .order("updated_at", { ascending: true })
-      .limit(4)
-
-    if (others && others.length > 0) {
-      galleryHome = [...galleryHome, ...others]
+    return { 
+      news: newsResult.data, 
+      gallery: galleryHome, 
+      producers: producersResult.data, 
+      galleryTotalCount: totalCountResult.count || 0, 
+      about: aboutResponse, 
+      projects: projectsResult.data || [], 
+      homeInfo: homeInfoResponse 
     }
-
-    // Contar total de imagens para mostrar botão "Ver Galeria Completa"
-    const { count: totalCount } = await supabase
-      .from("gallery")
-      .select("*", { count: "exact", head: true })
-
-    const { data: producers } = await supabase
-      .from("producers")
-      .select("*")
-      .eq("active", true)
-      .order("name", { ascending: true })
-
-    // About content (Quem Somos)
-    let about: any = null
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-      const res = await fetch(`${baseUrl}/api/admin/about`, { cache: 'no-store' })
-      about = await res.json()
-    } catch {}
-
-    // Home Info (Hero section)
-    let homeInfo: any = null
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-      const res = await fetch(`${baseUrl}/api/admin/home-info`, { cache: 'no-store' })
-      homeInfo = await res.json()
-    } catch {}
-
-    // Projects for menu
-    const { data: projects } = await supabase
-      .from("projects")
-      .select("id, name, slug, submenu_label")
-      .eq("published", true)
-      .order("display_order", { ascending: true })
-
-    return { news, gallery: galleryHome, producers, galleryTotalCount: totalCount || 0, about, projects: projects || [], homeInfo }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
     return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null, projects: [], homeInfo: null }
@@ -194,7 +228,7 @@ export default async function HomePage() {
               width={32}
               height={32}
               className="w-8 h-8 object-contain"
-              unoptimized
+              loading="lazy"
             />
           </div>
           <div className="absolute bottom-2 right-8 opacity-15 rotate-12">
@@ -204,7 +238,7 @@ export default async function HomePage() {
               width={24}
               height={24}
               className="w-6 h-6 object-contain"
-              unoptimized
+              loading="lazy"
             />
           </div>
         </div>
@@ -218,6 +252,7 @@ export default async function HomePage() {
               width={130}
               height={44}
               className="h-11 w-auto"
+              priority
             />
           </div>
 
@@ -329,6 +364,8 @@ export default async function HomePage() {
                   width={800}
                   height={600}
                   className="w-full h-auto object-cover aspect-[4/3]"
+                  priority
+                  quality={85}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
                 {/* Peixe decorativo escondido no canto superior direito */}
@@ -339,7 +376,7 @@ export default async function HomePage() {
                     width={64}
                     height={64}
                     className="w-12 h-12 md:w-16 md:h-16 object-contain rotate-12"
-                    unoptimized
+                    loading="lazy"
                   />
                 </div>
               </div>
