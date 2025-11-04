@@ -8,6 +8,7 @@ import { ShareCopyButton } from "@/components/public/ShareCopyButton"
 import { ProjectsDropdown } from "@/components/public/ProjectsDropdown"
 import { MobileMenu } from "@/components/public/MobileMenu"
 import { AboutSection } from "@/components/public/AboutSection"
+import { HeroButtons } from "@/components/public/HeroButtons"
 import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
 import { FishDecoration } from "@/components/decorative/FishDecoration"
@@ -95,6 +96,14 @@ async function getSupabaseData() {
       about = await res.json()
     } catch {}
 
+    // Home Info (Hero section)
+    let homeInfo: any = null
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
+      const res = await fetch(`${baseUrl}/api/admin/home-info`, { cache: 'no-store' })
+      homeInfo = await res.json()
+    } catch {}
+
     // Projects for menu
     const { data: projects } = await supabase
       .from("projects")
@@ -102,15 +111,15 @@ async function getSupabaseData() {
       .eq("published", true)
       .order("display_order", { ascending: true })
 
-    return { news, gallery: galleryHome, producers, galleryTotalCount: totalCount || 0, about, projects: projects || [] }
+    return { news, gallery: galleryHome, producers, galleryTotalCount: totalCount || 0, about, projects: projects || [], homeInfo }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
-    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null, projects: [] }
+    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null, projects: [], homeInfo: null }
   }
 }
 
 export default async function HomePage() {
-  const { news, gallery, producers, galleryTotalCount, about, projects } = await getSupabaseData()
+  const { news, gallery, producers, galleryTotalCount, about, projects, homeInfo } = await getSupabaseData()
 
   // Use real data or fallback to mock data
   const mockNews = news || [
@@ -297,34 +306,25 @@ export default async function HomePage() {
             <div className="space-y-8">
               <div className="space-y-4">
                 <Badge variant="secondary" className="w-fit">
-                  Desde 1998
+                  {homeInfo?.badge_text || 'Desde 1998'}
                 </Badge>
                 <h1 className="font-sans font-bold text-4xl lg:text-6xl text-balance leading-tight">
-                  Associação dos Maricultores do
-                  <span className="text-primary"> Estado de São Paulo</span>
+                  {homeInfo?.title || 'Associação dos Maricultores do Estado de São Paulo'}
                 </h1>
                 <p className="text-lg text-muted-foreground text-pretty leading-relaxed">
-                  Trabalhamos para o desenvolvimento e organização da maricultura sustentável no litoral norte do estado
-                  de São Paulo. Nossos objetivos são promover o desenvolvimento sustentável e a investigação científica.
+                  {homeInfo?.description || 'Trabalhamos para o desenvolvimento e organização da maricultura sustentável no litoral norte do estado de São Paulo. Nossos objetivos são promover o desenvolvimento sustentável e a investigação científica.'}
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="text-base">
-                  Conheça Nossos Produtores
-                </Button>
-                <Button variant="outline" size="lg" className="text-base bg-transparent">
-                  Saiba Mais
-                </Button>
-              </div>
+              <HeroButtons aboutBlocks={about?.content?.content || []} />
             </div>
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/sustainable-aquaculture-farm-with-workers-in-boats.jpg"
+                  src={homeInfo?.hero_image_url || "/sustainable-aquaculture-farm-with-workers-in-boats.jpg"}
                   alt="Maricultura sustentável"
                   width={800}
                   height={600}
-                  className="w-full h-auto"
+                  className="w-full h-auto object-cover aspect-[4/3]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
                 {/* Peixe decorativo escondido no canto superior direito */}
@@ -346,7 +346,7 @@ export default async function HomePage() {
                   </div>
                   <div>
                     <div className="font-medium text-sm">Sustentabilidade</div>
-                    <div className="text-xs text-muted-foreground">100% Sustentável</div>
+                    <div className="text-xs text-muted-foreground">{homeInfo?.sustainability_tag || '100% Sustentável'}</div>
                   </div>
                 </div>
               </div>

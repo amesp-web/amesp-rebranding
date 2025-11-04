@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Fish, Home, Newspaper, Users, Camera, MapPin, Settings, LogOut, Info, Leaf, Download, Calendar } from "lucide-react"
+import { Fish, Home, Newspaper, Users, Camera, MapPin, Settings, LogOut, Info, Leaf, Download, Calendar, Monitor } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation"
@@ -14,6 +14,7 @@ const navigation = [
   { name: "Produtores", href: "/admin/producers", icon: MapPin },
   { name: "Galeria", href: "/admin/gallery", icon: Camera },
   { name: "Usuários", href: "/admin/users", icon: Users },
+  { name: "Infos da Home", href: "/admin/home-info", icon: Monitor },
   { name: "Quem Somos", href: "/admin/about", icon: Info },
   { name: "Projetos Socioambientais", href: "/admin/projects", icon: Leaf },
   { name: "Gerenciar Download", href: "/admin/downloads", icon: Download },

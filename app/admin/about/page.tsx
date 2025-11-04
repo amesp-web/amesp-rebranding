@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { DndContext, closestCenter } from "@dnd-kit/core"
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { GripVertical, Eye } from "lucide-react"
+import { GripVertical, Eye, Save, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { ProjectEditor } from "@/components/admin/ProjectEditor"
 import { ProjectPreview } from "@/components/admin/ProjectPreview"
@@ -199,15 +199,6 @@ export default function AdminAboutPage() {
                 Crie conteúdo rico para o modal "Conheça a AMESP" usando blocos flexíveis
               </CardDescription>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPreview(true)}
-              className="gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              Visualizar
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -215,23 +206,33 @@ export default function AdminAboutPage() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-4">
+      <div className="flex justify-between items-center">
         <Button
           variant="outline"
-          onClick={() => setShowPreview(true)}
-          className="gap-2"
+          onClick={() => window.location.href = '/admin'}
+          className="border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-xl px-6 py-2 transition-all duration-300"
         >
-          <Eye className="h-4 w-4" />
-          Pré-visualizar Modal
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Cancelar
         </Button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-white shadow-lg transition-all disabled:opacity-60 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600"
-        >
-          {saving ? 'Salvando...' : 'Salvar alterações'}
-        </button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowPreview(true)}
+            variant="outline"
+            className="border-2 border-blue-300 hover:border-blue-400 hover:bg-blue-50 rounded-xl px-6 py-2 transition-all duration-300"
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            Preview
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg hover:shadow-xl transition-all duration-150 rounded-xl px-6 py-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? 'Salvando...' : 'Salvar alterações'}
+          </Button>
+        </div>
       </div>
 
       {/* Modal de Preview */}
