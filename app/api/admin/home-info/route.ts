@@ -42,6 +42,9 @@ export async function PUT(request: Request) {
         description: payload.description,
         hero_image_url: payload.hero_image_url,
         sustainability_tag: payload.sustainability_tag,
+        years_experience: payload.years_experience,
+        associated_producers: payload.associated_producers,
+        completed_projects: payload.completed_projects,
         updated_at: new Date().toISOString()
       })
       .eq('id', 1)

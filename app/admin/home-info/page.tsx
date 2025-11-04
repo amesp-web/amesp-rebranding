@@ -16,6 +16,9 @@ export default function HomeInfoPage() {
   const [description, setDescription] = useState('')
   const [heroImageUrl, setHeroImageUrl] = useState('')
   const [sustainabilityTag, setSustainabilityTag] = useState('')
+  const [yearsExperience, setYearsExperience] = useState(25)
+  const [associatedProducers, setAssociatedProducers] = useState(100)
+  const [completedProjects, setCompletedProjects] = useState(50)
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -35,6 +38,9 @@ export default function HomeInfoPage() {
         setDescription(data.description || '')
         setHeroImageUrl(data.hero_image_url || '')
         setSustainabilityTag(data.sustainability_tag || '')
+        setYearsExperience(data.years_experience || 25)
+        setAssociatedProducers(data.associated_producers || 100)
+        setCompletedProjects(data.completed_projects || 50)
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
@@ -101,7 +107,10 @@ export default function HomeInfoPage() {
           title,
           description,
           hero_image_url: heroImageUrl,
-          sustainability_tag: sustainabilityTag
+          sustainability_tag: sustainabilityTag,
+          years_experience: yearsExperience,
+          associated_producers: associatedProducers,
+          completed_projects: completedProjects
         })
       })
 
@@ -117,27 +126,26 @@ export default function HomeInfoPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-5xl">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl">
-            <Home className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-              Infos da Home
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie as informações do banner principal (Hero)
-            </p>
+    <div className="container mx-auto p-6 space-y-8">
+      {/* Header com gradiente oceânico */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 p-8 border-0 shadow-2xl">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMSkiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="relative z-10">
+          <div className="flex items-center space-x-4 mb-2">
+            <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+              <Home className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Infos da Home</h1>
+              <p className="text-white/90">Gerencie as informações do banner principal (Hero)</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Formulário */}
-      <Card className="mb-6">
-        <CardHeader>
+      <Card className="mb-6 border-0 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b">
           <CardTitle>Informações do Banner Principal</CardTitle>
           <CardDescription>
             Edite o texto e imagem exibidos no topo da home page
@@ -249,6 +257,79 @@ export default function HomeInfoPage() {
             <p className="text-xs text-muted-foreground mt-1">
               Texto exibido no card de sustentabilidade sobre a imagem
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Card de Estatísticas */}
+      <Card className="mb-6 border-0 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b">
+          <CardTitle>Estatísticas</CardTitle>
+          <CardDescription>
+            Números exibidos na seção de estatísticas da home
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Anos de Experiência */}
+            <div>
+              <Label htmlFor="years">Anos de Experiência</Label>
+              <Input
+                id="years"
+                type="text"
+                inputMode="numeric"
+                value={yearsExperience}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '')
+                  setYearsExperience(parseInt(val) || 0)
+                }}
+                className="mt-2"
+                placeholder="25"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Será exibido como "{yearsExperience}+"
+              </p>
+            </div>
+
+            {/* Produtores Associados */}
+            <div>
+              <Label htmlFor="producers">Produtores Associados</Label>
+              <Input
+                id="producers"
+                type="text"
+                inputMode="numeric"
+                value={associatedProducers}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '')
+                  setAssociatedProducers(parseInt(val) || 0)
+                }}
+                className="mt-2"
+                placeholder="100"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Será exibido como "{associatedProducers}+"
+              </p>
+            </div>
+
+            {/* Projetos Realizados */}
+            <div>
+              <Label htmlFor="projects">Projetos Realizados</Label>
+              <Input
+                id="projects"
+                type="text"
+                inputMode="numeric"
+                value={completedProjects}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '')
+                  setCompletedProjects(parseInt(val) || 0)
+                }}
+                className="mt-2"
+                placeholder="50"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Será exibido como "{completedProjects}+"
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

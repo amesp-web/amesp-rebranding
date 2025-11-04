@@ -414,21 +414,21 @@ export default async function HomePage() {
           <div className="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-16">
             <div className="text-center group">
               <div className="font-sans font-bold text-3xl lg:text-4xl text-slate-800 mb-2 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-                25+
+                {homeInfo?.years_experience || 25}+
               </div>
               <div className="text-base text-slate-700 font-medium drop-shadow-sm">Anos de Experiência</div>
             </div>
             <div className="hidden md:block w-px h-16 bg-slate-600/40"></div>
             <div className="text-center group">
               <div className="font-sans font-bold text-3xl lg:text-4xl text-slate-800 mb-2 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-                100+
+                {homeInfo?.associated_producers || 100}+
               </div>
               <div className="text-base text-slate-700 font-medium drop-shadow-sm">Produtores Associados</div>
             </div>
             <div className="hidden md:block w-px h-16 bg-slate-600/40"></div>
             <div className="text-center group">
               <div className="font-sans font-bold text-3xl lg:text-4xl text-slate-800 mb-2 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-                50+
+                {homeInfo?.completed_projects || 50}+
               </div>
               <div className="text-base text-slate-700 font-medium drop-shadow-sm">Projetos Realizados</div>
             </div>
