@@ -24,40 +24,42 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
   const [projectsExpanded, setProjectsExpanded] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [fullProjects, setFullProjects] = useState<Map<string, Project>>(new Map())
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<Project[]>(initialProjects || [])
 
-  // Carregar projetos completos ao montar
+  // Carregar apenas o conteúdo completo dos projetos quando necessário
   useEffect(() => {
-    async function loadProjects() {
-      try {
-        const res = await fetch('/api/public/projects', { cache: 'no-store' })
-        if (res.ok) {
-          const data = await res.json()
-          setProjects(data || [])
-          
-          // Pré-carregar conteúdo completo de cada projeto
-          const projectsMap = new Map<string, Project>()
-          await Promise.all(
-            data.map(async (proj: Project) => {
-              try {
-                const fullRes = await fetch(`/api/admin/projects/${proj.id}`)
-                if (fullRes.ok) {
-                  const fullData = await fullRes.json()
-                  projectsMap.set(proj.id, fullData)
-                }
-              } catch (err) {
-                console.error(`Erro ao carregar projeto ${proj.id}:`, err)
-              }
-            })
-          )
-          setFullProjects(projectsMap)
-        }
-      } catch (error) {
-        console.error('Erro ao carregar projetos:', error)
-        setProjects(initialProjects || [])
-      }
+    console.log('📱 MobileMenu: Projetos recebidos:', initialProjects?.length || 0)
+    
+    // Se não há projetos, não precisa carregar nada
+    if (!initialProjects || initialProjects.length === 0) {
+      console.log('📱 MobileMenu: Nenhum projeto para exibir')
+      return
     }
-    loadProjects()
+    
+    // Usar projetos iniciais diretamente
+    setProjects(initialProjects)
+    console.log('📱 MobileMenu: Projetos setados no estado:', initialProjects.length)
+    
+    // Pré-carregar conteúdo completo apenas se necessário
+    async function preloadFullProjects() {
+      const projectsMap = new Map<string, Project>()
+      await Promise.all(
+        initialProjects.map(async (proj: Project) => {
+          try {
+            const fullRes = await fetch(`/api/admin/projects/${proj.id}`)
+            if (fullRes.ok) {
+              const fullData = await fullRes.json()
+              projectsMap.set(proj.id, fullData)
+            }
+          } catch (err) {
+            console.error(`Erro ao carregar projeto ${proj.id}:`, err)
+          }
+        })
+      )
+      setFullProjects(projectsMap)
+    }
+    
+    preloadFullProjects()
   }, [initialProjects])
 
   const closeMenu = () => {
