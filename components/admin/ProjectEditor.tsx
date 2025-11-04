@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core"
@@ -93,7 +94,51 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
+              <div>
+                <Label>Tamanho do Banner (padrões do mercado)</Label>
+                <Select 
+                  value={block.data?.size || 'panoramic'} 
+                  onValueChange={(val) => onUpdate({ ...block.data, size: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha o tamanho" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hero">
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Hero (1920x600px)</span>
+                        <span className="text-xs text-muted-foreground">Impacto visual máximo</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="panoramic">
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Panorâmico (1920x500px)</span>
+                        <span className="text-xs text-muted-foreground">Padrão geral - Recomendado</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="wide">
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Wide (1600x400px)</span>
+                        <span className="text-xs text-muted-foreground">Mais compacto</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="standard">
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Standard (1200x400px)</span>
+                        <span className="text-xs text-muted-foreground">Econômico e leve</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {block.data?.size === 'hero' && '📐 1920x600px - Ideal para destaque principal'}
+                  {block.data?.size === 'panoramic' && '📐 1920x500px - Padrão para a maioria dos banners'}
+                  {block.data?.size === 'wide' && '📐 1600x400px - Compacto e carrega rápido'}
+                  {block.data?.size === 'standard' && '📐 1200x400px - Leve e econômico'}
+                  {!block.data?.size && '📐 1920x500px - Padrão para a maioria dos banners'}
+                </p>
+              </div>
               <div>
                 <Label>Imagem do Banner</Label>
                 <input
@@ -123,7 +168,16 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
                   {block.data?.image_url ? 'Alterar Imagem' : 'Escolher Imagem'}
                 </Button>
                 {block.data?.image_url && (
-                  <img src={block.data.image_url} className="mt-2 w-full h-48 object-cover rounded-lg" alt="Banner" />
+                  <div className="mt-2 relative">
+                    <img src={block.data.image_url} className="w-full h-48 object-cover rounded-lg" alt="Banner" />
+                    <Badge className="absolute top-2 right-2 bg-blue-600">
+                      {block.data?.size === 'hero' && 'Hero 1920x600'}
+                      {block.data?.size === 'panoramic' && 'Panorâmico 1920x500'}
+                      {block.data?.size === 'wide' && 'Wide 1600x400'}
+                      {block.data?.size === 'standard' && 'Standard 1200x400'}
+                      {!block.data?.size && 'Panorâmico 1920x500'}
+                    </Badge>
+                  </div>
                 )}
               </div>
             </CardContent>

@@ -17,12 +17,19 @@ export function ProjectPreview({ blocks, isOpen, onClose }: { blocks: Block[]; i
     switch (block.type) {
       case 'banner':
         if (!block.data?.image_url) return null
+        const bannerHeightClass = {
+          hero: 'max-h-[600px]',
+          panoramic: 'max-h-[500px]',
+          wide: 'max-h-[400px]',
+          standard: 'max-h-[400px]'
+        }[block.data?.size || 'panoramic'] || 'max-h-[500px]'
+        
         return (
-          <div key={block.id} className="w-full max-w-full relative overflow-hidden mb-8">
+          <div key={block.id} className="w-full max-w-full relative overflow-hidden mb-8 flex justify-center bg-slate-50">
             <img
               src={block.data.image_url}
               alt="Banner"
-              className="w-full h-auto max-h-[500px] object-contain"
+              className={`h-auto ${bannerHeightClass} object-contain rounded-2xl shadow-lg`}
             />
           </div>
         )
@@ -221,19 +228,15 @@ export function ProjectPreview({ blocks, isOpen, onClose }: { blocks: Block[]; i
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {block.data.members.map((member: any, idx: number) => (
                 <div key={idx} className="flex flex-col items-center text-center">
-                  <div className="relative mb-4">
-                    {member.avatar_url ? (
+                  {member.avatar_url && (
+                    <div className="relative mb-4">
                       <img
                         src={member.avatar_url}
                         alt={member.name || `Membro ${idx + 1}`}
                         className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg"
                       />
-                    ) : (
-                      <div className="h-24 w-24 rounded-full bg-slate-200 border-4 border-white shadow-lg flex items-center justify-center">
-                        <UserCircle className="h-12 w-12 text-slate-400" />
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   <h3 className="text-lg font-semibold text-slate-900 mb-1">{member.name || 'Nome não informado'}</h3>
                   {member.role && (
                     <p className="text-sm text-slate-600">{member.role}</p>

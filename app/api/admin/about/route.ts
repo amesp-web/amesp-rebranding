@@ -29,7 +29,14 @@ export async function POST(request: Request) {
     // upsert single row for content
     if (payload?.content) {
       const { title, subtitle } = payload.content
-      await supabase.from('about_content').upsert({ id: 1, title, subtitle, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+      const contentBlocks = payload.contentBlocks || []
+      await supabase.from('about_content').upsert({ 
+        id: 1, 
+        title, 
+        subtitle, 
+        content: contentBlocks,
+        updated_at: new Date().toISOString() 
+      }, { onConflict: 'id' })
     }
     if (Array.isArray(payload?.features)) {
       for (let i = 0; i < payload.features.length; i++) {

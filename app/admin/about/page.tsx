@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge"
 import { DndContext, closestCenter } from "@dnd-kit/core"
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { GripVertical } from "lucide-react"
+import { GripVertical, Eye } from "lucide-react"
 import { toast } from "sonner"
+import { ProjectEditor } from "@/components/admin/ProjectEditor"
+import { ProjectPreview } from "@/components/admin/ProjectPreview"
 
 type Feature = { id?: number; title: string; description: string; icon_key: string; _cid?: string }
 
@@ -18,7 +20,9 @@ export default function AdminAboutPage() {
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
   const [features, setFeatures] = useState<Feature[]>([])
+  const [blocks, setBlocks] = useState<any[]>([])
   const [saving, setSaving] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   useEffect(() => {
     ;(async () => {
@@ -26,6 +30,7 @@ export default function AdminAboutPage() {
       const data = await res.json()
       setTitle(data?.content?.title || '')
       setSubtitle(data?.content?.subtitle || '')
+      setBlocks(data?.content?.content || [])
       const defaults: Feature[] = [
         { title: 'Desenvolvimento Sustentável', description: 'Promovemos práticas sustentáveis na maricultura, respeitando o meio ambiente marinho.', icon_key: 'fish' },
         { title: 'Investigação Científica', description: 'Apoiamos pesquisas e estudos para o avanço da maricultura no estado de São Paulo.', icon_key: 'users' },
@@ -49,7 +54,11 @@ export default function AdminAboutPage() {
     setSaving(true)
     try {
       console.log('[ABOUT] Saving content...')
-      const payload = { content: { title, subtitle }, features: features.map(({ _cid, ...rest }) => rest) }
+      const payload = { 
+        content: { title, subtitle }, 
+        features: features.map(({ _cid, ...rest }) => rest),
+        contentBlocks: blocks 
+      }
       const res = await fetch('/api/admin/about', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       console.log('[ABOUT] Response status:', res.status)
       if (!res.ok) throw new Error('Falha ao salvar')
@@ -180,7 +189,41 @@ export default function AdminAboutPage() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end">
+      {/* Page Builder para Modal "Quem Somos" */}
+      <Card className="border-0 shadow-xl">
+        <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-cyan-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Conteúdo Completo (Modal "Quem Somos")</CardTitle>
+              <CardDescription className="mt-1">
+                Crie conteúdo rico para o modal "Conheça a AMESP" usando blocos flexíveis
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(true)}
+              className="gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Visualizar
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <ProjectEditor blocks={blocks} setBlocks={setBlocks} />
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end gap-4">
+        <Button
+          variant="outline"
+          onClick={() => setShowPreview(true)}
+          className="gap-2"
+        >
+          <Eye className="h-4 w-4" />
+          Pré-visualizar Modal
+        </Button>
         <button
           type="button"
           onClick={handleSave}
@@ -190,6 +233,15 @@ export default function AdminAboutPage() {
           {saving ? 'Salvando...' : 'Salvar alterações'}
         </button>
       </div>
+
+      {/* Modal de Preview */}
+      {showPreview && (
+        <ProjectPreview
+          blocks={blocks}
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   )
 }

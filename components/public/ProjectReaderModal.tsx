@@ -50,12 +50,17 @@ export function ProjectReaderModal({ project, onClose }: ProjectReaderModalProps
       case 'banner':
         if (!block.data?.image_url) return null
         return (
-          <div key={block.id} className="w-full max-w-full relative overflow-hidden">
-            <img
-              src={block.data.image_url}
-              alt="Banner"
-              className="w-full h-auto max-h-[500px] object-cover"
-            />
+          <div key={block.id} className="w-full max-w-full relative overflow-hidden flex justify-center bg-slate-50">
+        <img
+          src={block.data.image_url}
+          alt="Banner"
+          className={`h-auto ${
+            block.data?.size === 'hero' ? 'max-h-[600px]' :
+            block.data?.size === 'wide' ? 'max-h-[400px]' :
+            block.data?.size === 'standard' ? 'max-h-[400px]' :
+            'max-h-[500px]'
+          } object-contain rounded-2xl shadow-lg`}
+        />
           </div>
         )
 
@@ -232,19 +237,15 @@ export function ProjectReaderModal({ project, onClose }: ProjectReaderModalProps
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {block.data.members.map((member: any, idx: number) => (
                 <div key={idx} className="flex flex-col items-center text-center">
-                  <div className="relative mb-4">
-                    {member.avatar_url ? (
+                  {member.avatar_url && (
+                    <div className="relative mb-4">
                       <img
                         src={member.avatar_url}
                         alt={member.name || `Membro ${idx + 1}`}
                         className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg"
                       />
-                    ) : (
-                      <div className="h-24 w-24 rounded-full bg-slate-200 border-4 border-white shadow-lg flex items-center justify-center">
-                        <UserCircle className="h-12 w-12 text-slate-400" />
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   <h3 className="text-lg font-semibold text-slate-900 mb-1">{member.name || 'Nome não informado'}</h3>
                   {member.role && (
                     <p className="text-sm text-slate-600">{member.role}</p>
@@ -288,7 +289,7 @@ export function ProjectReaderModal({ project, onClose }: ProjectReaderModalProps
           </div>
 
           {/* Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8">
             {blocks.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-slate-500">Nenhum conteúdo disponível</p>
@@ -299,7 +300,6 @@ export function ProjectReaderModal({ project, onClose }: ProjectReaderModalProps
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
