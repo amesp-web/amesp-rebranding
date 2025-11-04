@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Lock, CheckCircle, ArrowLeft, Shield } from "lucide-react"
-import { updateUserPassword } from "@/lib/auth-helpers"
 import { toast } from "sonner"
 import Image from "next/image"
 import Link from "next/link"
@@ -20,10 +19,75 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [verifying, setVerifying] = useState(true)
   
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
+  const token = searchParams.get('token')
+  
+  // Verificar o token de recuperação quando a página carregar
+  useEffect(() => {
+    const verifyRecoveryToken = async () => {
+      if (!token || !email) {
+        setError("Link de recuperação inválido. Solicite um novo link.")
+        setVerifying(false)
+        return
+      }
+
+      try {
+        // Verificar o token usando nossa API
+        const response = await fetch(`/api/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`)
+        const data = await response.json()
+        
+        if (!response.ok || !data.success) {
+          setError(data.error || "Link de recuperação inválido ou expirado. Solicite um novo link.")
+          setVerifying(false)
+          return
+        }
+        
+        setVerifying(false)
+      } catch (err) {
+        setError("Erro ao verificar o link de recuperação.")
+        setVerifying(false)
+      }
+    }
+    
+    verifyRecoveryToken()
+  }, [token, email])
+  
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12] flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Verificando link de recuperação...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12] flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="border-0 shadow-xl">
+            <CardContent className="p-8 text-center">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <AlertDescription className="h-8 w-8 text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground mb-2">Link Inválido</h2>
+              <p className="text-muted-foreground mb-6">{error}</p>
+              <Button onClick={() => router.push("/auth/forgot-password")} className="w-full">
+                Solicitar Novo Link
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   const validatePassword = (pwd: string) => {
     const minLength = pwd.length >= 8
@@ -58,21 +122,39 @@ export default function ResetPasswordPage() {
       return
     }
 
+    if (!token || !email) {
+      toast.error("Link de recuperação inválido")
+      return
+    }
+
     setLoading(true)
     
     try {
-      const success = await updateUserPassword(password)
+      // Usar nossa API para redefinir a senha
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token,
+          email,
+          newPassword: password
+        }),
+      })
+
+      const data = await response.json()
       
-      if (success) {
+      if (response.ok && data.success) {
         setSuccess(true)
         toast.success("Senha redefinida com sucesso!")
         
-        // Redirecionar após 2 segundos
+        // Redirecionar para o login unificado após 2 segundos
         setTimeout(() => {
-          router.push("/admin")
+          router.push("/login")
         }, 2000)
       } else {
-        toast.error("Erro ao redefinir senha. Tente novamente.")
+        toast.error(data.error || "Erro ao redefinir senha. Tente novamente.")
       }
     } catch (error) {
       toast.error("Erro inesperado. Tente novamente.")
