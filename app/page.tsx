@@ -62,7 +62,24 @@ async function getSupabaseData() {
   try {
     const { createClient } = await import("@/lib/supabase/server")
     const supabase = await createClient()
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
+    
+    // 🔧 FIX: Detectar URL correta baseado no ambiente
+    // No servidor (SSR), usamos VERCEL_URL ou localhost
+    const getBaseUrl = () => {
+      // Se estiver no servidor (Node.js)
+      if (typeof window === 'undefined') {
+        // Em produção (Vercel), usa a URL do deployment
+        if (process.env.VERCEL_URL) {
+          return `https://${process.env.VERCEL_URL}`
+        }
+        // Em desenvolvimento, usa localhost
+        return 'http://localhost:3001'
+      }
+      // No cliente, usa a URL atual
+      return ''
+    }
+    
+    const baseUrl = getBaseUrl()
 
     // 🚀 OTIMIZAÇÃO: Executar TODAS as queries em paralelo
     const [
@@ -111,15 +128,21 @@ async function getSupabaseData() {
         .eq("published", true)
         .order("display_order", { ascending: true }),
       
-      // About (com tratamento de erro)
+      // About (com tratamento de erro e URL correta)
       fetch(`${baseUrl}/api/admin/about`, { cache: 'no-store' })
-        .then(res => res.json())
-        .catch(() => null),
+        .then(res => res.ok ? res.json() : null)
+        .catch((err) => {
+          console.error('Failed to fetch about:', err)
+          return null
+        }),
       
-      // Home Info (com tratamento de erro)
+      // Home Info (com tratamento de erro e URL correta)
       fetch(`${baseUrl}/api/admin/home-info`, { cache: 'no-store' })
-        .then(res => res.json())
-        .catch(() => null)
+        .then(res => res.ok ? res.json() : null)
+        .catch((err) => {
+          console.error('Failed to fetch home-info:', err)
+          return null
+        })
     ])
 
     // Processar galeria: separar featured das outras
