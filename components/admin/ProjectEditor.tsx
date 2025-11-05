@@ -822,7 +822,7 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
       {/* Painel de blocos disponíveis */}
       <div className="lg:col-span-1">
         <Card className="border-0 shadow-lg overflow-hidden max-w-xs sticky top-4 max-h-[calc(100vh-3rem)]">
-          <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 pb-4">
+          <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 pb-4 rounded-t-2xl">
             <CardTitle className="text-lg font-bold text-white">Blocos Disponíveis</CardTitle>
             <p className="text-sm text-white/90">Clique para adicionar ao editor</p>
           </CardHeader>
@@ -848,7 +848,7 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
       {/* Área de edição */}
       <div className="lg:col-span-4 space-y-4">
         <Card className="border-0 shadow-lg bg-gradient-to-br from-white via-blue-50/30 to-cyan-50/20 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 border-b-0">
+          <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 border-b-0 rounded-t-2xl">
             <CardTitle className="text-xl font-bold text-white">Editor de Blocos</CardTitle>
             <p className="text-sm text-white/90">Organize seus blocos arrastando-os</p>
           </CardHeader>
