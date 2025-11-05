@@ -937,7 +937,7 @@ export default async function HomePage() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-primary-foreground/80 hover:text-primary-foreground"
+                  className="text-primary-foreground/80 hover:bg-[#023299] hover:text-white transition-all duration-200"
                   asChild
                 >
                   <a href="https://www.facebook.com/amesp.maricultores" target="_blank" rel="noopener noreferrer">
@@ -947,7 +947,7 @@ export default async function HomePage() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-primary-foreground/80 hover:text-primary-foreground"
+                  className="text-primary-foreground/80 hover:bg-[#023299] hover:text-white transition-all duration-200"
                   asChild
                 >
                   <a href="https://www.instagram.com/amesp.maricultura/" target="_blank" rel="noopener noreferrer">
