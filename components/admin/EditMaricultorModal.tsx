@@ -26,6 +26,36 @@ interface EditMaricultorModalProps {
   }
 }
 
+// Funções de formatação fora do componente para evitar recriação
+const formatCPF = (value: string) => {
+  if (!value) return ""
+  const cleaned = value.replace(/\D/g, "")
+  if (cleaned.length === 0) return ""
+  if (cleaned.length <= 3) return cleaned
+  if (cleaned.length <= 6) return cleaned.replace(/(\d{3})(\d{0,3})/, "$1.$2")
+  if (cleaned.length <= 9) return cleaned.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3")
+  return cleaned.slice(0, 11).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+}
+
+const formatCEP = (value: string) => {
+  if (!value) return ""
+  const cleaned = value.replace(/\D/g, "")
+  if (cleaned.length === 0) return ""
+  if (cleaned.length <= 5) return cleaned
+  if (cleaned.length <= 8) {
+    return cleaned.replace(/(\d{5})(\d{0,3})/, "$1-$2")
+  }
+  return cleaned.slice(0, 8).replace(/(\d{5})(\d{3})/, "$1-$2")
+}
+
+const formatPhone = (value: string) => {
+  const cleaned = value.replace(/\D/g, "")
+  if (cleaned.length <= 10) {
+    return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3")
+  }
+  return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
+}
+
 export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricultorModalProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -59,35 +89,6 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
       })
     }
   }, [isOpen, maricultor])
-
-  const formatCPF = (value: string) => {
-    if (!value) return ""
-    const cleaned = value.replace(/\D/g, "")
-    if (cleaned.length === 0) return ""
-    if (cleaned.length <= 3) return cleaned
-    if (cleaned.length <= 6) return cleaned.replace(/(\d{3})(\d{0,3})/, "$1.$2")
-    if (cleaned.length <= 9) return cleaned.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3")
-    return cleaned.slice(0, 11).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
-  }
-
-  const formatCEP = (value: string) => {
-    if (!value) return ""
-    const cleaned = value.replace(/\D/g, "")
-    if (cleaned.length === 0) return ""
-    if (cleaned.length <= 5) return cleaned
-    if (cleaned.length <= 8) {
-      return cleaned.replace(/(\d{5})(\d{0,3})/, "$1-$2")
-    }
-    return cleaned.slice(0, 8).replace(/(\d{5})(\d{3})/, "$1-$2")
-  }
-
-  const formatPhone = (value: string) => {
-    const cleaned = value.replace(/\D/g, "")
-    if (cleaned.length <= 10) {
-      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3")
-    }
-    return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
