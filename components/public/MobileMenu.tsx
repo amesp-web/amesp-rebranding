@@ -224,9 +224,10 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
                 <span>Entrar</span>
               </a>
             </Button>
+            {/* NOTA: Botão escondido temporariamente a pedido do cliente (ainda não sabem se irão utilizar) */}
             <Button
               asChild
-              className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 shadow-md"
+              className="hidden w-full bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 shadow-md"
             >
               <a href="/maricultor/cadastro" onClick={closeMenu} className="flex items-center justify-center space-x-2">
                 <UserPlus className="h-4 w-4" />

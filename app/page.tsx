@@ -331,9 +331,10 @@ export default async function HomePage() {
                 <span>Entrar</span>
               </a>
             </Button>
+            {/* NOTA: Botão escondido temporariamente a pedido do cliente (ainda não sabem se irão utilizar) */}
             <Button
               size="sm"
-              className="bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
+              className="hidden bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
               asChild
             >
               <a href="/maricultor/cadastro" className="flex items-center space-x-2">
