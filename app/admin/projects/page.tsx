@@ -3,17 +3,34 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { ProjectsListDnD } from "@/components/admin/ProjectsListDnD"
 import { FolderTree } from "lucide-react"
+import { createClient } from "@supabase/supabase-js"
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function AdminProjectsList() {
   let projects: any[] | null = null
+  
   try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-    const res = await fetch(`${base}/api/admin/projects`, { cache: 'no-store' })
-    projects = await res.json()
-  } catch {}
+    // 🔧 Buscar direto do banco (sem fetch interno)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+    
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false })
+    
+    if (!error) {
+      projects = data
+    }
+  } catch (err) {
+    console.error('Error fetching projects:', err)
+  }
 
   return (
     <div className="space-y-8">
