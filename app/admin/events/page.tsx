@@ -3,17 +3,34 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { EventsListDnD } from "@/components/admin/EventsListDnD"
 import { Calendar } from "lucide-react"
+import { createClient } from "@supabase/supabase-js"
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function AdminEventsList() {
   let events: any[] | null = null
+  
   try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-    const res = await fetch(`${base}/api/admin/events`, { cache: 'no-store' })
-    events = await res.json()
-  } catch {}
+    // 🔧 Buscar direto do banco (sem fetch interno)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+    
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false })
+    
+    if (!error) {
+      events = data
+    }
+  } catch (err) {
+    console.error('Error fetching events:', err)
+  }
   return (
     <div className="space-y-8">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 p-8 shadow-xl">
