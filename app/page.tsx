@@ -321,9 +321,8 @@ export default async function HomePage() {
           {/* Botões de ação - Desktop */}
           <div className="hidden xl:flex items-center space-x-3">
             <Button
-              variant="ghost"
               size="sm"
-              className="border border-border/50 hover:border-primary/30 hover:bg-primary/5 text-foreground hover:text-primary"
+              className="bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
               asChild
             >
               <a href="/login" className="flex items-center space-x-2">

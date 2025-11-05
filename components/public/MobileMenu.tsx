@@ -216,8 +216,7 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
           <div className="p-4 border-t space-y-3">
             <Button
               asChild
-              variant="outline"
-              className="w-full border-2 border-border/50 hover:border-primary/30 hover:bg-primary/5"
+              className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
               <a href="/login" onClick={closeMenu} className="flex items-center justify-center space-x-2">
                 <LogIn className="h-4 w-4" />
