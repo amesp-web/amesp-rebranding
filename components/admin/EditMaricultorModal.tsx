@@ -213,19 +213,8 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
   if (!isOpen) return null
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg"
-      onClick={(e) => {
-        // Fechar modal se clicar no backdrop
-        if (e.target === e.currentTarget) {
-          onClose()
-        }
-      }}
-    >
-      <div 
-        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg">
+      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
