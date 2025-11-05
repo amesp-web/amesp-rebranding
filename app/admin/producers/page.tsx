@@ -188,7 +188,7 @@ export default async function ProducersManagement({
               {producers.map((p) => (
                 <div
                   key={p.id}
-                  className="group flex items-center justify-between p-5 rounded-2xl transition-all bg-gradient-to-br from-background to-card/40 shadow-md border-0 ring-1 ring-black/5 hover:ring-primary/20 hover:shadow-lg hover:-translate-y-0.5"
+                  className="group flex items-center justify-between p-5 rounded-2xl transition-shadow duration-200 bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 hover:shadow-lg"
                 >
                   <div className="flex items-start gap-4 flex-1">
                     <div className="relative h-12 w-12 shrink-0 rounded-xl bg-primary/10 text-primary grid place-items-center font-semibold">
@@ -223,7 +223,7 @@ export default async function ProducersManagement({
                     {normalizeSpecialties(p.specialties).length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {normalizeSpecialties(p.specialties).map((s: string, i: number) => (
-                          <Badge key={i} variant="secondary" className="text-xs bg-gradient-to-r from-pink-500/90 to-rose-500/90 text-white border-0 shadow-sm hover:shadow-md transition-shadow font-medium">
+                          <Badge key={i} variant="secondary" className="text-xs bg-gradient-to-r from-pink-500/90 to-rose-500/90 text-white border-0 shadow-sm font-medium">
                             {s}
                           </Badge>
                         ))}
