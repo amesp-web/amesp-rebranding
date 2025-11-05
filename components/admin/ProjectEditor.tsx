@@ -821,7 +821,7 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
       {/* Painel de blocos disponíveis */}
       <div className="lg:col-span-1">
-        <Card className="border-0 shadow-lg overflow-hidden max-w-xs sticky top-24 max-h-[calc(100vh-7rem)]">
+        <Card className="border-0 shadow-lg overflow-hidden max-w-xs sticky top-4 max-h-[calc(100vh-3rem)]">
           <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 pb-4">
             <CardTitle className="text-lg font-bold text-white">Blocos Disponíveis</CardTitle>
             <p className="text-sm text-white/90">Clique para adicionar ao editor</p>
