@@ -7,6 +7,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { MaricultorStatusBadge } from "@/components/admin/maricultor-status-badge"
 import { MaricultorToggle } from "@/components/admin/maricultor-toggle"
+import { ProducersListWrapper } from "@/components/admin/ProducersListWrapper"
 
 function normalizeSpecialties(value: any): string[] {
   if (!value) return []
@@ -72,6 +73,7 @@ export default async function ProducersManagement({
   const thisMonth = (producers || []).filter((p) => p.created_at && new Date(p.created_at) >= startOfMonth).length
 
   return (
+    <ProducersListWrapper>
     <div className="space-y-8">
       {/* Header moderno com KPIs */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 p-8 shadow-xl">
@@ -239,5 +241,6 @@ export default async function ProducersManagement({
         </CardContent>
       </Card>
     </div>
+    </ProducersListWrapper>
   )
 }

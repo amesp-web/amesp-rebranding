@@ -3,15 +3,14 @@
 import Image from "next/image"
 
 export function LogoLink() {
-  const scrollToTop = (e: React.MouseEvent) => {
-    e.preventDefault()
+  const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
-    <a 
-      href="#" 
-      className="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity"
+    <button
+      type="button"
+      className="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-0 p-0"
       onClick={scrollToTop}
       aria-label="Voltar ao topo"
     >
@@ -23,7 +22,7 @@ export function LogoLink() {
         className="h-11 w-auto"
         priority
       />
-    </a>
+    </button>
   )
 }
 
