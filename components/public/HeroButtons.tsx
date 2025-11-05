@@ -16,7 +16,7 @@ export function HeroButtons({ aboutBlocks }: HeroButtonsProps) {
       <div className="flex flex-col sm:flex-row gap-4">
         <Button 
           size="lg" 
-          className="text-base"
+          className="text-base bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
           asChild
         >
           <a href="#produtores">
@@ -24,9 +24,8 @@ export function HeroButtons({ aboutBlocks }: HeroButtonsProps) {
           </a>
         </Button>
         <Button 
-          variant="outline" 
           size="lg" 
-          className="text-base bg-transparent"
+          className="text-base bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
           onClick={() => setShowModal(true)}
         >
           Saiba Mais
