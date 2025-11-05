@@ -8,6 +8,7 @@ import { ProjectsDropdown } from "@/components/public/ProjectsDropdown"
 import { MobileMenu } from "@/components/public/MobileMenu"
 import { AboutSection } from "@/components/public/AboutSection"
 import { HeroButtons } from "@/components/public/HeroButtons"
+import { LogoLink } from "@/components/public/LogoLink"
 import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
 import { FishDecoration } from "@/components/decorative/FishDecoration"
@@ -267,17 +268,8 @@ export default async function HomePage() {
         </div>
 
         <div className="container mx-auto px-4 flex h-20 items-center justify-between relative">
-          {/* Logo */}
-          <div className="flex items-center space-x-4">
-            <Image
-              src="/amesp_logo.png"
-              alt="AMESP - Associação dos Maricultores do Estado de São Paulo"
-              width={130}
-              height={44}
-              className="h-11 w-auto"
-              priority
-            />
-          </div>
+          {/* Logo - Clicável para voltar ao topo */}
+          <LogoLink />
 
           {/* Navegação Desktop */}
           <nav className="hidden xl:flex items-center space-x-0.5">
