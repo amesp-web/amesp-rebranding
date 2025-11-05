@@ -216,7 +216,7 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
           <div className="p-4 border-t space-y-3">
             <Button
               asChild
-              className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
+              className="w-full bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
               <a href="/login" onClick={closeMenu} className="flex items-center justify-center space-x-2">
                 <LogIn className="h-4 w-4" />
@@ -226,7 +226,7 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
             {/* NOTA: Botão escondido temporariamente a pedido do cliente (ainda não sabem se irão utilizar) */}
             <Button
               asChild
-              className="hidden w-full bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 shadow-md"
+              className="hidden w-full bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 shadow-md"
             >
               <a href="/maricultor/cadastro" onClick={closeMenu} className="flex items-center justify-center space-x-2">
                 <UserPlus className="h-4 w-4" />
