@@ -59,10 +59,6 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
   // Preencher formulário quando o modal abrir
   useEffect(() => {
     if (isOpen && maricultor) {
-      console.log('🔍 Maricultor recebido no modal:', maricultor)
-      console.log('🔍 CEP original:', maricultor.cep)
-      console.log('🔍 CEP formatado:', formatCEP(maricultor.cep || ""))
-      
       setFormData({
         full_name: maricultor.full_name || "",
         cpf: formatCPF(maricultor.cpf || ""),
@@ -74,6 +70,10 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
         company: maricultor.company || "",
         specialties: maricultor.specialties || ""
       })
+      
+      // Limpar sugestões ao abrir o modal
+      setSuggestions([])
+      setShowSuggestions(false)
     }
   }, [isOpen, maricultor])
 
@@ -177,9 +177,18 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
 
   // Autocomplete de endereço via Geoapify
   useEffect(() => {
+    // Não mostrar sugestões durante o carregamento inicial
+    if (!isOpen) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      return
+    }
+
     if (formData.logradouro.length < 3) {
       setSuggestions([])
       setShowSuggestions(false)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
       return
     }
 
@@ -188,7 +197,11 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
     debounceRef.current = setTimeout(async () => {
       try {
         const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_KEY
-        if (!apiKey) return
+        if (!apiKey) {
+          setSuggestions([])
+          setShowSuggestions(false)
+          return
+        }
 
         const parts = [formData.logradouro, formData.cidade, formData.estado, "Brasil"]
         const text = parts.filter(Boolean).join(", ")
@@ -196,13 +209,23 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
 
         const res = await fetch(url)
         const data = await res.json()
-        setSuggestions(data.features || [])
-        setShowSuggestions(true)
+        
+        const features = data.features || []
+        setSuggestions(features)
+        // Só mostrar se tiver resultados
+        setShowSuggestions(features.length > 0)
       } catch (error) {
         console.error("Erro no autocomplete:", error)
+        setSuggestions([])
+        setShowSuggestions(false)
       }
-    }, 300)
-  }, [formData.logradouro, formData.cidade, formData.estado])
+    }, 500) // Aumentado de 300ms para 500ms para evitar muitas requisições
+
+    // Cleanup ao desmontar
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [formData.logradouro, formData.cidade, formData.estado, isOpen])
 
   const handleSelectSuggestion = (item: Suggestion) => {
     const p = item.properties
@@ -212,6 +235,7 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
       cidade: p.city || prev.cidade,
       estado: p.state_code || prev.estado
     }))
+    setSuggestions([])
     setShowSuggestions(false)
   }
 
@@ -362,19 +386,33 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
                   name="logradouro"
                   value={formData.logradouro}
                   onChange={handleChange}
+                  onFocus={() => {
+                    // Se já tem sugestões, mostrar ao focar
+                    if (suggestions.length > 0 && formData.logradouro.length >= 3) {
+                      setShowSuggestions(true)
+                    }
+                  }}
+                  onBlur={() => {
+                    // Delay para permitir click nas sugestões
+                    setTimeout(() => setShowSuggestions(false), 200)
+                  }}
                   placeholder="Rua, avenida, etc"
                   className="border-blue-200 dark:border-blue-800 focus:border-blue-500 focus:ring-blue-500"
                 />
                 
                 {/* Sugestões de autocomplete */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 rounded-lg shadow-lg max-h-48 overflow-y-auto animate-in fade-in-0 slide-in-from-top-2 duration-200">
                     {suggestions.map((item, idx) => (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => handleSelectSuggestion(item)}
-                        className="w-full text-left px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm"
+                        onMouseDown={(e) => {
+                          // Prevenir o onBlur do input
+                          e.preventDefault()
+                          handleSelectSuggestion(item)
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm transition-colors"
                       >
                         {item.properties.address_line1}
                       </button>
