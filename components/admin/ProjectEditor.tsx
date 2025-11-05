@@ -12,11 +12,11 @@ import { toast } from "sonner"
 import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core"
 import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { GripVertical, X, Plus, Image as ImageIcon, FileText, Camera, Images, Users, Building2, UserCircle } from "lucide-react"
+import { GripVertical, X, Plus, Image as ImageIcon, FileText, Camera, Images, Users, Building2, UserCircle, List } from "lucide-react"
 import { RichTextEditor } from "@/components/admin/RichTextEditor"
 import { ImageResizer } from "@/components/admin/ImageResizer"
 
-type BlockType = 'banner' | 'title' | 'photo' | 'description' | 'gallery' | 'logos' | 'logo' | 'team'
+type BlockType = 'banner' | 'title' | 'photo' | 'description' | 'gallery' | 'logos' | 'logo' | 'team' | 'accordion'
 
 interface Block {
   id: string
@@ -29,6 +29,7 @@ const BLOCK_TYPES: { type: BlockType; label: string; icon: any }[] = [
   { type: 'title', label: 'Título', icon: FileText },
   { type: 'photo', label: 'Foto Principal', icon: Camera },
   { type: 'description', label: 'Descrição', icon: FileText },
+  { type: 'accordion', label: 'Accordion (Expandível)', icon: List },
   { type: 'gallery', label: 'Galeria de Fotos', icon: Images },
   { type: 'logos', label: 'Foto Redimensionada', icon: ImageIcon },
   { type: 'logo', label: 'Logos', icon: Building2 },
@@ -765,6 +766,56 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
           </Card>
         )
 
+      case 'accordion':
+        return (
+          <Card className="border-2 border-dashed border-purple-300">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <List className="h-5 w-5 text-purple-600" />
+                  <CardTitle className="text-sm font-semibold">Accordion (Expandível)</CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <GripVertical className="h-4 w-4 text-gray-500" />
+                  </button>
+                  <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <Label>Título do Accordion</Label>
+                <Input
+                  value={block.data?.title || ''}
+                  onChange={(e) => onUpdate({ ...block.data, title: e.target.value })}
+                  placeholder="Ex: 1. Amesp Fortalecida"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Conteúdo</Label>
+                <RichTextEditor
+                  value={block.data?.content || ''}
+                  onChange={(val) => onUpdate({ ...block.data, content: val })}
+                  placeholder="Digite o conteúdo que aparecerá quando o accordion for expandido..."
+                />
+              </div>
+              <div className="text-xs text-muted-foreground bg-purple-50 p-2 rounded">
+                💡 Este bloco aparecerá como um accordion clicável na preview. O usuário pode expandir/recolher o conteúdo.
+              </div>
+            </CardContent>
+          </Card>
+        )
+
       default:
         return null
     }
@@ -780,7 +831,11 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
     const newBlock: Block = {
       id: `${type}-${Date.now()}`,
       type,
-      data: type === 'gallery' ? { images: [], layout: 'grid' } : type === 'team' ? { members: [] } : type === 'logo' ? { size: 'medium', logos: [] } : {},
+      data: type === 'gallery' ? { images: [], layout: 'grid' } 
+          : type === 'team' ? { members: [] } 
+          : type === 'logo' ? { size: 'medium', logos: [] }
+          : type === 'accordion' ? { title: '', content: '' }
+          : {},
     }
     setBlocks([...blocks, newBlock])
     
