@@ -251,11 +251,11 @@ export function ContactForm() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full py-4 text-base font-semibold hover:scale-[1.02] transition-transform shadow-lg disabled:opacity-50"
+            className="w-full py-4 text-base font-semibold bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
           >
             {loading ? (
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 <span>Enviando...</span>
               </div>
             ) : (
