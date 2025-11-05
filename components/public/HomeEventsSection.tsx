@@ -120,7 +120,7 @@ export default function HomeEventsSection() {
                             </div>
                             {truncate(event.description, 50) || 'Descrição do evento...'} 
                           </CardDescription>
-                          <Button className="w-fit hover:scale-105 transition-transform" onClick={() => setSelected(event)}>Saiba Mais</Button>
+                          <Button className="w-fit bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200" onClick={() => setSelected(event)}>Saiba Mais</Button>
                         </div>
                       </CardContent>
                     </div>
