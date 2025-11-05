@@ -59,6 +59,10 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
   // Preencher formulário quando o modal abrir
   useEffect(() => {
     if (isOpen && maricultor) {
+      console.log('🔍 Maricultor recebido no modal:', maricultor)
+      console.log('🔍 CEP original:', maricultor.cep)
+      console.log('🔍 CEP formatado:', formatCEP(maricultor.cep || ""))
+      
       setFormData({
         full_name: maricultor.full_name || "",
         cpf: formatCPF(maricultor.cpf || ""),
@@ -74,19 +78,24 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
   }, [isOpen, maricultor])
 
   const formatCPF = (value: string) => {
+    if (!value) return ""
     const cleaned = value.replace(/\D/g, "")
-    if (cleaned.length <= 11) {
-      return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
-    }
-    return value
+    if (cleaned.length === 0) return ""
+    if (cleaned.length <= 3) return cleaned
+    if (cleaned.length <= 6) return cleaned.replace(/(\d{3})(\d{0,3})/, "$1.$2")
+    if (cleaned.length <= 9) return cleaned.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3")
+    return cleaned.slice(0, 11).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
   }
 
   const formatCEP = (value: string) => {
+    if (!value) return ""
     const cleaned = value.replace(/\D/g, "")
+    if (cleaned.length === 0) return ""
+    if (cleaned.length <= 5) return cleaned
     if (cleaned.length <= 8) {
-      return cleaned.replace(/(\d{5})(\d{3})/, "$1-$2")
+      return cleaned.replace(/(\d{5})(\d{0,3})/, "$1-$2")
     }
-    return value
+    return cleaned.slice(0, 8).replace(/(\d{5})(\d{3})/, "$1-$2")
   }
 
   const formatPhone = (value: string) => {
@@ -240,8 +249,8 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-background via-card to-background rounded-2xl shadow-2xl border border-border/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-border">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
