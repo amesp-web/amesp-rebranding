@@ -18,6 +18,7 @@ interface EditMaricultorModalProps {
     cpf?: string
     contact_phone?: string
     logradouro?: string
+    numero?: string
     cidade?: string
     estado?: string
     cep?: string
@@ -67,6 +68,7 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
     contact_phone: "",
     cep: "",
     logradouro: "",
+    numero: "",
     cidade: "",
     estado: "",
     company: "",
@@ -82,6 +84,7 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
         contact_phone: maricultor.contact_phone || "",
         cep: formatCEP(maricultor.cep || ""),
         logradouro: maricultor.logradouro || "",
+        numero: maricultor.numero || "",
         cidade: maricultor.cidade || "",
         estado: maricultor.estado || "",
         company: maricultor.company || "",
@@ -319,6 +322,18 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
                   value={formData.logradouro}
                   onChange={handleChange}
                   placeholder="Rua, avenida, etc"
+                  className="border-blue-200 dark:border-blue-800 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="numero" className="text-sm font-medium">Número</Label>
+                <Input
+                  id="numero"
+                  name="numero"
+                  value={formData.numero}
+                  onChange={handleChange}
+                  placeholder="Nº"
                   className="border-blue-200 dark:border-blue-800 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
