@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,6 +28,12 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
     company: "",
     specialties: "",
   })
+  const [coords, setCoords] = useState<{ latitude: number | null; longitude: number | null }>({ latitude: null, longitude: null })
+  const logradouroRef = useRef<HTMLInputElement | null>(null)
+  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const debounceRef = useRef<any>(null)
+  const [addressLocked, setAddressLocked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
   const [cepError, setCepError] = useState("")
@@ -87,38 +93,163 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value
     const onlyDigits = raw.replace(/\D/g, "")
+    // Máscara CEP 00000-000
     const masked = onlyDigits
       .slice(0, 8)
       .replace(/(\d{5})(\d{1,3})?/, (_, a: string, b?: string) => (b ? `${a}-${b}` : a))
     setFormData((prev) => ({ ...prev, cep: masked }))
     setCepError("")
     
-    if (onlyDigits.length < 8) return
+    // Limpar endereço se CEP incompleto
+    if (onlyDigits.length < 8) {
+      setAddressLocked(false)
+      if (onlyDigits.length === 0) {
+        setFormData((prev) => ({ ...prev, logradouro: '', cidade: '', estado: '' }))
+      }
+      return
+    }
+    
+    if (onlyDigits.length !== 8) return
     
     setCepLoading(true)
+    setCepError("")
     
     try {
-      const resViaCep = await fetch(`https://viacep.com.br/ws/${onlyDigits}/json/`, { cache: 'no-store' })
+      let logradouro = ''
+      let cidade = ''
+      let estado = ''
+      let encontrado = false
       
-      if (resViaCep.ok) {
-        const dataViaCep = await resViaCep.json()
+      // Tentativa 1: ViaCEP
+      try {
+        const resViaCep = await fetch(`https://viacep.com.br/ws/${onlyDigits}/json/`, { 
+          cache: 'no-store',
+          headers: { 'Accept': 'application/json' }
+        })
         
-        if (!dataViaCep?.erro) {
-          setFormData((prev) => ({ 
-            ...prev, 
-            logradouro: dataViaCep.logradouro || '',
-            cidade: dataViaCep.localidade || '',
-            estado: dataViaCep.uf || ''
-          }))
-        } else {
-          setCepError('CEP não encontrado')
+        if (resViaCep.ok) {
+          const dataViaCep = await resViaCep.json()
+          
+          if (!dataViaCep?.erro) {
+            logradouro = dataViaCep.logradouro || ''
+            cidade = dataViaCep.localidade || ''
+            estado = dataViaCep.uf || ''
+            encontrado = true
+          }
+        }
+      } catch (errViaCep) {
+        console.warn('⚠️ ViaCEP falhou, tentando BrasilAPI...')
+      }
+      
+      // Tentativa 2: BrasilAPI (fallback)
+      if (!encontrado) {
+        try {
+          const resBrasilAPI = await fetch(`https://brasilapi.com.br/api/cep/v1/${onlyDigits}`, {
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+          })
+          
+          if (resBrasilAPI.ok) {
+            const dataBrasilAPI = await resBrasilAPI.json()
+            
+            logradouro = dataBrasilAPI.street || ''
+            cidade = dataBrasilAPI.city || ''
+            estado = dataBrasilAPI.state || ''
+            encontrado = true
+          }
+        } catch (errBrasilAPI) {
+          console.warn('⚠️ BrasilAPI também falhou')
         }
       }
+      
+      // Se não encontrou em nenhuma API
+      if (!encontrado || (!cidade && !estado)) {
+        setCepError('CEP não encontrado. Verifique o número digitado.')
+        setAddressLocked(false)
+        return
+      }
+      
+      // Se encontrou cidade/estado mas não o logradouro (CEP genérico)
+      if (!logradouro && cidade && estado) {
+        setFormData((prev) => ({ ...prev, logradouro: '', cidade, estado }))
+        setCepError('') // Não é erro, só CEP genérico
+        setAddressLocked(false) // Permite edição do logradouro
+        return
+      }
+      
+      // Sucesso completo
+      setFormData((prev) => ({ ...prev, logradouro, cidade, estado }))
+      setAddressLocked(true)
+      setSuggestions([])
+      setShowSuggestions(false)
+      
     } catch (err) {
-      setCepError('Erro ao buscar CEP')
+      console.error('❌ Erro ao buscar CEP:', err)
+      setCepError('Erro ao buscar CEP. Verifique sua conexão e tente novamente.')
+      setAddressLocked(false)
     } finally {
       setCepLoading(false)
     }
+  }
+
+  // Autocomplete com Geoapify (desativado quando endereço estiver travado por CEP)
+  useEffect(() => {
+    if (addressLocked) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+    const text = formData.logradouro?.trim()
+    if (!text || text.length < 2) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_KEY
+        const queryParts = [text]
+        const hasCidade = Boolean(formData.cidade && formData.cidade.trim())
+        const hasEstado = Boolean(formData.estado && formData.estado.trim())
+        if (hasCidade) queryParts.push(formData.cidade)
+        if (hasEstado) queryParts.push(formData.estado)
+        const q = encodeURIComponent(queryParts.join(', '))
+        const filters: string[] = ['countrycode:br']
+        if (hasEstado) filters.push(`statecode:${encodeURIComponent(formData.estado)}`)
+        if (hasCidade) filters.push(`place:${encodeURIComponent(formData.cidade)}`)
+        const filterParam = filters.join(',')
+        const biasParam = hasCidade ? `&bias=city:${encodeURIComponent(formData.cidade)}` : ''
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${q}&type=street,address&limit=10&lang=pt&filter=${filterParam}${biasParam}&apiKey=${apiKey}`
+        const res = await fetch(url, { cache: 'no-store' })
+        const data = await res.json()
+        const feats = data?.features || data?.results || []
+        setSuggestions(Array.isArray(feats) ? feats : [])
+        setShowSuggestions(true)
+      } catch {
+        setSuggestions([])
+        setShowSuggestions(false)
+      }
+    }, 150)
+  }, [formData.logradouro, formData.cidade, formData.estado, addressLocked])
+
+  const handleSelectSuggestion = (item: any) => {
+    const p = item?.properties || item || {}
+    const rua = p.address_line1 || p.formatted || p.name || ''
+    const cidade = p.city || p.town || p.village || p.municipality || formData.cidade
+    const estado = p.state_code || p.state || formData.estado
+
+    setFormData((prev) => ({
+      ...prev,
+      logradouro: rua,
+      cidade: cidade || prev.cidade,
+      estado: estado || prev.estado,
+    }))
+    const lat = typeof p.lat === 'number' ? p.lat : (item?.geometry?.coordinates?.[1] ?? null)
+    const lon = typeof p.lon === 'number' ? p.lon : (item?.geometry?.coordinates?.[0] ?? null)
+    setCoords({ latitude: lat, longitude: lon })
+    setShowSuggestions(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -318,9 +449,9 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                       inputMode="numeric"
                       value={formData.cep}
                       onChange={handleCepChange}
-                      placeholder="00000-000"
+                      placeholder="Ex: 01001-000"
                       maxLength={9}
-                      className={`rounded-xl ${cepError ? 'border-red-300' : ''}`}
+                      className={`rounded-xl ${cepError ? 'border-red-300 focus:ring-red-200' : ''} ${cepLoading ? 'opacity-70' : ''}`}
                       disabled={cepLoading}
                     />
                     {cepLoading && (
@@ -329,7 +460,30 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                       </div>
                     )}
                   </div>
-                  {cepError && <p className="text-xs text-red-600">{cepError}</p>}
+                  {cepError && (
+                    <p className="text-xs text-red-600 flex items-center gap-1">
+                      <span>⚠️</span>
+                      {cepError}
+                    </p>
+                  )}
+                  {formData.cep && !cepError && !cepLoading && addressLocked && (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <span>✓</span>
+                      Endereço encontrado com sucesso!
+                    </p>
+                  )}
+                  {formData.cep && !cepError && !cepLoading && !addressLocked && formData.cidade && (
+                    <p className="text-xs text-blue-600 flex items-center gap-1">
+                      <span>ℹ️</span>
+                      CEP genérico. Cidade/Estado preenchidos. Complete o logradouro abaixo.
+                    </p>
+                  )}
+                  {!formData.cep && (
+                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                      <span>💡</span>
+                      Digite seu CEP para preencher o endereço automaticamente
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -339,7 +493,11 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                     name="estado"
                     value={formData.estado}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded-xl bg-white focus:ring-2 focus:ring-primary/20"
+                    required
+                    className={`w-full px-4 py-2 border rounded-xl bg-white focus:ring-2 focus:ring-primary/20 ${
+                      !formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''
+                    }`}
+                    disabled={!formData.cep || formData.cep.length < 9 || (formData.estado && formData.cep.length === 9)}
                   >
                     <option value="">Selecione</option>
                     {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
@@ -355,24 +513,56 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                     name="cidade"
                     value={formData.cidade}
                     onChange={handleChange}
-                    placeholder="Ex: Ubatuba"
-                    className="rounded-xl"
+                    placeholder={!formData.cep || formData.cep.length < 9 ? "Preencha o CEP primeiro" : "Ex: Ubatuba"}
+                    className={`rounded-xl ${!formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    disabled={!formData.cep || formData.cep.length < 9}
+                    readOnly={formData.cidade && (formData.cep.length === 9)}
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <Label htmlFor="logradouro">Logradouro</Label>
                   <Input
                     id="logradouro"
                     name="logradouro"
                     value={formData.logradouro}
                     onChange={handleChange}
-                    placeholder="Rua, avenida..."
-                    className="rounded-xl"
+                    placeholder={!formData.cep || formData.cep.length < 9 ? "Preencha o CEP primeiro" : "Rua e complemento"}
+                    className={`rounded-xl ${!formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    ref={logradouroRef}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                    disabled={!formData.cep || formData.cep.length < 9 || addressLocked}
+                    readOnly={addressLocked}
                   />
+                  
+                  {/* Autocomplete Geoapify */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute z-20 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                      {suggestions.map((item, idx) => {
+                        const p = item?.properties || item || {}
+                        const primary = p.address_line1 || p.formatted || p.name
+                        const secondary = p.address_line2 || [p.city, p.state_code || p.state].filter(Boolean).join(' - ')
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleSelectSuggestion(item)}
+                            className="block w-full text-left px-3 py-2 hover:bg-muted/50"
+                          >
+                            <div className="text-sm font-medium text-foreground">{primary}</div>
+                            {secondary && (
+                              <div className="text-xs text-muted-foreground">{secondary}</div>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <Label htmlFor="numero">Número</Label>
                   <Input
                     id="numero"
@@ -380,7 +570,8 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                     value={formData.numero}
                     onChange={handleChange}
                     placeholder="Nº"
-                    className="rounded-xl"
+                    className={`rounded-xl ${!formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    disabled={!formData.cep || formData.cep.length < 9}
                   />
                 </div>
               </div>
