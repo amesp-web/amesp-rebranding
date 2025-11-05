@@ -50,44 +50,44 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
   if (!visible || !event) return null
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-2 md:p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-[95rem] max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div className="relative bg-white w-full max-w-[95vw] md:max-w-[90rem] max-h-[95vh] rounded-xl md:rounded-2xl overflow-hidden shadow-2xl flex flex-col">
         {event.banner_url ? (
-          <div className="relative h-80 w-full overflow-hidden flex-shrink-0">
+          <div className="relative h-48 md:h-80 w-full overflow-hidden flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={event.banner_url!} alt={event.title} className="h-full w-full object-cover block" />
           </div>
         ) : null}
-        <button className="absolute top-4 right-4 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white transition-colors" onClick={onClose}>
-          <X className="h-5 w-5" />
+        <button className="absolute top-2 right-2 md:top-4 md:right-4 z-10 h-8 w-8 md:h-10 md:w-10 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white transition-colors" onClick={onClose}>
+          <X className="h-4 w-4 md:h-5 md:w-5" />
         </button>
-        <div className="px-8 pt-8 pb-10 overflow-y-auto bg-gradient-to-b from-white to-slate-50 flex-1">
-          <h2 className="text-3xl font-bold mb-3">{event.title}</h2>
-          <div className="flex flex-wrap items-center gap-4 text-base text-slate-600 mb-6">
+        <div className="px-4 md:px-8 pt-4 md:pt-8 pb-6 md:pb-10 overflow-y-auto bg-gradient-to-b from-white to-slate-50 flex-1">
+          <h2 className="text-xl md:text-3xl font-bold mb-3 break-words">{event.title}</h2>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 md:gap-4 text-sm md:text-base text-slate-600 mb-4 md:mb-6">
             {dateRange && (
-              <span className="inline-flex items-center gap-2"><Calendar className="h-5 w-5" /> {dateRange}</span>
+              <span className="inline-flex items-center gap-2"><Calendar className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" /> <span className="break-words">{dateRange}</span></span>
             )}
             {event.location && (
-              <span className="inline-flex items-center gap-2"><MapPin className="h-5 w-5" /> {event.location}</span>
+              <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" /> <span className="break-words">{event.location}</span></span>
             )}
           </div>
           {(event.live_url || event.signup_url) && (
-            <div className="flex flex-wrap gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 mb-6 md:mb-8">
               {event.live_url && (
-                <a href={event.live_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow text-base font-medium">
-                  <Play className="h-5 w-5" /> Assistir ao vivo <ExternalLink className="h-5 w-5 opacity-80" />
+                <a href={event.live_url} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow text-sm md:text-base font-medium">
+                  <Play className="h-4 w-4 md:h-5 md:w-5" /> Assistir ao vivo <ExternalLink className="h-4 w-4 md:h-5 md:w-5 opacity-80" />
                 </a>
               )}
               {event.signup_url && (
-                <a href={event.signup_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-600 text-white hover:bg-sky-700 transition-colors shadow text-base font-medium">
-                  Inscrição <ExternalLink className="h-5 w-5 opacity-80" />
+                <a href={event.signup_url} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-xl bg-sky-600 text-white hover:bg-sky-700 transition-colors shadow text-sm md:text-base font-medium">
+                  Inscrição <ExternalLink className="h-4 w-4 md:h-5 md:w-5 opacity-80" />
                 </a>
               )}
             </div>
           )}
           {event.description && (
-            <p className="text-lg text-slate-700 leading-relaxed mb-8 whitespace-pre-wrap">{event.description}</p>
+            <p className="text-sm md:text-lg text-slate-700 leading-relaxed mb-6 md:mb-8 whitespace-pre-wrap break-words">{event.description}</p>
           )}
           {Array.isArray(event.schedule) && event.schedule.length > 0 && (
             <div className="mt-2 space-y-6">
@@ -96,31 +96,33 @@ export default function EventsReaderModal({ event, open, onClose }: { event: Pub
                 const dayName = dayDate.toLocaleDateString('pt-BR', { weekday: 'long' })
                 const dayFormatted = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(dayDate)
                 return (
-                  <div key={i} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-6 shadow-md hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-4 mb-5 pb-4 border-b border-slate-200">
-                      <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                  <div key={i} className="rounded-xl md:rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 p-4 md:p-6 shadow-md hover:shadow-lg transition-shadow">
+                    <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-5 pb-3 md:pb-4 border-b border-slate-200">
+                      <div className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-base md:text-lg shadow-md flex-shrink-0">
                         {dayDate.getDate()}
                       </div>
-                      <div>
-                        <div className="font-bold text-slate-900 capitalize text-xl">{dayName}</div>
-                        <div className="text-base text-slate-600">{dayFormatted}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-slate-900 capitalize text-base md:text-xl break-words">{dayName}</div>
+                        <div className="text-sm md:text-base text-slate-600 break-words">{dayFormatted}</div>
                       </div>
                     </div>
-                    <div className="space-y-5">
+                    <div className="space-y-4 md:space-y-5">
                       {d.items?.map((it, j) => (
-                        <div key={j} className="flex gap-5 text-base relative pl-4 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-gradient-to-b before:from-primary/40 before:to-primary/60 before:rounded-full">
-                          <div className="w-24 shrink-0 text-slate-700 font-semibold leading-7 pt-0.5">{it.time}</div>
-                          {it.avatar_url && (
-                            <div className="h-20 w-20 shrink-0 rounded-full border-3 border-primary/20 overflow-hidden bg-white shadow-md">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={it.avatar_url} alt={it.title} className="h-full w-full object-cover" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="font-bold text-slate-900 break-words leading-7 text-base">{it.title}</div>
-                            {it.description && (
-                              <div className="text-slate-600 leading-6 mt-1.5 break-words text-sm">{it.description}</div>
+                        <div key={j} className="flex flex-col sm:flex-row gap-3 md:gap-5 text-sm md:text-base relative pl-3 md:pl-4 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 md:before:w-1.5 before:bg-gradient-to-b before:from-primary/40 before:to-primary/60 before:rounded-full">
+                          <div className="w-full sm:w-20 md:w-24 shrink-0 text-slate-700 font-semibold leading-6 md:leading-7 pt-0.5">{it.time}</div>
+                          <div className="flex gap-3 md:gap-5 flex-1 min-w-0">
+                            {it.avatar_url && (
+                              <div className="h-16 w-16 md:h-20 md:w-20 shrink-0 rounded-full border-2 md:border-3 border-primary/20 overflow-hidden bg-white shadow-md">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={it.avatar_url} alt={it.title} className="h-full w-full object-cover" />
+                              </div>
                             )}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold text-slate-900 break-words leading-6 md:leading-7 text-sm md:text-base">{it.title}</div>
+                              {it.description && (
+                                <div className="text-slate-600 leading-5 md:leading-6 mt-1 md:mt-1.5 break-words text-xs md:text-sm">{it.description}</div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
