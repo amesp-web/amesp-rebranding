@@ -126,7 +126,7 @@ export default async function ProducersManagement({
           <CardTitle className="text-slate-800">Filtros</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <form method="GET" action="/admin/producers" className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -139,6 +139,17 @@ export default async function ProducersManagement({
               </div>
             </div>
             <div className="flex gap-2">
+              <Button
+                type="submit"
+                size="sm"
+                className="rounded-full px-6 bg-primary hover:bg-primary/90"
+              >
+                Buscar
+              </Button>
+            </div>
+          </form>
+          
+          <div className="flex gap-2 mt-4">
               <Button
                 variant="outline"
                 size="sm"
@@ -171,7 +182,6 @@ export default async function ProducersManagement({
               >
                 <Link href="/admin/producers?filter=inactive">Inativos</Link>
               </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
