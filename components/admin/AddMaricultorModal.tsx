@@ -38,8 +38,6 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
   const [cepLoading, setCepLoading] = useState(false)
   const [cepError, setCepError] = useState("")
 
-  if (!isOpen) return null
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     
@@ -328,6 +326,9 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
       setLoading(false)
     }
   }
+
+  // Renderização condicional APÓS todos os hooks e funções
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
