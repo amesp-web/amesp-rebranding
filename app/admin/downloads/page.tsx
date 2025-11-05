@@ -3,21 +3,29 @@ import { Button } from "@/components/ui/button"
 import { Download, Plus, FileText } from "lucide-react"
 import Link from "next/link"
 import { DownloadsListDnD } from "@/components/admin/downloads-list-dnd"
+import { createClient } from "@supabase/supabase-js"
 
 async function getDownloads() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-    const res = await fetch(`${baseUrl}/api/admin/downloads`, {
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' }
+    // 🔧 Buscar direto do banco (sem fetch interno)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
     })
-
-    if (!res.ok) {
-      console.error('Erro ao buscar downloads:', await res.text())
+    
+    const { data, error } = await supabase
+      .from('downloads')
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('Erro ao buscar downloads:', error)
       return []
     }
 
-    return await res.json()
+    return data || []
   } catch (error) {
     console.error('Erro ao buscar downloads:', error)
     return []
