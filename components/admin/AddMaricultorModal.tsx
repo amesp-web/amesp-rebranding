@@ -454,6 +454,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* 1. CEP */}
                 <div className="space-y-2">
                   <Label htmlFor="cep" className="text-sm font-semibold">CEP</Label>
                   <div className="relative">
@@ -500,40 +501,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="estado" className="text-sm font-semibold">Estado (UF)</Label>
-                  <select
-                    id="estado"
-                    name="estado"
-                    value={formData.estado}
-                    onChange={handleChange}
-                    required
-                    className={`w-full px-4 py-2 border-2 rounded-xl bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-400 ${
-                      !formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed border-emerald-100' : 'border-emerald-100'
-                    }`}
-                    disabled={!formData.cep || formData.cep.length < 9 || (formData.estado && formData.cep.length === 9)}
-                  >
-                    <option value="">Selecione</option>
-                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
-                      <option key={uf} value={uf}>{uf}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cidade" className="text-sm font-semibold">Cidade</Label>
-                  <Input
-                    id="cidade"
-                    name="cidade"
-                    value={formData.cidade}
-                    onChange={handleChange}
-                    placeholder={!formData.cep || formData.cep.length < 9 ? "Preencha o CEP primeiro" : "Ex: Ubatuba"}
-                    className={`rounded-xl border-2 ${!formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed border-emerald-100' : 'border-emerald-100 focus:border-emerald-400 focus:ring-emerald-100'}`}
-                    disabled={!formData.cep || formData.cep.length < 9}
-                    readOnly={formData.cidade && (formData.cep.length === 9)}
-                  />
-                </div>
-
+                {/* 2. Logradouro */}
                 <div className="space-y-2 relative">
                   <Label htmlFor="logradouro" className="text-sm font-semibold">Logradouro</Label>
                   <Input
@@ -576,6 +544,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                   )}
                 </div>
 
+                {/* 3. Número */}
                 <div className="space-y-2">
                   <Label htmlFor="numero" className="text-sm font-semibold">Número</Label>
                   <Input
@@ -587,6 +556,42 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                     className={`rounded-xl border-2 ${!formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed border-emerald-100' : 'border-emerald-100 focus:border-emerald-400 focus:ring-emerald-100'}`}
                     disabled={!formData.cep || formData.cep.length < 9}
                   />
+                </div>
+
+                {/* 4. Cidade */}
+                <div className="space-y-2">
+                  <Label htmlFor="cidade" className="text-sm font-semibold">Cidade</Label>
+                  <Input
+                    id="cidade"
+                    name="cidade"
+                    value={formData.cidade}
+                    onChange={handleChange}
+                    placeholder={!formData.cep || formData.cep.length < 9 ? "Preencha o CEP primeiro" : "Ex: Ubatuba"}
+                    className={`rounded-xl border-2 ${!formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed border-emerald-100' : 'border-emerald-100 focus:border-emerald-400 focus:ring-emerald-100'}`}
+                    disabled={!formData.cep || formData.cep.length < 9}
+                    readOnly={formData.cidade && (formData.cep.length === 9)}
+                  />
+                </div>
+
+                {/* 5. Estado */}
+                <div className="space-y-2">
+                  <Label htmlFor="estado" className="text-sm font-semibold">Estado (UF)</Label>
+                  <select
+                    id="estado"
+                    name="estado"
+                    value={formData.estado}
+                    onChange={handleChange}
+                    required
+                    className={`w-full px-4 py-2 border-2 rounded-xl bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-400 ${
+                      !formData.cep || formData.cep.length < 9 ? 'opacity-60 cursor-not-allowed border-emerald-100' : 'border-emerald-100'
+                    }`}
+                    disabled={!formData.cep || formData.cep.length < 9 || (formData.estado && formData.cep.length === 9)}
+                  >
+                    <option value="">Selecione</option>
+                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                      <option key={uf} value={uf}>{uf}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
