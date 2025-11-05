@@ -3,6 +3,7 @@
 import { X, ChevronLeft, ChevronRight, UserCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 
 type Block = {
   id: string
@@ -244,6 +245,26 @@ export function ProjectPreview({ blocks, isOpen, onClose }: { blocks: Block[]; i
                 </div>
               ))}
             </div>
+          </div>
+        )
+
+      case 'accordion':
+        if (!block.data?.title) return null
+        return (
+          <div key={block.id} className="max-w-4xl mx-auto px-4 py-4">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value={block.id}>
+                <AccordionTrigger className="text-lg font-semibold text-slate-900 hover:text-[#023299] transition-colors">
+                  {block.data.title}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div
+                    className="prose prose-lg max-w-none text-slate-700 [&_p]:mb-4 [&_p]:first:mt-0 [&_p]:last:mb-0"
+                    dangerouslySetInnerHTML={{ __html: block.data.content || '' }}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         )
 
