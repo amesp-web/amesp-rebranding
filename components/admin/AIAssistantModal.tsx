@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, Sparkles, Loader2, CheckCircle2 } from "lucide-react"
+import { X, Sparkles, Loader2, CheckCircle2, Search, Edit3, Layers, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -30,6 +30,7 @@ export function AIAssistantModal({ isOpen, onClose, onApply }: AIAssistantModalP
   const [suggestion, setSuggestion] = useState<AISuggestion | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [selectedTitleIndex, setSelectedTitleIndex] = useState<number | null>(null)
+  const [elapsedTime, setElapsedTime] = useState(0)
 
   if (!isOpen) return null
 
@@ -43,6 +44,13 @@ export function AIAssistantModal({ isOpen, onClose, onApply }: AIAssistantModalP
     setError(null)
     setSuggestion(null)
     setSelectedTitleIndex(null)
+    setElapsedTime(0)
+    
+    // Contador de tempo
+    const startTime = Date.now()
+    const timer = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - startTime) / 1000))
+    }, 100)
 
     try {
       const response = await fetch("/api/ai-news-suggestion", {
@@ -63,6 +71,7 @@ export function AIAssistantModal({ isOpen, onClose, onApply }: AIAssistantModalP
       console.error("Erro ao gerar sugestão:", err)
       setError(err.message || "Erro ao gerar sugestão. Tente novamente.")
     } finally {
+      clearInterval(timer)
       setIsGenerating(false)
     }
   }
@@ -164,15 +173,55 @@ export function AIAssistantModal({ isOpen, onClose, onApply }: AIAssistantModalP
             </div>
           )}
 
-          {/* Loading skeleton */}
+          {/* Loading skeleton com feedback */}
           {isGenerating && !suggestion && (
-            <div className="space-y-4 animate-pulse">
-              <div className="h-8 bg-gray-200 rounded" />
-              <div className="h-24 bg-gray-200 rounded" />
-              <div className="space-y-2">
-                <div className="h-6 bg-gray-200 rounded" />
-                <div className="h-4 bg-gray-200 rounded w-3/4" />
-                <div className="h-4 bg-gray-200 rounded w-2/3" />
+            <div className="space-y-6">
+              {/* Indicador de progresso com timer */}
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-6">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <span className="text-blue-900 font-semibold text-lg">Gerando conteúdo com IA...</span>
+                </div>
+                
+                {/* Timer */}
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-blue-300">
+                    <div className="h-2 w-2 bg-blue-600 rounded-full animate-pulse" />
+                    <span className="text-blue-900 font-mono font-semibold text-lg">{elapsedTime}s</span>
+                  </div>
+                </div>
+                
+                <div className="text-center text-sm text-blue-700 space-y-2">
+                  <div className={`flex items-center justify-center gap-2 ${elapsedTime < 2 ? "font-semibold" : ""}`}>
+                    <Search className={`h-4 w-4 ${elapsedTime < 2 ? "animate-pulse" : ""}`} />
+                    <span>Analisando o tópico</span>
+                  </div>
+                  <div className={`flex items-center justify-center gap-2 ${elapsedTime >= 2 && elapsedTime < 5 ? "font-semibold" : ""}`}>
+                    <Edit3 className={`h-4 w-4 ${elapsedTime >= 2 && elapsedTime < 5 ? "animate-pulse" : ""}`} />
+                    <span>Criando títulos atraentes</span>
+                  </div>
+                  <div className={`flex items-center justify-center gap-2 ${elapsedTime >= 5 ? "font-semibold" : ""}`}>
+                    <Layers className={`h-4 w-4 ${elapsedTime >= 5 ? "animate-pulse" : ""}`} />
+                    <span>Estruturando conteúdo</span>
+                  </div>
+                  {elapsedTime > 8 && (
+                    <div className="flex items-center justify-center gap-2 text-amber-600 font-semibold mt-3 animate-pulse">
+                      <Clock className="h-4 w-4" />
+                      <span>Quase pronto...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Skeleton animado */}
+              <div className="space-y-4 animate-pulse">
+                <div className="h-8 bg-gray-200 rounded-xl" />
+                <div className="h-24 bg-gray-200 rounded-xl" />
+                <div className="space-y-2">
+                  <div className="h-6 bg-gray-200 rounded-xl" />
+                  <div className="h-4 bg-gray-200 rounded-xl w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded-xl w-2/3" />
+                </div>
               </div>
             </div>
           )}
@@ -187,6 +236,7 @@ export function AIAssistantModal({ isOpen, onClose, onApply }: AIAssistantModalP
                   {suggestion.titles.map((title, index) => (
                     <button
                       key={index}
+                      type="button"
                       onClick={() => setSelectedTitleIndex(index)}
                       className={`w-full p-4 text-left rounded-xl border-2 transition-all ${
                         selectedTitleIndex === index

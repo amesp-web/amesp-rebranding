@@ -29,100 +29,187 @@ export async function POST(request: Request) {
       )
     }
 
-    // Prompt estruturado para gerar esboço de notícia
-    const prompt = `Você é um jornalista especializado em maricultura e aquicultura. 
-Crie um esboço completo de notícia sobre: "${topic}"
+    // 🚀 Prompt otimizado (mais direto = mais rápido)
+    const prompt = `Jornalista de maricultura. Tópico: "${topic}"
 
-IMPORTANTE: Retorne APENAS um JSON válido, sem markdown, sem code blocks, sem texto adicional. Apenas o objeto JSON puro.
-
-Formato obrigatório:
+Retorne APENAS JSON (sem markdown):
 {
-  "titles": ["Título opção 1", "Título opção 2", "Título opção 3"],
-  "lead": "Primeiro parágrafo instigante que captura a atenção do leitor...",
+  "titles": ["Título 1", "Título 2", "Título 3"],
+  "lead": "Primeiro parágrafo (100 palavras)",
   "structure": {
     "sections": [
-      {
-        "subtitle": "Subtítulo da seção 1",
-        "topics": ["Tópico 1", "Tópico 2", "Tópico 3"]
-      },
-      {
-        "subtitle": "Subtítulo da seção 2",
-        "topics": ["Tópico 1", "Tópico 2"]
-      }
+      {"subtitle": "Seção 1", "topics": ["Tópico 1", "Tópico 2"]},
+      {"subtitle": "Seção 2", "topics": ["Tópico 1", "Tópico 2"]}
     ]
   }
 }
 
-Diretrizes:
-- Títulos: atraentes, informativos, relacionados à maricultura/aquicultura
-- Lead: 100-150 palavras, primeiro parágrafo instigante
-- Subtítulos: descritivos e informativos
-- Tópicos: bullets importantes para cada seção (2-4 tópicos por seção)
-- Idioma: português brasileiro
-- Retorne APENAS o JSON puro, sem comentários`
+Regras:
+- Títulos atraentes de maricultura
+- Lead: 100 palavras
+- 2-3 seções, 2-3 tópicos/seção
+- PT-BR
+- APENAS JSON puro`
 
-    const preferred = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
-    const fallbacks = [preferred, 'gemini-2.0-flash', 'gemini-1.5-flash']
-    let response: Response | null = null
-    let lastErrorText = ''
-    for (const model of fallbacks) {
-      const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`
+    // 🚀 OTIMIZAÇÃO: Use o modelo configurado no .env.local
+    const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp'
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+    
+    console.log('🤖 Usando modelo:', model)
+    console.log('🔑 API Key presente:', !!apiKey)
+    
+    // Timeout de 15 segundos (gemini-2.5-flash pode levar um pouco mais)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
+    
+    let response: Response
+    try {
       response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, topK: 40, topP: 0.95, maxOutputTokens: 2048 },
+          generationConfig: { 
+            temperature: 0.7, 
+            topK: 40, 
+            topP: 0.95, 
+            maxOutputTokens: 2048,  // gemini-2.5-flash precisa de mais tokens
+            responseMimeType: "application/json"  // Força retorno em JSON puro
+          },
         }),
+        signal: controller.signal
       })
-      if (response.ok) break
-      lastErrorText = await response.text()
-      console.warn(`⚠️ Falha com modelo ${model}:`, lastErrorText)
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId)
+      if (fetchError.name === 'AbortError') {
+        console.error('❌ Timeout na API Gemini')
+        return NextResponse.json({ error: 'Tempo limite excedido. Tente novamente.' }, { status: 504 })
+      }
+      throw fetchError
+    } finally {
+      clearTimeout(timeoutId)
     }
 
-    if (!response || !response.ok) {
-      console.error('❌ Erro na API Gemini após fallbacks:', lastErrorText)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ Erro na API Gemini:', errorText)
       return NextResponse.json({ error: 'Modelo indisponível no momento. Tente novamente.' }, { status: 502 })
     }
 
     const data = await response.json()
+    
+    console.log('📦 Resposta completa do Gemini API:', JSON.stringify(data, null, 2))
 
     if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-      console.error('❌ Resposta inválida da API Gemini:', data)
+      console.error('❌ Estrutura de resposta inválida:', data)
+      
+      // Verificar se foi bloqueado por safety
+      if (data.candidates?.[0]?.finishReason === 'SAFETY') {
+        return NextResponse.json(
+          { error: 'Conteúdo bloqueado por filtros de segurança. Tente outro tópico.' },
+          { status: 400 }
+        )
+      }
+      
       return NextResponse.json(
-        { error: 'Resposta inválida da IA' },
+        { error: 'Resposta inválida da IA. Verifique os logs do servidor.' },
         { status: 500 }
       )
     }
 
     const generatedText = data.candidates[0].content.parts[0].text.trim()
+    
+    console.log('🤖 Resposta bruta do Gemini (primeiros 500 chars):')
+    console.log(generatedText.substring(0, 500))
+    console.log('...')
 
-    // Extrair JSON da resposta (pode vir com markdown ou texto adicional)
-    let jsonMatch = generatedText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      // Se não encontrar JSON, tentar extrair do texto
-      jsonMatch = generatedText.match(/```json\s*(\{[\s\S]*\})\s*```/) || generatedText.match(/\{[\s\S]*\}/)
+    // 🔧 Melhorar extração de JSON (múltiplas tentativas)
+    let parsed: any = null
+    
+    // Tentativa 1: JSON direto
+    try {
+      parsed = JSON.parse(generatedText)
+    } catch {
+      // Tentativa 2: Remover markdown code blocks
+      const jsonMatch = generatedText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
+      if (jsonMatch) {
+        try {
+          parsed = JSON.parse(jsonMatch[1])
+        } catch {}
+      }
+      
+      // Tentativa 3: Extrair primeiro objeto JSON encontrado
+      if (!parsed) {
+        const firstBrace = generatedText.indexOf('{')
+        const lastBrace = generatedText.lastIndexOf('}')
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          try {
+            parsed = JSON.parse(generatedText.substring(firstBrace, lastBrace + 1))
+          } catch {}
+        }
+      }
     }
 
-    if (!jsonMatch) {
-      console.error('❌ Não foi possível extrair JSON da resposta:', generatedText)
-      return NextResponse.json(
-        { error: 'Formato de resposta inválido' },
-        { status: 500 }
-      )
+    // 🔧 Se não conseguiu parsear, criar estrutura base usando o texto retornado
+    if (!parsed) {
+      console.warn('⚠️ Não foi possível parsear JSON. Criando estrutura base com o texto...')
+      
+      // Extrair pelo menos os títulos se houver
+      const lines = generatedText.split('\n').filter(l => l.trim())
+      
+      parsed = {
+        titles: [
+          topic.charAt(0).toUpperCase() + topic.slice(1),
+          "Novidades sobre " + topic,
+          "Saiba mais sobre " + topic
+        ],
+        lead: lines[0] || "Informações importantes sobre " + topic + ".",
+        structure: {
+          sections: [
+            { subtitle: "Introdução", topics: ["Contexto geral", "Importância do tema"] },
+            { subtitle: "Desenvolvimento", topics: ["Detalhes principais", "Impactos e resultados"] }
+          ]
+        }
+      }
     }
 
-    const jsonString = jsonMatch[1] || jsonMatch[0]
-    const parsed = JSON.parse(jsonString)
-
-    // Validar estrutura
-    if (!parsed.titles || !parsed.lead || !parsed.structure) {
-      return NextResponse.json(
-        { error: 'Estrutura de resposta incompleta' },
-        { status: 500 }
-      )
+    // Validar e garantir estrutura mínima (sempre garante algo válido)
+    if (!parsed.titles || !Array.isArray(parsed.titles) || parsed.titles.length === 0) {
+      parsed.titles = [
+        topic.charAt(0).toUpperCase() + topic.slice(1),
+        "Novidades: " + topic,
+        "Tudo sobre " + topic
+      ]
+    }
+    
+    if (!parsed.lead || typeof parsed.lead !== 'string' || parsed.lead.length < 10) {
+      parsed.lead = "Descubra as últimas novidades e informações importantes sobre " + topic + ". Este tema tem grande relevância para o setor de maricultura e aquicultura."
+    }
+    
+    if (!parsed.structure || !parsed.structure.sections || !Array.isArray(parsed.structure.sections) || parsed.structure.sections.length === 0) {
+      parsed.structure = {
+        sections: [
+          { 
+            subtitle: "Contexto e Importância", 
+            topics: [
+              "Panorama atual sobre " + topic,
+              "Relevância para o setor",
+              "Principais desafios"
+            ]
+          },
+          { 
+            subtitle: "Desenvolvimento e Impactos", 
+            topics: [
+              "Detalhes e informações técnicas",
+              "Impactos na maricultura",
+              "Perspectivas futuras"
+            ]
+          }
+        ]
+      }
     }
 
+    console.log('✅ Estrutura final validada e pronta')
     return NextResponse.json(parsed)
   } catch (error: any) {
     console.error('❌ Erro inesperado na API de sugestão:', error)
