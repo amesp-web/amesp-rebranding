@@ -538,7 +538,7 @@ export default async function HomePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   {/* Linha gradiente encostada à imagem */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#023299] to-accent" />
                   <div className="absolute top-4 left-4">
                     <Badge
                       variant="secondary"
@@ -593,9 +593,8 @@ export default async function HomePage() {
 
           <div className="text-center">
             <Button
-              variant="outline"
               size="lg"
-              className="hover:bg-primary hover:text-primary-foreground transition-colors bg-transparent"
+              className="bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
               asChild
             >
               <a href="/news">Ver Todas as Notícias</a>
@@ -707,9 +706,8 @@ export default async function HomePage() {
           {galleryTotalCount > 5 && (
             <div className="text-center">
               <Button
-                variant="outline"
                 size="lg"
-                className="hover:bg-primary hover:text-primary-foreground transition-colors bg-transparent"
+                className="bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"
                 asChild
               >
                 <a href="/galeria">Ver Galeria Completa</a>
