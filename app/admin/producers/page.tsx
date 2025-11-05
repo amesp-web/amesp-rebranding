@@ -1,14 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { MapPin, Search, Phone, Factory, Users, CalendarDays, ChevronRight, User as UserIcon } from "lucide-react"
+import { MapPin, Phone, Factory, Users, CalendarDays, ChevronRight, User as UserIcon } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { MaricultorStatusBadge } from "@/components/admin/maricultor-status-badge"
 import { MaricultorToggle } from "@/components/admin/maricultor-toggle"
 import { AddMaricultorButton } from "@/components/admin/AddMaricultorButton"
 import { EditMaricultorButton } from "@/components/admin/EditMaricultorButton"
+import { SearchFilter } from "@/components/admin/SearchFilter"
 
 function normalizeSpecialties(value: any): string[] {
   if (!value) return []
@@ -126,30 +126,10 @@ export default async function ProducersManagement({
           <CardTitle className="text-slate-800">Filtros</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <form method="GET" action="/admin/producers" className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar maricultor, cidade, estado ou empresa..."
-                  className="pl-10 rounded-xl border-2 border-blue-200/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
-                  defaultValue={params.search}
-                  name="search"
-                />
-              </div>
-            </div>
+          <div className="flex flex-col gap-4">
+            <SearchFilter />
+            
             <div className="flex gap-2">
-              <Button
-                type="submit"
-                size="sm"
-                className="rounded-full px-6 bg-primary hover:bg-primary/90"
-              >
-                Buscar
-              </Button>
-            </div>
-          </form>
-          
-          <div className="flex gap-2 mt-4">
               <Button
                 variant="outline"
                 size="sm"
@@ -182,6 +162,7 @@ export default async function ProducersManagement({
               >
                 <Link href="/admin/producers?filter=inactive">Inativos</Link>
               </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
