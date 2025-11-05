@@ -109,7 +109,6 @@ export default async function ProducersManagement({
               </div>
             </div>
           </div>
-          </div>
         </div>
       </div>
 
