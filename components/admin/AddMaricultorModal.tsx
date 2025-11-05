@@ -331,8 +331,8 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="relative bg-gradient-to-br from-white via-blue-50/20 to-cyan-50/20 w-full max-w-5xl max-h-[92vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-black/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="relative bg-white w-full max-w-5xl max-h-[92vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-black/5">
         {/* Header Moderno */}
         <div className="relative bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 px-8 py-6 flex items-center justify-between flex-shrink-0 overflow-hidden">
           {/* Decoração de fundo */}
@@ -359,7 +359,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
         </div>
 
         {/* Content - Scrollável */}
-        <div className="flex-1 overflow-y-auto p-8 bg-gradient-to-b from-white/50 to-blue-50/30">
+        <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
           <div className="space-y-8 max-w-4xl mx-auto">
             {/* Dados Pessoais - Card */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100/50 ring-1 ring-blue-500/10">
