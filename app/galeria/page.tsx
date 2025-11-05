@@ -30,7 +30,7 @@ export default async function GalleryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
       {/* Header moderno oceânico */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#023299] via-cyan-500 to-teal-400">
         {/* SVG Waves */}
         <div className="absolute inset-0">
           <svg className="absolute bottom-0 w-full h-32" viewBox="0 0 1440 320" preserveAspectRatio="none">
