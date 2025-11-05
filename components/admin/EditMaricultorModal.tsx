@@ -18,7 +18,6 @@ interface EditMaricultorModalProps {
     cpf?: string
     contact_phone?: string
     logradouro?: string
-    numero?: string
     cidade?: string
     estado?: string
     cep?: string
@@ -78,13 +77,26 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
   // Preencher formulário quando o modal abrir
   useEffect(() => {
     if (isOpen && maricultor) {
+      // Separar logradouro e número
+      // Ex: "Avenida Antonio Pannellini, 505" -> logradouro: "Avenida Antonio Pannellini", numero: "505"
+      let logradouroSeparado = maricultor.logradouro || ""
+      let numeroSeparado = ""
+      
+      if (maricultor.logradouro) {
+        const lastCommaIndex = maricultor.logradouro.lastIndexOf(",")
+        if (lastCommaIndex !== -1) {
+          logradouroSeparado = maricultor.logradouro.substring(0, lastCommaIndex).trim()
+          numeroSeparado = maricultor.logradouro.substring(lastCommaIndex + 1).trim()
+        }
+      }
+      
       setFormData({
         full_name: maricultor.full_name || "",
         cpf: formatCPF(maricultor.cpf || ""),
         contact_phone: maricultor.contact_phone || "",
         cep: formatCEP(maricultor.cep || ""),
-        logradouro: maricultor.logradouro || "",
-        numero: maricultor.numero || "",
+        logradouro: logradouroSeparado,
+        numero: numeroSeparado,
         cidade: maricultor.cidade || "",
         estado: maricultor.estado || "",
         company: maricultor.company || "",
@@ -168,12 +180,16 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
     setLoading(true)
 
     try {
+      // Concatenar logradouro e número antes de enviar
+      const logradouroCompleto = [formData.logradouro, formData.numero].filter(Boolean).join(", ")
+      
       const response = await fetch("/api/admin/maricultors/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: maricultor.id,
-          ...formData
+          ...formData,
+          logradouro: logradouroCompleto
         })
       })
 

@@ -8,7 +8,7 @@ export async function PUT(request: Request) {
     const body = await request.json()
     console.log('📦 Body recebido:', body)
     
-    const { id, full_name, cpf, contact_phone, cep, logradouro, numero, cidade, estado, company, specialties } = body
+    const { id, full_name, cpf, contact_phone, cep, logradouro, cidade, estado, company, specialties } = body
 
     // Validações
     if (!id || !full_name) {
@@ -99,8 +99,7 @@ export async function PUT(request: Request) {
     const updateData: any = {
       full_name,
       contact_phone,
-      logradouro,
-      numero,
+      logradouro, // Já vem concatenado com o número (ex: "Rua ABC, 123")
       cidade,
       estado,
       cep: cep ? cep.replace(/\D/g, '') : null,
