@@ -68,6 +68,7 @@ export async function POST(request: Request) {
       .insert({
         id: userId,
         full_name,
+        cpf: cpfDigits,
         phone,
         logradouro,
         cidade,
