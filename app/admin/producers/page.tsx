@@ -7,7 +7,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { MaricultorStatusBadge } from "@/components/admin/maricultor-status-badge"
 import { MaricultorToggle } from "@/components/admin/maricultor-toggle"
-import { ProducersListWrapper } from "@/components/admin/ProducersListWrapper"
+import { AddMaricultorButton } from "@/components/admin/AddMaricultorButton"
 
 function normalizeSpecialties(value: any): string[] {
   if (!value) return []
@@ -73,7 +73,6 @@ export default async function ProducersManagement({
   const thisMonth = (producers || []).filter((p) => p.created_at && new Date(p.created_at) >= startOfMonth).length
 
   return (
-    <ProducersListWrapper>
     <div className="space-y-8">
       {/* Header moderno com KPIs */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 p-8 shadow-xl">
@@ -82,13 +81,19 @@ export default async function ProducersManagement({
           <div className="absolute -left-24 -bottom-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
         </div>
         <div className="relative">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex-1">
               <h1 className="text-3xl font-bold text-white mb-2 flex items-center drop-shadow">
                 <Factory className="h-8 w-8 mr-3" /> Produtores
               </h1>
               <p className="text-blue-50/90 text-lg">Acompanhe e gerencie os produtores cadastrados</p>
             </div>
+            
+            {/* Botão de adicionar no header */}
+            <AddMaricultorButton />
+          </div>
+          
+          <div className="mt-6">
             <div className="grid grid-cols-2 gap-6 text-white">
               <div className="rounded-xl bg-white/10 backdrop-blur-md px-4 py-3 shadow-lg border border-white/20">
                 <div className="text-sm text-blue-50/90">Total cadastrados</div>
@@ -103,6 +108,7 @@ export default async function ProducersManagement({
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -241,6 +247,5 @@ export default async function ProducersManagement({
         </CardContent>
       </Card>
     </div>
-    </ProducersListWrapper>
   )
 }
