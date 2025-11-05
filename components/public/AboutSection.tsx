@@ -65,7 +65,7 @@ export function AboutSection({ about }: AboutSectionProps) {
         <Button
           size="lg"
           onClick={() => setShowModal(true)}
-          className="bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-lg px-8 py-6"
+          className="bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-lg px-8 py-6"
         >
           Conheça a AMESP
         </Button>
