@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server"
 import { MaricultorStatusBadge } from "@/components/admin/maricultor-status-badge"
 import { MaricultorToggle } from "@/components/admin/maricultor-toggle"
 import { AddMaricultorButton } from "@/components/admin/AddMaricultorButton"
+import { EditMaricultorButton } from "@/components/admin/EditMaricultorButton"
 
 function normalizeSpecialties(value: any): string[] {
   if (!value) return []
@@ -34,6 +35,13 @@ function getInitials(name?: string | null): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
+function formatCPF(cpf?: string | null): string {
+  if (!cpf) return ""
+  const cleaned = cpf.replace(/\D/g, "")
+  if (cleaned.length !== 11) return cpf
+  return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+}
+
 export default async function ProducersManagement({
   searchParams,
 }: {
@@ -46,7 +54,7 @@ export default async function ProducersManagement({
   let query = supabase
     .from("maricultor_profiles")
     .select(
-      "id, full_name, contact_phone, logradouro, cidade, estado, company, specialties, latitude, longitude, created_at, is_active"
+      "id, full_name, cpf, contact_phone, logradouro, cidade, estado, company, specialties, latitude, longitude, created_at, is_active"
     )
     .order("created_at", { ascending: false })
 
@@ -205,12 +213,17 @@ export default async function ProducersManagement({
                           <Phone className="mr-1 h-3 w-3" /> {p.contact_phone}
                         </div>
                       )}
+                      {p.cpf && (
+                        <div className="flex items-center">
+                          <UserIcon className="mr-1 h-3 w-3" /> {formatCPF(p.cpf)}
+                        </div>
+                      )}
                     </div>
 
                     {normalizeSpecialties(p.specialties).length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {normalizeSpecialties(p.specialties).map((s: string, i: number) => (
-                          <Badge key={i} variant="secondary" className="text-xs bg-accent/20">
+                          <Badge key={i} variant="secondary" className="text-xs bg-gradient-to-r from-pink-500/90 to-rose-500/90 text-white border-0 shadow-sm hover:shadow-md transition-shadow font-medium">
                             {s}
                           </Badge>
                         ))}
@@ -225,7 +238,8 @@ export default async function ProducersManagement({
                     </div>
                   </div>
 
-                  <div className="ml-4 flex items-center gap-3">
+                  <div className="ml-4 flex items-center gap-2">
+                    <EditMaricultorButton maricultor={p} />
                     <MaricultorToggle id={p.id} initialActive={!!p.is_active} />
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                       <ChevronRight className="h-5 w-5 text-muted-foreground" />

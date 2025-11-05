@@ -4,11 +4,16 @@ import { sendEmail } from '@/lib/email-sender'
 
 export async function POST(request: Request) {
   try {
+    console.log('🔵 Iniciando cadastro de maricultor pelo admin...')
+    
     const body = await request.json()
+    console.log('📦 Body recebido:', body)
+    
     const { full_name, email, cpf, phone, cep, logradouro, cidade, estado, company, specialties } = body
 
     // Validações
     if (!full_name || !email || !cpf) {
+      console.log('❌ Validação falhou: campos obrigatórios faltando')
       return NextResponse.json(
         { error: 'Nome, email e CPF são obrigatórios' },
         { status: 400 }
@@ -17,7 +22,10 @@ export async function POST(request: Request) {
 
     // Validar CPF (11 dígitos)
     const cpfDigits = String(cpf).replace(/\D/g, '')
+    console.log('🔢 CPF (dígitos):', cpfDigits)
+    
     if (cpfDigits.length !== 11) {
+      console.log('❌ CPF inválido:', cpfDigits.length, 'dígitos')
       return NextResponse.json(
         { error: 'CPF inválido' },
         { status: 400 }
@@ -26,6 +34,7 @@ export async function POST(request: Request) {
 
     // Gerar senha: 6 primeiros dígitos do CPF
     const password = cpfDigits.substring(0, 6)
+    console.log('🔐 Senha gerada:', password)
 
     // Criar cliente Supabase com Service Role Key (admin)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -38,6 +47,7 @@ export async function POST(request: Request) {
     })
 
     // 1. Criar usuário no auth.users
+    console.log('👤 Criando usuário no auth.users:', email)
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -53,7 +63,7 @@ export async function POST(request: Request) {
     })
 
     if (authError) {
-      console.error('Erro ao criar usuário:', authError)
+      console.error('❌ Erro ao criar usuário:', authError)
       return NextResponse.json(
         { error: authError.message || 'Erro ao criar usuário' },
         { status: 500 }
@@ -61,28 +71,82 @@ export async function POST(request: Request) {
     }
 
     const userId = authData.user.id
+    console.log('✅ Usuário criado com ID:', userId)
 
-    // 2. Criar perfil em maricultor_profiles
+    // 2. Geocodificar endereço (buscar latitude e longitude)
+    let latitude: number | null = null
+    let longitude: number | null = null
+    
+    if (logradouro || cidade || estado || cep) {
+      try {
+        const apiKey = process.env.GEOAPIFY_API_KEY || process.env.NEXT_PUBLIC_GEOAPIFY_KEY
+        console.log('🗺️ Iniciando geocodificação...', { apiKey: !!apiKey })
+        
+        if (apiKey) {
+          const parts = [logradouro, cidade, estado, 'Brasil']
+          const text = parts.filter(Boolean).join(', ')
+          const cleanCep = cep ? String(cep).replace(/\D/g, '') : ''
+          const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(text)}&limit=1&lang=pt&filter=countrycode:br${cleanCep ? `&postcode=${cleanCep}` : ''}&apiKey=${apiKey}`
+          
+          console.log('🌐 Buscando coordenadas via Geoapify...')
+          
+          const res = await fetch(url, { cache: 'no-store' })
+          const data = await res.json()
+          
+          const p = data?.features?.[0]?.properties
+          latitude = p?.lat ?? data?.features?.[0]?.geometry?.coordinates?.[1] ?? null
+          longitude = p?.lon ?? data?.features?.[0]?.geometry?.coordinates?.[0] ?? null
+          
+          console.log('📍 Coordenadas obtidas:', { latitude, longitude })
+        } else {
+          console.warn('⚠️ GEOAPIFY_API_KEY não configurada, geocodificação ignorada')
+        }
+      } catch (geoErr) {
+        console.error('❌ Erro ao geocodificar (não crítico):', geoErr)
+      }
+    }
+
+    // 3. Criar perfil em maricultor_profiles
+    console.log('📝 Criando perfil em maricultor_profiles...')
+    console.log('📝 Dados do perfil:', {
+      id: userId,
+      full_name,
+      cpf: cpfDigits,
+      contact_phone: phone,
+      logradouro,
+      cidade,
+      estado,
+      cep,
+      company,
+      specialties,
+      latitude,
+      longitude
+    })
+    
     const { error: profileError } = await supabase
       .from('maricultor_profiles')
       .insert({
         id: userId,
         full_name,
         cpf: cpfDigits,
-        phone,
+        contact_phone: phone,
         logradouro,
         cidade,
         estado,
         cep,
         company,
         specialties,
+        latitude,
+        longitude,
         is_active: true
       })
 
     if (profileError) {
-      console.error('Erro ao criar perfil:', profileError)
+      console.error('❌ Erro ao criar perfil:', profileError)
+      console.error('❌ Detalhes do erro:', JSON.stringify(profileError, null, 2))
       
       // Rollback: deletar usuário criado
+      console.log('🔄 Fazendo rollback: deletando usuário', userId)
       await supabase.auth.admin.deleteUser(userId)
       
       return NextResponse.json(
@@ -90,8 +154,11 @@ export async function POST(request: Request) {
         { status: 500 }
       )
     }
+    
+    console.log('✅ Perfil criado com sucesso!')
 
-    // 3. Enviar email de boas-vindas com as credenciais
+    // 4. Enviar email de boas-vindas com as credenciais
+    console.log('📧 Enviando email de boas-vindas...')
     try {
       await sendEmail({
         to: email,
@@ -145,11 +212,13 @@ export async function POST(request: Request) {
           </html>
         `
       })
+      console.log('✅ Email enviado com sucesso!')
     } catch (emailError) {
-      console.error('Erro ao enviar email (não crítico):', emailError)
+      console.error('⚠️ Erro ao enviar email (não crítico):', emailError)
     }
 
-    // 4. Criar notificação
+    // 5. Criar notificação
+    console.log('🔔 Criando notificação...')
     try {
       await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/notifications`, {
         method: 'POST',
@@ -170,10 +239,12 @@ export async function POST(request: Request) {
           }
         })
       })
+      console.log('✅ Notificação criada com sucesso!')
     } catch (notifError) {
-      console.error('Erro ao criar notificação (não crítico):', notifError)
+      console.error('⚠️ Erro ao criar notificação (não crítico):', notifError)
     }
 
+    console.log('🎉 Cadastro completo! Retornando sucesso...')
     return NextResponse.json({
       success: true,
       message: 'Maricultor cadastrado com sucesso',
@@ -181,7 +252,9 @@ export async function POST(request: Request) {
     })
 
   } catch (error: any) {
-    console.error('Erro ao cadastrar maricultor:', error)
+    console.error('❌ ERRO GERAL ao cadastrar maricultor:', error)
+    console.error('❌ Stack trace:', error.stack)
+    console.error('❌ Detalhes completos:', JSON.stringify(error, null, 2))
     return NextResponse.json(
       { error: error.message || 'Erro ao cadastrar maricultor' },
       { status: 500 }
