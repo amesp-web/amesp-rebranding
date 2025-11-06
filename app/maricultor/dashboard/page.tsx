@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 import { createBrowserClient } from "@supabase/ssr"
-import { LogOut, User, Settings, Fish, Calendar, FileText, Lock, DollarSign, Waves, Activity, Eye, ArrowUpRight, MapPin } from "lucide-react"
+import { LogOut, User, Settings, Fish, Calendar, FileText, Lock, DollarSign, Waves, Activity, Eye, ArrowUpRight, MapPin, ExternalLink, FolderOpen, ScrollText } from "lucide-react"
 
 // Função para calcular a próxima reunião (primeira segunda-feira do mês, exceto dez/jan/fev)
 function getNextMeeting() {
@@ -644,6 +644,78 @@ export default function MaricultorDashboard() {
                   <h3 className="text-lg font-semibold text-slate-700 mb-2">Em Breve</h3>
                   <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                     Funcionalidade de gerenciamento de mensalidades estará disponível em breve.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Atas e Documentos Institucionais */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-indigo-50 via-purple-50/30 to-white">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                    <FolderOpen className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      Documentos AMESP
+                    </CardTitle>
+                    <CardDescription className="mt-1">Atas de reuniões e documentos institucionais</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 relative z-10">
+                {/* Link Atas */}
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 rounded-xl bg-white border border-indigo-200/50 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all duration-200 group/link shadow-sm hover:shadow-md"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    alert('Link para Google Drive em breve!\n\nO admin precisará configurar a URL do Google Drive.')
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center">
+                      <ScrollText className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">Atas de Reuniões</p>
+                      <p className="text-xs text-muted-foreground">Acesse as atas das reuniões mensais</p>
+                    </div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-indigo-600 group-hover/link:translate-x-1 transition-transform" />
+                </a>
+
+                {/* Link Documentos Institucionais */}
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 rounded-xl bg-white border border-purple-200/50 hover:border-purple-400 hover:bg-purple-50/50 transition-all duration-200 group/link shadow-sm hover:shadow-md"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    alert('Link para Google Drive em breve!\n\nO admin precisará configurar a URL do Google Drive.')
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">Documentos Institucionais</p>
+                      <p className="text-xs text-muted-foreground">Estatuto, regimento e documentos oficiais</p>
+                    </div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-purple-600 group-hover/link:translate-x-1 transition-transform" />
+                </a>
+
+                {/* Nota para futura configuração */}
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs text-blue-700">
+                    📌 <strong>Para configurar:</strong> Substitua os <code className="bg-blue-100 px-1 rounded">#</code> pelas URLs do Google Drive
                   </p>
                 </div>
               </CardContent>
