@@ -55,29 +55,7 @@ export function NewsCardActions({ id, published, displayOrder = 0, onStatusChang
     }
   }
 
-  const up = async () => {
-    if (busy) return; setBusy(true)
-    try {
-      await postJson('/api/admin/news/reorder', { updates: [{ id, display_order: displayOrder - 1 }] })
-      router.refresh()
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const down = async () => {
-    if (busy) return; setBusy(true)
-    try {
-      await postJson('/api/admin/news/reorder', { updates: [{ id, display_order: displayOrder + 1 }] })
-      router.refresh()
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setBusy(false)
-    }
-  }
+  // Funções up/down removidas: reordenação agora é apenas via drag-and-drop
 
   return (
     <div className="flex items-center gap-2">
@@ -86,8 +64,7 @@ export function NewsCardActions({ id, published, displayOrder = 0, onStatusChang
         {published ? 'Inativar' : 'Publicar'}
       </button>
       <button onMouseDown={(e)=>e.stopPropagation()} onClick={() => setConfirmOpen('delete')} disabled={busy} className="px-2 py-1 rounded-md hover:bg-red-100 text-red-700 disabled:opacity-50">Excluir</button>
-      <button onMouseDown={(e)=>e.stopPropagation()} onClick={up} disabled={busy} className="px-2 py-1 rounded-md hover:bg-gray-100 disabled:opacity-50">↑</button>
-      <button onMouseDown={(e)=>e.stopPropagation()} onClick={down} disabled={busy} className="px-2 py-1 rounded-md hover:bg-gray-100 disabled:opacity-50">↓</button>
+      {/* Setinhas removidas: sistema drag-and-drop já permite reordenação */}
 
       {confirmOpen === 'delete' && (
         <ConfirmationDialog
