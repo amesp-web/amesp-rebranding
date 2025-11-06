@@ -9,6 +9,49 @@ import Link from "next/link"
 import { createBrowserClient } from "@supabase/ssr"
 import { LogOut, User, Settings, Fish, Calendar, FileText, Lock, DollarSign, Waves, Activity, Eye, ArrowUpRight, MapPin } from "lucide-react"
 
+// Função para calcular a próxima reunião (primeira segunda-feira do mês, exceto dez/jan/fev)
+function getNextMeeting() {
+  const now = new Date()
+  let year = now.getFullYear()
+  let month = now.getMonth() // 0-11
+
+  // Função para encontrar a primeira segunda-feira de um mês
+  const getFirstMonday = (y: number, m: number) => {
+    const firstDay = new Date(y, m, 1)
+    const dayOfWeek = firstDay.getDay() // 0=domingo, 1=segunda
+    const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : (8 - dayOfWeek)
+    return new Date(y, m, 1 + daysUntilMonday)
+  }
+
+  // Verificar mês atual
+  while (true) {
+    // Pular dezembro (11), janeiro (0) e fevereiro (1)
+    if (month === 11 || month === 0 || month === 1) {
+      month++
+      if (month > 11) {
+        month = 0
+        year++
+      }
+      continue
+    }
+
+    const firstMonday = getFirstMonday(year, month)
+    
+    // Se a reunião já passou, ir para o próximo mês
+    if (firstMonday < now) {
+      month++
+      if (month > 11) {
+        month = 0
+        year++
+      }
+      continue
+    }
+
+    // Encontrou a próxima reunião
+    return firstMonday
+  }
+}
+
 export default function MaricultorDashboard() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -17,6 +60,9 @@ export default function MaricultorDashboard() {
   const [profile, setProfile] = useState<any>(null)
   const [news, setNews] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
+  
+  // Calcular próxima reunião
+  const nextMeeting = useMemo(() => getNextMeeting(), [])
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -272,8 +318,8 @@ export default function MaricultorDashboard() {
           </div>
         </div>
 
-        {/* Quick Stats - Perfil */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-md">
+        {/* Quick Stats - Perfil e Próxima Reunião */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-blue-50 via-cyan-50/50 to-teal-50/30 border-blue-200/50">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <CardHeader className="pb-3 relative z-10">
@@ -298,6 +344,45 @@ export default function MaricultorDashboard() {
                 <Badge variant="secondary" className={`text-xs ${profileCompletion === 100 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
                   {profileCompletion === 100 ? 'Completo' : 'Incompleto'}
                 </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card Próxima Reunião */}
+          <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-purple-50 via-pink-50/50 to-orange-50/30">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <CardHeader className="pb-3 relative z-10">
+              <div className="flex items-center justify-between mb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Próxima Reunião</CardTitle>
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 group-hover:from-purple-500/30 group-hover:to-pink-500/20 transition-colors flex items-center justify-center shadow-md">
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                </div>
+              </div>
+              <div className="flex items-baseline space-x-2">
+                <span className="text-3xl font-bold text-purple-600">
+                  {nextMeeting.toLocaleDateString('pt-BR', { day: '2-digit' })}
+                </span>
+                <span className="text-lg font-semibold text-purple-600/80">
+                  {nextMeeting.toLocaleDateString('pt-BR', { month: 'short' })}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="relative z-10">
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Primeira segunda-feira do mês
+                </p>
+                <div className="flex items-center gap-2 text-xs">
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">
+                    {nextMeeting.toLocaleDateString('pt-BR', { weekday: 'long' })}
+                  </Badge>
+                  <span className="text-muted-foreground">
+                    {nextMeeting.toLocaleDateString('pt-BR', { year: 'numeric' })}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground pt-1">
+                  📍 Sede AMESP • 19h
+                </p>
               </div>
             </CardContent>
           </Card>
