@@ -328,7 +328,8 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="text-center pt-4 border-t border-border/50">
+            {/* NOTA: Link de cadastro escondido temporariamente a pedido do cliente */}
+            <div className="hidden text-center pt-4 border-t border-border/50">
               <p className="text-sm text-muted-foreground">
                 Ainda não tem uma conta?{" "}
                 <Link
