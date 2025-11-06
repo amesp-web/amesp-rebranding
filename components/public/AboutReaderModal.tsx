@@ -247,11 +247,11 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                   if (!block.data?.title) return null
                   return (
                     <Accordion key={block.id} type="single" collapsible className="w-full">
-                      <AccordionItem value={block.id}>
-                        <AccordionTrigger className="text-lg font-semibold text-slate-900 hover:text-[#023299] transition-colors">
+                      <AccordionItem value={block.id} className="border border-slate-200 rounded-xl px-6 py-2 bg-gradient-to-r from-slate-50 to-white shadow-sm hover:shadow-md hover:border-[#023299]/30 transition-all duration-200">
+                        <AccordionTrigger className="text-lg font-semibold text-slate-900 hover:text-[#023299] transition-colors py-4 hover:no-underline">
                           {block.data.title}
                         </AccordionTrigger>
-                        <AccordionContent>
+                        <AccordionContent className="pt-4 pb-2">
                           <div
                             className="prose prose-lg max-w-none text-slate-700 [&_p]:mb-4 [&_p]:first:mt-0 [&_p]:last:mb-0"
                             dangerouslySetInnerHTML={{ __html: block.data.content || '' }}
