@@ -116,33 +116,25 @@ export default function LoginPage() {
             return
           }
           
-          // Atualizar último acesso na tabela admin_profiles
-          try {
-            console.log('🔄 Atualizando último acesso para user ID:', data.user.id)
-            const { data: updateResult, error: updateError } = await supabase
-              .from("admin_profiles")
-              .update({ 
-                last_sign_in_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              })
-              .eq("id", data.user.id)
-              .select('id, full_name, email, last_sign_in_at')
-            
-            if (updateError) {
-              console.error('❌ Erro ao atualizar último acesso:', updateError)
-            } else {
-              console.log('✅ Último acesso atualizado com sucesso:', updateResult)
-            }
-          } catch (updateError) {
-            console.error('❌ Erro geral ao atualizar último acesso:', updateError)
-            // Não bloquear o login por causa deste erro
-          }
+          // 🚀 OTIMIZAÇÃO: Atualizar último acesso em background (não bloqueia login)
+          supabase
+            .from("admin_profiles")
+            .update({ 
+              last_sign_in_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", data.user.id)
+            .then(({ error }) => {
+              if (error) {
+                console.error('⚠️ Erro ao atualizar último acesso (não crítico):', error)
+              }
+            })
           
           setUserType("admin")
-          // 🚀 OTIMIZAÇÃO: Reduzido de 1000ms para 300ms (suficiente para feedback visual)
+          // 🚀 OTIMIZAÇÃO: Reduzido para 100ms (rápido mas ainda mostra feedback)
           setTimeout(() => {
             router.push("/admin")
-          }, 300)
+          }, 100)
         } else {
           // Verificar maricultor profile e status
           const { data: maricultorProfile } = await supabase
@@ -157,19 +149,25 @@ export default function LoginPage() {
             return
           }
 
-          // Atualizar último acesso (se existir o perfil)
-          try {
-            await supabase
-              .from('maricultor_profiles')
-              .update({ last_sign_in_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-              .eq('id', data.user.id)
-          } catch {}
+          // 🚀 OTIMIZAÇÃO: Atualizar último acesso em background (não bloqueia login)
+          supabase
+            .from('maricultor_profiles')
+            .update({ 
+              last_sign_in_at: new Date().toISOString(), 
+              updated_at: new Date().toISOString() 
+            })
+            .eq('id', data.user.id)
+            .then(({ error }) => {
+              if (error) {
+                console.error('⚠️ Erro ao atualizar último acesso (não crítico):', error)
+              }
+            })
 
           setUserType("maricultor")
-          // 🚀 OTIMIZAÇÃO: Reduzido de 1000ms para 300ms (suficiente para feedback visual)
+          // 🚀 OTIMIZAÇÃO: Reduzido para 100ms (rápido mas ainda mostra feedback)
           setTimeout(() => {
             router.push('/maricultor/dashboard')
-          }, 300)
+          }, 100)
         }
       }
     } catch (err) {
