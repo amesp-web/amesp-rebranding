@@ -35,6 +35,12 @@ export default function LoginPage() {
     // Não limpar o erro automaticamente para não interferir com outros erros
   }, [searchParams])
 
+  // 🚀 OTIMIZAÇÃO: Prefetch das rotas de destino para navegação instantânea
+  useEffect(() => {
+    router.prefetch('/admin')
+    router.prefetch('/maricultor/dashboard')
+  }, [router])
+
   const getSupabaseClient = useCallback(() => {
     try {
       return createClient()
@@ -133,10 +139,10 @@ export default function LoginPage() {
           }
           
           setUserType("admin")
-          // Redirect to admin dashboard
+          // 🚀 OTIMIZAÇÃO: Reduzido de 1000ms para 300ms (suficiente para feedback visual)
           setTimeout(() => {
             router.push("/admin")
-          }, 1000)
+          }, 300)
         } else {
           // Verificar maricultor profile e status
           const { data: maricultorProfile } = await supabase
@@ -160,9 +166,10 @@ export default function LoginPage() {
           } catch {}
 
           setUserType("maricultor")
+          // 🚀 OTIMIZAÇÃO: Reduzido de 1000ms para 300ms (suficiente para feedback visual)
           setTimeout(() => {
             router.push('/maricultor/dashboard')
-          }, 1000)
+          }, 300)
         }
       }
     } catch (err) {
@@ -259,7 +266,14 @@ export default function LoginPage() {
             <span>Voltar ao site</span>
           </Link>
           <div className="flex justify-center mb-4">
-            <Image src="/amesp_logo.png" alt="AMESP" width={120} height={40} className="h-12 w-auto" />
+            <Image 
+              src="/amesp_logo.png" 
+              alt="AMESP" 
+              width={120} 
+              height={40} 
+              className="h-12 w-auto"
+              priority
+            />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-2">Acesso à Plataforma</h1>
           <p className="text-muted-foreground">Faça login para acessar sua área</p>
