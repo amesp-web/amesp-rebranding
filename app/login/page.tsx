@@ -131,10 +131,10 @@ export default function LoginPage() {
             })
           
           setUserType("admin")
-          // 🚀 OTIMIZAÇÃO: Reduzido para 100ms (rápido mas ainda mostra feedback)
+          // 🚀 OTIMIZAÇÃO: 300ms - equilíbrio entre velocidade e estabilidade
           setTimeout(() => {
             router.push("/admin")
-          }, 100)
+          }, 300)
         } else {
           // Verificar maricultor profile e status
           const { data: maricultorProfile } = await supabase
@@ -166,10 +166,10 @@ export default function LoginPage() {
           }
 
           setUserType("maricultor")
-          // 🚀 OTIMIZAÇÃO: Reduzido para 100ms (rápido mas ainda mostra feedback)
+          // 🚀 OTIMIZAÇÃO: 300ms - equilíbrio entre velocidade e estabilidade
           setTimeout(() => {
             router.push('/maricultor/dashboard')
-          }, 100)
+          }, 300)
         }
       }
     } catch (err) {

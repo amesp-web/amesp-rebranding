@@ -151,8 +151,29 @@ export default function MaricultorDashboard() {
   }, [])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    window.location.href = "/"
+    try {
+      await supabase.auth.signOut()
+      
+      // Limpar qualquer estado/cache do navegador
+      if (typeof window !== 'undefined') {
+        // Limpar localStorage relacionado ao Supabase
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase')) {
+            localStorage.removeItem(key)
+          }
+        })
+      }
+      
+      // Aguardar um pouco para garantir que a sessão foi limpa
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Redirecionar para login
+      window.location.href = '/login'
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+      // Mesmo com erro, tentar redirecionar
+      window.location.href = '/login'
+    }
   }
 
   const formatTimeAgo = (date: Date) => {
