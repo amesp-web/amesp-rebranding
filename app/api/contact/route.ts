@@ -186,30 +186,42 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Email de contato enviado para:', recipientEmail, '| De:', email)
     
-    // Criar notificação no sistema
+    // 🔔 Criar notificação no sistema (diretamente via Supabase)
     try {
-      const notificationPayload = {
-        type: 'contact',
-        title: `Nova mensagem de contato de ${name}`,
-        message: message.substring(0, 150) + (message.length > 150 ? '...' : ''),
-        link: null, // Pode adicionar link para uma página de "mensagens" no futuro
-        icon: 'Mail',
-        priority: 'normal',
-        metadata: {
-          email,
-          phone,
-          company,
-          newsletter
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+      if (supabaseUrl && serviceRoleKey) {
+        const supabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        })
+
+        const { error: notifError } = await supabase
+          .from('notifications')
+          .insert({
+            type: 'contact',
+            title: `Nova mensagem de contato de ${name}`,
+            message: message.substring(0, 150) + (message.length > 150 ? '...' : ''),
+            link: null,
+            icon: 'Mail',
+            priority: 'normal',
+            metadata: {
+              email,
+              phone,
+              company,
+              newsletter
+            }
+          })
+
+        if (notifError) {
+          console.error('⚠️ Erro ao criar notificação:', notifError)
+        } else {
+          console.log('✅ Notificação criada para novo contato')
         }
       }
-
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'}/api/admin/notifications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(notificationPayload)
-      })
-      
-      console.log('✅ Notificação criada para novo contato')
     } catch (notifError) {
       console.error('⚠️ Erro ao criar notificação (não crítico):', notifError)
       // Não falha o fluxo se notificação der erro

@@ -217,13 +217,12 @@ export async function POST(request: Request) {
       console.error('⚠️ Erro ao enviar email (não crítico):', emailError)
     }
 
-    // 5. Criar notificação
+    // 5. 🔔 Criar notificação (diretamente via Supabase)
     console.log('🔔 Criando notificação...')
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/notifications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert({
           type: 'maricultor',
           title: `Novo maricultor cadastrado: ${full_name}`,
           message: `Cadastrado via admin • Email: ${email} • Cidade: ${cidade || 'Não informada'}`,
@@ -238,8 +237,12 @@ export async function POST(request: Request) {
             created_by_admin: true
           }
         })
-      })
-      console.log('✅ Notificação criada com sucesso!')
+
+      if (notifError) {
+        console.error('⚠️ Erro ao criar notificação:', notifError)
+      } else {
+        console.log('✅ Notificação criada com sucesso!')
+      }
     } catch (notifError) {
       console.error('⚠️ Erro ao criar notificação (não crítico):', notifError)
     }
