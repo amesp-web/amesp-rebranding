@@ -39,12 +39,8 @@ export async function updateSession(request: NextRequest) {
     if (!user) {
       const url = request.nextUrl.clone()
 
-      if (request.nextUrl.pathname.startsWith("/admin")) {
-        url.pathname = "/auth/login"
-      } else if (request.nextUrl.pathname.startsWith("/maricultor/dashboard")) {
-        url.pathname = "/maricultor/login"
-      }
-
+      // Redirecionar para a página de login unificada
+      url.pathname = "/login"
       url.searchParams.set("redirectTo", request.nextUrl.pathname)
       return NextResponse.redirect(url)
     }
