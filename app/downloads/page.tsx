@@ -17,15 +17,18 @@ export default function DownloadsPublicPage() {
   useEffect(() => {
     async function loadDownloads() {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-        const res = await fetch(`${baseUrl}/api/admin/downloads`, {
+        // Usar caminho relativo para funcionar em qualquer porta
+        const res = await fetch('/api/admin/downloads', {
           cache: 'no-store',
           headers: { 'Content-Type': 'application/json' }
         })
 
         if (res.ok) {
           const data = await res.json()
+          console.log('Downloads carregados:', data)
           setDownloads(data)
+        } else {
+          console.error('Erro ao buscar downloads - Status:', res.status)
         }
       } catch (error) {
         console.error('Erro ao buscar downloads:', error)
