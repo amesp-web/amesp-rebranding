@@ -23,9 +23,9 @@ export default async function AdminLayout({
   const { data: userData, error: userError } = userResult
   const { data: adminData, error: adminError } = adminProfileResult
   
-  // Em desenvolvimento, se não há usuário, redireciona para login de desenvolvimento
+  // Se não há usuário, redireciona para login
   if (userError || !userData?.user) {
-    redirect("/login/dev")
+    redirect("/login")
   }
 
   // Buscar perfil específico do usuário logado
@@ -36,7 +36,7 @@ export default async function AdminLayout({
     .single()
 
   if (!adminProfile) {
-    redirect("/login/dev")
+    redirect("/login")
   }
 
   return (
