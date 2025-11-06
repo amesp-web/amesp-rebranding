@@ -346,8 +346,8 @@ export default function LoginPage() {
         <div className="text-center mt-6">
           <p className="text-xs text-muted-foreground">
             Problemas para acessar? Entre em contato:{" "}
-            <a href="mailto:suporte@amespmaricultura.org.br" className="text-primary hover:text-primary/80">
-              suporte@amespmaricultura.org.br
+            <a href="mailto:amesp@amespmaricultura.org.br" className="text-primary hover:text-primary/80">
+              amesp@amespmaricultura.org.br
             </a>
           </p>
         </div>
