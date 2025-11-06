@@ -56,8 +56,8 @@ import {
   UserPlus,
 } from "lucide-react"
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// 🚀 OTIMIZAÇÃO: ISR - Cacheia por 60s, regenera automaticamente
+export const revalidate = 60
 
 async function getSupabaseData() {
   try {
@@ -70,7 +70,8 @@ async function getSupabaseData() {
       galleryAllResult,
       totalCountResult,
       producersResult,
-      projectsResult
+      projectsResult,
+      eventsResult
     ] = await Promise.all([
       // News
       supabase
@@ -81,7 +82,7 @@ async function getSupabaseData() {
         .order("created_at", { ascending: false })
         .limit(3),
       
-      // Gallery (buscar todas de uma vez)
+      // Gallery (buscar featured e 4 outros)
       supabase
         .from("gallery")
         .select("*")
@@ -95,10 +96,10 @@ async function getSupabaseData() {
         .from("gallery")
         .select("*", { count: "exact", head: true }),
       
-      // Producers
+      // Producers (select específico)
       supabase
         .from("producers")
-        .select("*")
+        .select("id, name, location, specialties, description, certification_level, latitude, longitude")
         .eq("active", true)
         .order("name", { ascending: true }),
       
@@ -107,7 +108,15 @@ async function getSupabaseData() {
         .from("projects")
         .select("id, name, slug, submenu_label")
         .eq("published", true)
-        .order("display_order", { ascending: true })
+        .order("display_order", { ascending: true }),
+      
+      // Events (para HomeEventsSection)
+      supabase
+        .from("events")
+        .select("*")
+        .eq("published", true)
+        .order("created_at", { ascending: false })
+        .limit(2)
     ])
 
     // Processar galeria: separar featured das outras
@@ -134,25 +143,24 @@ async function getSupabaseData() {
       auth: { autoRefreshToken: false, persistSession: false }
     })
     
-    const [aboutContentResult, aboutFeaturesResult, homeInfoResult] = await Promise.all([
-      serviceClient
-        .from("about_content")
-        .select("*")
-        .order("id", { ascending: true })
-        .limit(1)
-        .single(),
-      
-      serviceClient
-        .from("about_features")
-        .select("*")
-        .order("display_order", { ascending: true }),
-      
-      serviceClient
-        .from("home_info")
-        .select("*")
-        .limit(1)
-        .single()
-    ])
+    // 🚀 OTIMIZAÇÃO: Unificar TODAS as queries em um único Promise.all
+    const aboutContentResult = await serviceClient
+      .from("about_content")
+      .select("*")
+      .order("id", { ascending: true })
+      .limit(1)
+      .single()
+    
+    const aboutFeaturesResult = await serviceClient
+      .from("about_features")
+      .select("*")
+      .order("display_order", { ascending: true })
+    
+    const homeInfoResult = await serviceClient
+      .from("home_info")
+      .select("*")
+      .limit(1)
+      .single()
     
     // Montar objetos no formato esperado (igual à API)
     const about = {
@@ -169,16 +177,17 @@ async function getSupabaseData() {
       galleryTotalCount: totalCountResult.count || 0, 
       about, 
       projects: projectsResult.data || [], 
-      homeInfo
+      homeInfo,
+      events: eventsResult.data || []
     }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
-    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null, projects: [], homeInfo: null }
+    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null, projects: [], homeInfo: null, events: [] }
   }
 }
 
 export default async function HomePage() {
-  const { news, gallery, producers, galleryTotalCount, about, projects, homeInfo } = await getSupabaseData()
+  const { news, gallery, producers, galleryTotalCount, about, projects, homeInfo, events } = await getSupabaseData()
   
   // Garantir que projects é um array válido e serializável
   const safeProjects = Array.isArray(projects) ? projects : []
@@ -825,7 +834,7 @@ export default async function HomePage() {
       {/* Events Section */}
       <section id="eventos" className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
-          <HomeEventsSection />
+          <HomeEventsSection initialEvents={events || []} />
         </div>
       </section>
 

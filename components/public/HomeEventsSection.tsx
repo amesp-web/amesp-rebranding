@@ -52,20 +52,22 @@ function truncate(text?: string | null, max = 50) {
   return t.length <= max ? t : t.slice(0, max).trimEnd() + '...'
 }
 
-export default function HomeEventsSection() {
-  const [events, setEvents] = useState<PublicEvent[]>([])
+export default function HomeEventsSection({ initialEvents = [] }: { initialEvents?: PublicEvent[] }) {
+  const [events, setEvents] = useState<PublicEvent[]>(initialEvents)
   const [selected, setSelected] = useState<PublicEvent | null>(null)
 
+  // 🚀 OTIMIZAÇÃO: Só busca se initialEvents estiver vazio (fallback)
   useEffect(() => {
+    if (initialEvents && initialEvents.length > 0) {
+      // Já tem dados do server, não precisa fetch
+      return
+    }
+
     let mounted = true
     ;(async () => {
       try {
         const res = await fetch('/api/public/events', { cache: 'no-store' })
-        let data = await res.json()
-        if ((!data || data.length === 0) && process.env.NEXT_PUBLIC_BASE_URL) {
-          const res2 = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/public/events`, { cache: 'no-store' })
-          data = await res2.json()
-        }
+        const data = await res.json()
         if (mounted) setEvents(Array.isArray(data) ? data : [])
       } catch {
         // noop
