@@ -149,19 +149,21 @@ export default function LoginPage() {
             return
           }
 
-          // 🚀 OTIMIZAÇÃO: Atualizar último acesso em background (não bloqueia login)
-          supabase
-            .from('maricultor_profiles')
-            .update({ 
-              last_sign_in_at: new Date().toISOString(), 
-              updated_at: new Date().toISOString() 
-            })
-            .eq('id', data.user.id)
-            .then(({ error }) => {
-              if (error) {
-                console.error('⚠️ Erro ao atualizar último acesso (não crítico):', error)
-              }
-            })
+          // 🚀 OTIMIZAÇÃO: Atualizar último acesso em background (só se perfil existir)
+          if (maricultorProfile) {
+            supabase
+              .from('maricultor_profiles')
+              .update({ 
+                last_sign_in_at: new Date().toISOString(), 
+                updated_at: new Date().toISOString() 
+              })
+              .eq('id', data.user.id)
+              .then(({ error }) => {
+                if (error) {
+                  console.error('⚠️ Erro ao atualizar último acesso (não crítico):', error)
+                }
+              })
+          }
 
           setUserType("maricultor")
           // 🚀 OTIMIZAÇÃO: Reduzido para 100ms (rápido mas ainda mostra feedback)
