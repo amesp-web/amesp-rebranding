@@ -116,24 +116,10 @@ export default function LoginPage() {
             return
           }
           
-          // 🚀 OTIMIZAÇÃO: Atualizar último acesso em background (não bloqueia login)
-          supabase
-            .from("admin_profiles")
-            .update({ 
-              last_sign_in_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq("id", data.user.id)
-            .then(({ error }) => {
-              if (error) {
-                console.error('⚠️ Erro ao atualizar último acesso (não crítico):', error)
-              }
-            })
-          
           setUserType("admin")
-          // 🚀 OTIMIZAÇÃO: 300ms - equilíbrio entre velocidade e estabilidade
+          // 🚀 OTIMIZAÇÃO: Hard redirect para evitar problemas de cache/estado
           setTimeout(() => {
-            router.push("/admin")
+            window.location.href = "/admin"
           }, 300)
         } else {
           // Verificar maricultor profile e status
@@ -149,26 +135,10 @@ export default function LoginPage() {
             return
           }
 
-          // 🚀 OTIMIZAÇÃO: Atualizar último acesso em background (só se perfil existir)
-          if (maricultorProfile) {
-            supabase
-              .from('maricultor_profiles')
-              .update({ 
-                last_sign_in_at: new Date().toISOString(), 
-                updated_at: new Date().toISOString() 
-              })
-              .eq('id', data.user.id)
-              .then(({ error }) => {
-                if (error) {
-                  console.error('⚠️ Erro ao atualizar último acesso (não crítico):', error)
-                }
-              })
-          }
-
           setUserType("maricultor")
-          // 🚀 OTIMIZAÇÃO: 300ms - equilíbrio entre velocidade e estabilidade
+          // 🚀 OTIMIZAÇÃO: Hard redirect para evitar problemas de cache/estado
           setTimeout(() => {
-            router.push('/maricultor/dashboard')
+            window.location.href = '/maricultor/dashboard'
           }, 300)
         }
       }
