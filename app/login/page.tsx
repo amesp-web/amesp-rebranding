@@ -91,12 +91,20 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // Verificar se é senha temporária
-        const isTemporaryPassword = password.length === 8 && password === password.toUpperCase() && /^[A-Z0-9]+$/.test(password)
-        
+        // Verificar se é senha temporária (padrão usado nos admins)
+        const isTemporaryPassword =
+          password.length === 8 &&
+          password === password.toUpperCase() &&
+          /^[A-Z0-9]+$/.test(password)
+
         if (isTemporaryPassword) {
-          // Redirecionar para redefinição de senha
-          router.push(`/reset-password?email=${encodeURIComponent(email)}`)
+          // Fluxo de PRIMEIRO ACESSO:
+          // usuário acabou de logar com senha temporária → forçar troca imediata
+          router.push(
+            `/reset-password?email=${encodeURIComponent(
+              email
+            )}&firstAccess=true`
+          )
           return
         }
 

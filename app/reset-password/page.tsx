@@ -11,6 +11,7 @@ import { Eye, EyeOff, Lock, CheckCircle, ArrowLeft, Shield } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -26,9 +27,18 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const token = searchParams.get('token')
+  const isFirstAccess = searchParams.get('firstAccess') === 'true'
+  const supabase = createClient()
   
   // Verificar o token de recuperação quando a página carregar
   useEffect(() => {
+    // Modo "primeiro acesso": usuário acabou de logar com senha temporária
+    // Não usamos token nem chamamos a API, apenas permitimos alterar a senha
+    if (isFirstAccess) {
+      setVerifying(false)
+      return
+    }
+
     const verifyRecoveryToken = async () => {
       if (!token || !email) {
         setError("Link de recuperação inválido. Solicite um novo link.")
@@ -55,7 +65,7 @@ export default function ResetPasswordPage() {
     }
     
     verifyRecoveryToken()
-  }, [token, email])
+  }, [token, email, isFirstAccess])
   
   if (verifying) {
     return (
@@ -122,39 +132,61 @@ export default function ResetPasswordPage() {
       return
     }
 
-    if (!token || !email) {
-      toast.error("Link de recuperação inválido")
-      return
-    }
-
     setLoading(true)
     
     try {
-      // Usar nossa API para redefinir a senha
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          email,
-          newPassword: password
-        }),
-      })
+      if (isFirstAccess) {
+        // PRIMEIRO ACESSO: usuário está logado com senha temporária
+        // Atualiza a senha diretamente via Supabase Auth usando a sessão atual
+        const { error } = await supabase.auth.updateUser({ password })
 
-      const data = await response.json()
-      
-      if (response.ok && data.success) {
+        if (error) {
+          console.error("Erro ao atualizar senha no primeiro acesso:", error)
+          toast.error("Erro ao redefinir senha. Tente novamente.")
+          setLoading(false)
+          return
+        }
+
         setSuccess(true)
         toast.success("Senha redefinida com sucesso!")
-        
-        // Redirecionar para o login unificado após 2 segundos
+
+        // Redirecionar para o login após 2 segundos
         setTimeout(() => {
           router.push("/login")
         }, 2000)
       } else {
-        toast.error(data.error || "Erro ao redefinir senha. Tente novamente.")
+        // Fluxo padrão: redefinição via link de e-mail com token
+        if (!token || !email) {
+          toast.error("Link de recuperação inválido")
+          setLoading(false)
+          return
+        }
+
+        const response = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token,
+            email,
+            newPassword: password
+          }),
+        })
+
+        const data = await response.json()
+        
+        if (response.ok && data.success) {
+          setSuccess(true)
+          toast.success("Senha redefinida com sucesso!")
+          
+          // Redirecionar para o login unificado após 2 segundos
+          setTimeout(() => {
+            router.push("/login")
+          }, 2000)
+        } else {
+          toast.error(data.error || "Erro ao redefinir senha. Tente novamente.")
+        }
       }
     } catch (error) {
       toast.error("Erro inesperado. Tente novamente.")
