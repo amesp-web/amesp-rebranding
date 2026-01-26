@@ -162,8 +162,25 @@ export default function GalleryManagement() {
         })
 
         if (!uploadRes.ok) {
-          const errData = await uploadRes.json()
-          throw new Error(errData.error || "Erro ao fazer upload")
+          // Tentar ler como JSON, mas tratar caso não seja JSON
+          let errorMessage = "Erro ao fazer upload"
+          try {
+            const contentType = uploadRes.headers.get("content-type")
+            if (contentType && contentType.includes("application/json")) {
+              const errData = await uploadRes.json()
+              errorMessage = errData.error || errorMessage
+            } else {
+              // Se não for JSON, ler como texto
+              const textError = await uploadRes.text()
+              errorMessage = textError || `Erro ${uploadRes.status}: ${uploadRes.statusText}`
+              console.error("Erro de upload (não-JSON):", textError)
+            }
+          } catch (parseError) {
+            // Se falhar ao ler, usar status code
+            errorMessage = `Erro ${uploadRes.status}: ${uploadRes.statusText || "Erro desconhecido"}`
+            console.error("Erro ao processar resposta de erro:", parseError)
+          }
+          throw new Error(errorMessage)
         }
 
         const uploadData = await uploadRes.json()

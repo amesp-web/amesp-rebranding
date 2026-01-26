@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import sharp from 'sharp'
 
 export const dynamic = 'force-dynamic'
@@ -7,6 +8,28 @@ export const revalidate = 0
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticação do usuário
+    const supabaseServer = await createServerClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseServer.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    }
+
+    // Verificar se o usuário é admin
+    const { data: adminProfile, error: profileError } = await supabaseServer
+      .from('admin_profiles')
+      .select('id, is_active')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !adminProfile || !adminProfile.is_active) {
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File
     const featured = formData.get('featured') === 'true'
