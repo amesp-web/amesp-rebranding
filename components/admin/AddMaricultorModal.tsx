@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { X, User, Mail, Phone, MapPin, IdCard, Loader2, UserPlus, Factory } from "lucide-react"
+import { X, User, Mail, Phone, MapPin, IdCard, Loader2, UserPlus, Factory, FileText, ImageIcon } from "lucide-react"
 import { toast } from "sonner"
 
 interface AddMaricultorModalProps {
@@ -19,6 +19,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
     name: "",
     email: "",
     cpf: "",
+    birth_date: "",
     phone: "",
     cep: "",
     logradouro: "",
@@ -37,6 +38,26 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
   const [loading, setLoading] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
   const [cepError, setCepError] = useState("")
+
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+
+  const [documents, setDocuments] = useState<{
+    rg: File | null
+    cpf: File | null
+    comprovante_endereco: File | null
+    cnh: File | null
+    cessao_aguas: File | null
+    outros: File | null
+    outros_label: string
+  }>({
+    rg: null,
+    cpf: null,
+    comprovante_endereco: null,
+    cnh: null,
+    cessao_aguas: null,
+    outros: null,
+    outros_label: "",
+  })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -57,6 +78,16 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
       return
     }
     
+    // Máscara data de nascimento DD/MM/AAAA
+    if (name === 'birth_date') {
+      const onlyDigits = value.replace(/\D/g, '').slice(0, 8)
+      let masked = onlyDigits
+      if (onlyDigits.length > 2) masked = onlyDigits.slice(0, 2) + '/' + onlyDigits.slice(2)
+      if (onlyDigits.length > 4) masked = masked.slice(0, 5) + '/' + onlyDigits.slice(4)
+      setFormData(prev => ({ ...prev, birth_date: masked }))
+      return
+    }
+
     // Máscara de telefone
     if (name === 'phone') {
       const onlyDigits = value.replace(/\D/g, '')
@@ -287,6 +318,13 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
           email: formData.email,
           cpf: cpfDigits,
           phone: formData.phone,
+          birth_date: formData.birth_date
+            ? (() => {
+                const p = formData.birth_date.replace(/\D/g, '')
+                if (p.length !== 8) return null
+                return `${p.slice(4, 8)}-${p.slice(2, 4)}-${p.slice(0, 2)}`
+              })()
+            : null,
           cep: formData.cep.replace(/\D/g, ''),
           logradouro: [formData.logradouro, formData.numero].filter(Boolean).join(', '),
           cidade: formData.cidade,
@@ -299,15 +337,78 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
       const data = await response.json()
 
       if (response.ok && data.success) {
-        toast.success("Maricultor cadastrado com sucesso!")
+        const maricultorId = data.maricultor_id
+        const hasDocs =
+          documents.rg ||
+          documents.cpf ||
+          documents.comprovante_endereco ||
+          documents.cnh ||
+          documents.cessao_aguas ||
+          documents.outros
+
+        if (logoFile && maricultorId) {
+          try {
+            const logoForm = new FormData()
+            logoForm.append("logo", logoFile)
+            const logoRes = await fetch(`/api/admin/maricultors/${maricultorId}/logo`, {
+              method: "POST",
+              body: logoForm,
+            })
+            if (!logoRes.ok) {
+              const logoData = await logoRes.json()
+              toast.error(logoData.error || "Erro ao enviar logo")
+            }
+          } catch {
+            toast.error("Falha ao enviar logo.")
+          }
+        }
+
+        if (hasDocs && maricultorId) {
+          const docForm = new FormData()
+          if (documents.rg) docForm.append("rg", documents.rg)
+          if (documents.cpf) docForm.append("cpf", documents.cpf)
+          if (documents.comprovante_endereco)
+            docForm.append("comprovante_endereco", documents.comprovante_endereco)
+          if (documents.cnh) docForm.append("cnh", documents.cnh)
+          if (documents.cessao_aguas)
+            docForm.append("cessao_aguas", documents.cessao_aguas)
+          if (documents.outros) {
+            docForm.append("outros", documents.outros)
+            if (documents.outros_label)
+              docForm.append("outros_label", documents.outros_label)
+          }
+          try {
+            const docRes = await fetch(
+              `/api/admin/maricultors/${maricultorId}/documents`,
+              { method: "POST", body: docForm }
+            )
+            const docData = await docRes.json()
+            if (!docRes.ok) {
+              toast.error(docData.error || "Erro ao enviar documentos")
+              setLoading(false)
+              return
+            }
+            if (docData.count > 0) {
+              toast.success(
+                `Maricultor cadastrado! ${docData.count} documento(s) anexado(s).`
+              )
+            } else {
+              toast.success("Maricultor cadastrado com sucesso!")
+            }
+          } catch {
+            toast.success("Maricultor cadastrado. Falha ao anexar documentos.")
+          }
+        } else {
+          toast.success("Maricultor cadastrado com sucesso!")
+        }
         onSuccess()
         onClose()
-        
-        // Resetar formulário
+        setLogoFile(null)
         setFormData({
           name: "",
           email: "",
           cpf: "",
+          birth_date: "",
           phone: "",
           cep: "",
           logradouro: "",
@@ -316,6 +417,15 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
           estado: "",
           company: "",
           specialties: "",
+        })
+        setDocuments({
+          rg: null,
+          cpf: null,
+          comprovante_endereco: null,
+          cnh: null,
+          cessao_aguas: null,
+          outros: null,
+          outros_label: "",
         })
       } else {
         toast.error(data.error || "Erro ao cadastrar maricultor")
@@ -360,7 +470,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
 
         {/* Content - Scrollável */}
         <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
-          <div className="space-y-8 max-w-4xl mx-auto">
+          <div className="space-y-8">
             {/* Dados Pessoais - Card */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-blue-100/50 ring-1 ring-blue-500/10">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-blue-100">
@@ -405,6 +515,19 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                       Senha: primeiros 6 dígitos do CPF
                     </p>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="birth_date" className="text-sm font-semibold">Data de nascimento</Label>
+                  <Input
+                    id="birth_date"
+                    name="birth_date"
+                    value={formData.birth_date}
+                    onChange={handleChange}
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                    className="rounded-xl border-2 border-blue-100 focus:border-blue-400 focus:ring-blue-100"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -628,6 +751,97 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                     placeholder="Ex: Cultivo de ostras, mexilhões..."
                     className="rounded-xl border-2 border-purple-100 focus:border-purple-400 focus:ring-purple-100"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Logo - Card (opcional) */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 ring-1 ring-slate-200/50">
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center shadow-md">
+                  <ImageIcon className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Logo</h3>
+                  <p className="text-sm text-slate-500">Opcional • Aparece no mapa da home (JPEG, PNG ou WebP, até 2 MB)</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Imagem da logo</Label>
+                <Input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  className="rounded-xl border-2 border-slate-200 focus:border-slate-400"
+                  onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
+                />
+                {logoFile && (
+                  <p className="text-xs text-green-600 truncate">{logoFile.name}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Documentos - Card (opcional) */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-amber-100/50 ring-1 ring-amber-500/10">
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-amber-100">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md">
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Documentos</h3>
+                  <p className="text-sm text-slate-500">Opcional • PDF ou imagem, até 10 MB cada</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { key: "rg" as const, label: "RG" },
+                  { key: "cpf" as const, label: "CPF" },
+                  { key: "comprovante_endereco" as const, label: "Comprovante de endereço" },
+                  { key: "cnh" as const, label: "CNH" },
+                  { key: "cessao_aguas" as const, label: "Cessão de Águas" },
+                ].map(({ key, label }) => (
+                  <div key={key} className="space-y-2">
+                    <Label className="text-sm font-semibold">{label}</Label>
+                    <Input
+                      type="file"
+                      accept=".pdf,image/jpeg,image/jpg,image/png,image/webp"
+                      className="rounded-xl border-2 border-amber-100 focus:border-amber-400"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        setDocuments((prev) => ({ ...prev, [key]: f || null }))
+                      }}
+                    />
+                    {documents[key] && (
+                      <p className="text-xs text-green-600 truncate">{documents[key]?.name}</p>
+                    )}
+                  </div>
+                ))}
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-sm font-semibold">Outros</Label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Descrição (opcional)"
+                      value={documents.outros_label}
+                      onChange={(e) =>
+                        setDocuments((prev) => ({ ...prev, outros_label: e.target.value }))
+                      }
+                      className="rounded-xl border-2 border-amber-100 flex-1"
+                    />
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept=".pdf,image/jpeg,image/jpg,image/png,image/webp"
+                        className="rounded-xl border-2 border-amber-100 focus:border-amber-400"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          setDocuments((prev) => ({ ...prev, outros: f || null }))
+                        }}
+                      />
+                      {documents.outros && (
+                        <p className="text-xs text-green-600 truncate mt-1">{documents.outros.name}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

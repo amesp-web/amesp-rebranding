@@ -6,6 +6,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { MaricultorStatusBadge } from "@/components/admin/maricultor-status-badge"
 import { MaricultorToggle } from "@/components/admin/maricultor-toggle"
+import { MapVisibilityToggle } from "@/components/admin/map-visibility-toggle"
 import { AddMaricultorButton } from "@/components/admin/AddMaricultorButton"
 import { EditMaricultorButton } from "@/components/admin/EditMaricultorButton"
 import { SearchFilter } from "@/components/admin/SearchFilter"
@@ -59,7 +60,7 @@ export default async function ProducersManagement({
   let query = supabase
     .from("maricultor_profiles")
     .select(
-      "id, full_name, cpf, contact_phone, cep, logradouro, cidade, estado, company, specialties, latitude, longitude, created_at, is_active"
+      "id, full_name, cpf, contact_phone, birth_date, cep, logradouro, cidade, estado, company, specialties, latitude, longitude, logo_path, created_at, is_active, show_on_map"
     )
     .order("created_at", { ascending: false })
 
@@ -235,6 +236,7 @@ export default async function ProducersManagement({
                   </div>
 
                   <div className="ml-4 flex items-center gap-2">
+                    <MapVisibilityToggle id={p.id} initialShowOnMap={p.show_on_map !== false} />
                     <EditMaricultorButton maricultor={p} />
                     <MaricultorToggle id={p.id} initialActive={!!p.is_active} />
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">

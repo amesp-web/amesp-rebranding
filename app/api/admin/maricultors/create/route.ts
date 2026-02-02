@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     console.log('📦 Body recebido:', body)
     
-    const { full_name, email, cpf, phone, cep, logradouro, cidade, estado, company, specialties } = body
+    const { full_name, email, cpf, phone, birth_date, cep, logradouro, cidade, estado, company, specialties } = body
 
     // Validações
     if (!full_name || !email || !cpf) {
@@ -136,6 +136,7 @@ export async function POST(request: Request) {
         full_name,
         cpf: cpfDigits,
         contact_phone: phone,
+        birth_date: birth_date || null,
         logradouro,
         cidade,
         estado,

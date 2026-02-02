@@ -8,7 +8,7 @@ export async function PUT(request: Request) {
     const body = await request.json()
     console.log('📦 Body recebido:', body)
     
-    const { id, full_name, cpf, contact_phone, cep, logradouro, cidade, estado, company, specialties } = body
+    const { id, full_name, cpf, contact_phone, birth_date, cep, logradouro, cidade, estado, company, specialties } = body
 
     // Validações
     if (!id || !full_name) {
@@ -111,6 +111,11 @@ export async function PUT(request: Request) {
     // Adicionar CPF se fornecido
     if (cpfDigits) {
       updateData.cpf = cpfDigits
+    }
+
+    // Data de nascimento (YYYY-MM-DD ou null)
+    if (birth_date !== undefined) {
+      updateData.birth_date = birth_date || null
     }
 
     // Adicionar coordenadas se obtidas
