@@ -14,7 +14,7 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: Home },
   { name: "Notícias", href: "/admin/news", icon: Newspaper },
   { name: "Eventos", href: "/admin/events", icon: Calendar },
-  { name: "Produtores", href: "/admin/producers", icon: MapPin },
+  { name: "Maricultores", href: "/admin/producers", icon: MapPin },
   { name: "Galeria", href: "/admin/gallery", icon: Camera },
   { name: "Usuários", href: "/admin/users", icon: Users },
   { name: "Newsletter", href: "/admin/newsletter", icon: Mail },

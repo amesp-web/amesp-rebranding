@@ -10,6 +10,11 @@ import { AddMaricultorButton } from "@/components/admin/AddMaricultorButton"
 import { EditMaricultorButton } from "@/components/admin/EditMaricultorButton"
 import { SearchFilter } from "@/components/admin/SearchFilter"
 
+export const metadata = {
+  title: "Maricultores | Admin",
+  description: "Acompanhe e gerencie os maricultores cadastrados",
+}
+
 function normalizeSpecialties(value: any): string[] {
   if (!value) return []
   if (Array.isArray(value)) return value.filter(Boolean)
@@ -92,9 +97,9 @@ export default async function ProducersManagement({
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-white mb-2 flex items-center drop-shadow">
-                <Factory className="h-8 w-8 mr-3" /> Produtores
+                <Factory className="h-8 w-8 mr-3" /> Maricultores
               </h1>
-              <p className="text-blue-50/90 text-lg">Acompanhe e gerencie os produtores cadastrados</p>
+              <p className="text-blue-50/90 text-lg">Acompanhe e gerencie os maricultores cadastrados</p>
             </div>
             
             {/* Botão de adicionar no header */}
@@ -170,8 +175,8 @@ export default async function ProducersManagement({
       {/* Lista moderna */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/60">
         <CardHeader>
-          <CardTitle className="text-xl font-bold text-slate-800">Lista de Produtores</CardTitle>
-          <CardDescription className="text-slate-600">Gerencie todos os produtores cadastrados ({producers?.length || 0} encontrados)</CardDescription>
+          <CardTitle className="text-xl font-bold text-slate-800">Lista de Maricultores</CardTitle>
+          <CardDescription className="text-slate-600">Gerencie todos os maricultores cadastrados ({producers?.length || 0} encontrados)</CardDescription>
         </CardHeader>
         <CardContent className="p-6">
           {producers && producers.length > 0 ? (
