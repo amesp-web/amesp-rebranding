@@ -64,9 +64,15 @@ export async function POST(request: Request) {
 
     if (authError) {
       console.error('❌ Erro ao criar usuário:', authError)
+      const msg = (authError.message || '').toLowerCase()
+      const isDuplicateEmail = msg.includes('already been registered') || msg.includes('already exists') || msg.includes('duplicate')
+      const status = isDuplicateEmail ? 409 : 500
+      const userMessage = isDuplicateEmail
+        ? 'Já existe um maricultor cadastrado com este e-mail. Use outro e-mail ou localize o cadastro existente.'
+        : (authError.message || 'Erro ao criar usuário')
       return NextResponse.json(
-        { error: authError.message || 'Erro ao criar usuário' },
-        { status: 500 }
+        { error: userMessage },
+        { status }
       )
     }
 

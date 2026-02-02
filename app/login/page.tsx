@@ -284,6 +284,9 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground">Senha</label>
                 {PasswordInput}
+                <p className="text-xs text-muted-foreground">
+                  Maricultores: use o e-mail cadastrado e a senha enviada por e-mail (6 primeiros dígitos do CPF, sem pontos ou traços).
+                </p>
               </div>
 
               <div className="flex items-center justify-between text-sm">
