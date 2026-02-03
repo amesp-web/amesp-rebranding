@@ -16,6 +16,7 @@ const navigation = [
   { name: "Usuários", href: "/admin/users", icon: Users },
   { name: "Infos da Home", href: "/admin/home-info", icon: Monitor },
   { name: "Quem Somos", href: "/admin/about", icon: Info },
+  { name: "Maricultura", href: "/admin/maricultura", icon: Fish },
   { name: "Projetos Socioambientais", href: "/admin/projects", icon: Leaf },
   { name: "Gerenciar Download", href: "/admin/downloads", icon: Download },
   { name: "Configurações", href: "/admin/settings", icon: Settings },

@@ -160,6 +160,20 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
             >
               Produtores
             </a>
+            <a
+              href="#maricultura"
+              onClick={closeMenu}
+              className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+            >
+              Maricultura
+            </a>
+            <a
+              href="#turismo"
+              onClick={closeMenu}
+              className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+            >
+              Turismo
+            </a>
 
             {/* Projetos Socioambientais (Expandível) */}
             <div>
