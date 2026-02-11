@@ -8,6 +8,7 @@ import { ProjectsDropdown } from "@/components/public/ProjectsDropdown"
 import { MobileMenu } from "@/components/public/MobileMenu"
 import { AboutSection } from "@/components/public/AboutSection"
 import { MariculturaSection } from "@/components/public/MariculturaSection"
+import { TurismoSection } from "@/components/public/TurismoSection"
 import { HeroButtons } from "@/components/public/HeroButtons"
 import { LogoLink } from "@/components/public/LogoLink"
 import Image from "next/image"
@@ -169,6 +170,18 @@ async function getSupabaseData() {
       .select("*")
       .order("display_order", { ascending: true })
     
+    const turismoContentResult = await serviceClient
+      .from("turismo_content")
+      .select("*")
+      .order("id", { ascending: true })
+      .limit(1)
+      .single()
+    
+    const turismoFeaturesResult = await serviceClient
+      .from("turismo_features")
+      .select("*")
+      .order("display_order", { ascending: true })
+    
     const homeInfoResult = await serviceClient
       .from("home_info")
       .select("*")
@@ -186,6 +199,11 @@ async function getSupabaseData() {
       features: mariculturaFeaturesResult.data || []
     }
     
+    const turismo = {
+      content: turismoContentResult.data,
+      features: turismoFeaturesResult.data || []
+    }
+    
     const homeInfo = homeInfoResult.data
 
     return { 
@@ -195,18 +213,19 @@ async function getSupabaseData() {
       galleryTotalCount: totalCountResult.count || 0, 
       about, 
       maricultura,
+      turismo,
       projects: projectsResult.data || [], 
       homeInfo,
       events: eventsResult.data || []
     }
   } catch (error) {
     console.error("[v0] Failed to fetch Supabase data:", error)
-    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null, maricultura: null, projects: [], homeInfo: null, events: [] }
+    return { news: null, gallery: null, producers: null, galleryTotalCount: 0, about: null, maricultura: null, turismo: null, projects: [], homeInfo: null, events: [] }
   }
 }
 
 export default async function HomePage() {
-  const { news, gallery, producers, galleryTotalCount, about, maricultura, projects, homeInfo, events } = await getSupabaseData()
+  const { news, gallery, producers, galleryTotalCount, about, maricultura, turismo, projects, homeInfo, events } = await getSupabaseData()
   
   // Garantir que projects é um array válido e serializável
   const safeProjects = Array.isArray(projects) ? projects : []
@@ -867,6 +886,14 @@ export default async function HomePage() {
         <FishSwarm count={3} className="hidden md:block" />
         <div className="container mx-auto px-4 relative z-10">
           <MariculturaSection maricultura={maricultura} />
+        </div>
+      </section>
+
+      {/* Turismo Section */}
+      <section id="turismo" className="relative py-20 overflow-hidden">
+        <FishSwarm count={2} className="hidden md:block" />
+        <div className="container mx-auto px-4 relative z-10">
+          <TurismoSection turismo={turismo} />
         </div>
       </section>
 

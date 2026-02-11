@@ -22,6 +22,10 @@ export const metadata: Metadata = {
   description:
     "Trabalhamos para o desenvolvimento e organização da maricultura sustentável no litoral norte do estado de São Paulo.",
   generator: "v0.app",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 }
 
 export default function RootLayout({
