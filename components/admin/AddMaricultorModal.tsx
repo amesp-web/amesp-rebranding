@@ -285,14 +285,12 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
     e.preventDefault()
     setLoading(true)
 
-    // Validações
-    if (!formData.name || !formData.email || !formData.cpf) {
-      toast.error("Preencha todos os campos obrigatórios")
+    if (!formData.name || !formData.phone || !formData.cpf) {
+      toast.error("Preencha nome, telefone e CPF (obrigatórios)")
       setLoading(false)
       return
     }
 
-    // Validar CPF (11 dígitos)
     const cpfDigits = formData.cpf.replace(/\D/g, '')
     if (cpfDigits.length !== 11) {
       toast.error("CPF deve ter 11 dígitos")
@@ -300,10 +298,9 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
       return
     }
 
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Email inválido")
+    const phoneDigits = formData.phone.replace(/\D/g, '')
+    if (phoneDigits.length < 10) {
+      toast.error("Telefone inválido. Informe com DDD (ex: 11 99999-9999)")
       setLoading(false)
       return
     }
@@ -325,7 +322,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                 return `${p.slice(4, 8)}-${p.slice(2, 4)}-${p.slice(0, 2)}`
               })()
             : null,
-          cep: formData.cep.replace(/\D/g, ''),
+          cep: formData.cep ? String(formData.cep).replace(/\D/g, '') : '',
           logradouro: [formData.logradouro, formData.numero].filter(Boolean).join(', '),
           cidade: formData.cidade,
           estado: formData.estado,
@@ -428,10 +425,14 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
           outros_label: "",
         })
       } else {
-        toast.error(data.error || "Erro ao cadastrar maricultor")
+        const msg = data.error || "Erro ao cadastrar maricultor"
+        toast.error(msg)
+        console.error("[Create maricultor]", response.status, msg)
       }
     } catch (error) {
-      toast.error("Erro ao cadastrar maricultor. Tente novamente.")
+      const msg = error instanceof Error ? error.message : "Erro ao cadastrar maricultor. Tente novamente."
+      toast.error(msg)
+      console.error("[Create maricultor]", error)
     } finally {
       setLoading(false)
     }
@@ -531,24 +532,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-semibold">E-mail *</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400" />
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="email@exemplo.com"
-                      required
-                      className="rounded-xl pl-10 border-2 border-blue-100 focus:border-blue-400 focus:ring-blue-100"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-semibold">Telefone</Label>
+                  <Label htmlFor="phone" className="text-sm font-semibold">Telefone *</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400" />
                     <Input
@@ -560,9 +544,28 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                       onChange={handleChange}
                       placeholder="(11) 99999-9999"
                       maxLength={15}
+                      required
                       className="rounded-xl pl-10 border-2 border-blue-100 focus:border-blue-400 focus:ring-blue-100"
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground">Usado para login no painel (com senha = 6 primeiros do CPF).</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-semibold">E-mail (opcional)</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-400" />
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="email@exemplo.com"
+                      className="rounded-xl pl-10 border-2 border-blue-100 focus:border-blue-400 focus:ring-blue-100"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Para envio de credenciais por e-mail, se desejar.</p>
                 </div>
               </div>
             </div>
@@ -579,7 +582,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* 1. CEP */}
                 <div className="space-y-2">
-                  <Label htmlFor="cep" className="text-sm font-semibold">CEP</Label>
+                  <Label htmlFor="cep" className="text-sm font-semibold">CEP (opcional)</Label>
                   <div className="relative">
                     <Input
                       id="cep"

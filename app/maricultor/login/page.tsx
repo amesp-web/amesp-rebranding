@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { LogIn, Mail, Lock, ArrowLeft, Fish } from "lucide-react"
+import { LogIn, Phone, Lock, ArrowLeft, Fish } from "lucide-react"
+import { phoneToMaricultorAuthEmail } from "@/lib/maricultor-auth-phone"
 
 export default function MaricultorLoginPage() {
-  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -30,6 +31,13 @@ export default function MaricultorLoginPage() {
     setLoading(true)
     setError("")
 
+    const authEmail = phoneToMaricultorAuthEmail(phone)
+    if (!authEmail) {
+      setError("Informe o telefone com DDD (ex: 11 99999-9999).")
+      setLoading(false)
+      return
+    }
+
     try {
       const supabase = getSupabaseClient()
       if (!supabase) {
@@ -38,7 +46,7 @@ export default function MaricultorLoginPage() {
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: authEmail,
         password,
       })
 
@@ -96,18 +104,19 @@ export default function MaricultorLoginPage() {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">E-mail</label>
+                <label className="text-sm font-semibold text-foreground">Telefone (com DDD)</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                    placeholder="seu@email.com"
+                    placeholder="(11) 99999-9999"
                     required
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">Use o mesmo telefone cadastrado no seu perfil.</p>
               </div>
 
               <div className="space-y-2">
@@ -119,10 +128,11 @@ export default function MaricultorLoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-                    placeholder="Digite sua senha"
+                    placeholder="6 primeiros dígitos do CPF"
                     required
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">Senha: 6 primeiros dígitos do seu CPF (sem pontos ou traços).</p>
               </div>
 
               <div className="flex items-center justify-between text-sm">

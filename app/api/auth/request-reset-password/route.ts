@@ -3,17 +3,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { randomBytes } from 'crypto'
 import { sendEmail, getResetPasswordEmailTemplate } from '@/lib/email-sender'
+import { loginIdentifierToAuthEmail, isMaricultorAuthEmail } from '@/lib/maricultor-auth-phone'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json()
+    const { email: input } = await request.json()
 
-    if (!email) {
+    if (!input || !String(input).trim()) {
       return NextResponse.json(
-        { success: false, error: 'Email é obrigatório' },
+        { success: false, error: 'E-mail ou telefone é obrigatório' },
         { status: 400 }
       )
     }
+
+    const email = loginIdentifierToAuthEmail(String(input).trim())
 
     // Usar Service Role Key para operações de admin
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -44,10 +47,9 @@ export async function POST(request: NextRequest) {
 
     const user = users?.find((u) => u.email === email)
 
-    // Por segurança, sempre retornar sucesso mesmo que o email não exista
     if (!user) {
-      console.log('📧 Email não encontrado, mas retornando sucesso por segurança')
-      return NextResponse.json({ success: true, message: 'Se o email existir, um link foi enviado' })
+      console.log('📧 Usuário não encontrado (email/telefone), retornando sucesso por segurança')
+      return NextResponse.json({ success: true, message: 'Se o e-mail ou telefone existir, um link foi enviado' })
     }
 
     // Verificar se é admin ou maricultor para buscar o nome
@@ -100,12 +102,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 4. Gerar link de redefinição
     const resetLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`
 
-    // 5. Enviar email diretamente (sem fetch)
-    console.log('📧 Tentando enviar email para:', email)
-    
+    if (isMaricultorAuthEmail(email)) {
+      return NextResponse.json({
+        success: true,
+        message: 'Maricultores: entre em contato com a AMESP para redefinir sua senha (login é por telefone).'
+      })
+    }
+
+    console.log('📧 Enviando email de redefinição para:', email)
     const emailTemplate = getResetPasswordEmailTemplate(resetLink)
     const emailResult = await sendEmail({
       to: email,
@@ -121,11 +127,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('✅ Email de redefinição de senha enviado para:', email, '| MessageID:', emailResult.messageId)
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Email enviado com sucesso' 
-    })
+    console.log('✅ Email de redefinição enviado.')
+    return NextResponse.json({ success: true, message: 'Email enviado com sucesso' })
 
   } catch (error) {
     console.error('Erro ao processar solicitação de redefinição:', error)

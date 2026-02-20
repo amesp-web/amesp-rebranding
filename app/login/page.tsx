@@ -8,6 +8,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { LogIn, Mail, Lock, ArrowLeft, Fish, Shield, Users, Eye, EyeOff } from "lucide-react"
+import { loginIdentifierToAuthEmail } from "@/lib/maricultor-auth-phone"
 import { useRouter } from "next/navigation"
 import { checkTemporaryPassword } from "@/lib/auth-helpers"
 import { useSearchParams } from "next/navigation"
@@ -79,8 +80,9 @@ export default function LoginPage() {
         return
       }
 
+      const authEmail = loginIdentifierToAuthEmail(email)
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: authEmail,
         password,
       })
 
@@ -98,11 +100,9 @@ export default function LoginPage() {
           /^[A-Z0-9]+$/.test(password)
 
         if (isTemporaryPassword) {
-          // Fluxo de PRIMEIRO ACESSO:
-          // usuário acabou de logar com senha temporária → forçar troca imediata
           router.push(
             `/reset-password?email=${encodeURIComponent(
-              email
+              authEmail
             )}&firstAccess=true`
           )
           return
@@ -118,7 +118,7 @@ export default function LoginPage() {
         if (adminProfile) {
           // Verificar se o usuário está ativo ANTES de permitir login
           if (adminProfile.is_active === false) {
-            console.log('🚫 Usuário inativo tentando fazer login:', email)
+            console.log('🚫 Usuário inativo tentando fazer login:', authEmail)
             setError("Sua conta foi inativada. Entre em contato com o administrador.")
             setLoading(false)
             return
@@ -162,11 +162,13 @@ export default function LoginPage() {
     <div className="relative">
       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <input
-        type="email"
+        type="text"
+        inputMode="text"
+        autoComplete="username"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         className="w-full pl-10 pr-4 py-3 border-0 rounded-xl bg-muted/50 backdrop-blur-sm focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
-        placeholder="seu@email.com"
+        placeholder="admin: e-mail / maricultor: (11) 99999-9999"
         required
         disabled={loading}
       />
@@ -277,7 +279,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">E-mail</label>
+                <label className="text-sm font-semibold text-foreground">E-mail ou telefone</label>
                 {EmailInput}
               </div>
 
@@ -285,7 +287,7 @@ export default function LoginPage() {
                 <label className="text-sm font-semibold text-foreground">Senha</label>
                 {PasswordInput}
                 <p className="text-xs text-muted-foreground">
-                  Maricultores: use o e-mail cadastrado e a senha enviada por e-mail (6 primeiros dígitos do CPF, sem pontos ou traços).
+                  Maricultores: use o telefone cadastrado (com DDD) e a senha (6 primeiros dígitos do CPF, sem pontos ou traços).
                 </p>
               </div>
 

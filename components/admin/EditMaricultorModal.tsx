@@ -133,18 +133,24 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
     company: "",
     specialties: ""
   })
+  const [sendCredentialsEmail, setSendCredentialsEmail] = useState(false)
+  const [emailParaEnvio, setEmailParaEnvio] = useState("")
 
-  // Buscar e-mail do maricultor (auth.users) quando o modal abrir
   useEffect(() => {
-    if (!isOpen || !maricultor?.id) {
+    if (!isOpen) {
       setEmail(null)
+      setSendCredentialsEmail(false)
+      setEmailParaEnvio("")
       return
     }
     let cancelled = false
-    fetch(`/api/admin/maricultors/${maricultor.id}/email`)
+    fetch(`/api/admin/maricultors/${maricultor?.id}/email`)
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
-        if (!cancelled && data?.email) setEmail(data.email)
+        if (!cancelled) {
+          setEmail(data?.email ?? null)
+          setSendCredentialsEmail(false)
+        }
       })
       .catch(() => { if (!cancelled) setEmail(null) })
     return () => { cancelled = true }
@@ -318,7 +324,9 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
           id: maricultor.id,
           ...formData,
           birth_date: birthDateIso,
-          logradouro: logradouroCompleto
+          logradouro: logradouroCompleto,
+          email: emailParaEnvio?.trim() || undefined,
+          send_credentials_email: sendCredentialsEmail
         })
       })
 
@@ -390,18 +398,35 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">E-mail</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    value={email ?? "—"}
-                    readOnly
-                    disabled
-                    className="pl-10 bg-muted/50 border-cyan-200 dark:border-cyan-800 text-muted-foreground"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">E-mail de login (não editável)</p>
+              <div className="space-y-2 md:col-span-2">
+                <p className="text-xs text-muted-foreground">
+                  Acesso ao painel: use o <strong>telefone</strong> cadastrado (campo acima) e a senha = 6 primeiros dígitos do CPF.
+                </p>
+                {formData.cpf.replace(/\D/g, "").length === 11 && (
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sendCredentialsEmail}
+                        onChange={(e) => setSendCredentialsEmail(e.target.checked)}
+                        className="rounded border-cyan-300 text-cyan-600 focus:ring-cyan-500"
+                      />
+                      Atualizar senha (6 primeiros do CPF) e enviar credenciais por e-mail
+                    </label>
+                    {sendCredentialsEmail && (
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="email"
+                          value={emailParaEnvio}
+                          onChange={(e) => setEmailParaEnvio(e.target.value)}
+                          placeholder="E-mail para envio (opcional)"
+                          className="pl-10 border-cyan-200 dark:border-cyan-800"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
