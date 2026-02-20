@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 import { createBrowserClient } from "@supabase/ssr"
-import { LogOut, User, Fish, Calendar, FileText, Lock, DollarSign, Waves, Activity, Eye, ArrowUpRight, MapPin, ExternalLink, FolderOpen, ScrollText, Phone, Building2 } from "lucide-react"
+import { LogOut, User, Fish, Calendar, FileText, Lock, DollarSign, Waves, Activity, Eye, ArrowUpRight, MapPin, ExternalLink, FolderOpen, ScrollText, Phone, Building2, Newspaper, Share2 } from "lucide-react"
 
 // Função para calcular a próxima reunião (primeira segunda-feira do mês, exceto dez/jan/fev)
 function getNextMeeting() {
@@ -592,16 +592,12 @@ export default function MaricultorDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3 relative z-10">
-                {/* Link Atas */}
+                {/* Link Atas - pasta Google Drive AMESP */}
                 <a
-                  href="#"
+                  href="https://drive.google.com/drive/folders/1eI9mLENlJwC6T4Evn-EIw3rJ_KD17Wov?hl=pt-br"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-4 rounded-xl bg-white border border-indigo-200/50 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all duration-200 group/link shadow-sm hover:shadow-md"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    alert('Link para Google Drive em breve!\n\nO admin precisará configurar a URL do Google Drive.')
-                  }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-50 flex items-center justify-center">
@@ -615,16 +611,12 @@ export default function MaricultorDashboard() {
                   <ExternalLink className="h-4 w-4 text-indigo-600 group-hover/link:translate-x-1 transition-transform" />
                 </a>
 
-                {/* Link Documentos Institucionais */}
+                {/* Link Documentos Institucionais - pasta Google Drive AMESP */}
                 <a
-                  href="#"
+                  href="https://drive.google.com/drive/folders/1NrfSFjpRPwHuSUzUXcVt9QgOeqO1fB3F?hl=pt-br"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-4 rounded-xl bg-white border border-purple-200/50 hover:border-purple-400 hover:bg-purple-50/50 transition-all duration-200 group/link shadow-sm hover:shadow-md"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    alert('Link para Google Drive em breve!\n\nO admin precisará configurar a URL do Google Drive.')
-                  }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
@@ -638,12 +630,43 @@ export default function MaricultorDashboard() {
                   <ExternalLink className="h-4 w-4 text-purple-600 group-hover/link:translate-x-1 transition-transform" />
                 </a>
 
-                {/* Nota para futura configuração */}
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-xs text-blue-700">
-                    📌 <strong>Para configurar:</strong> Substitua os <code className="bg-blue-100 px-1 rounded">#</code> pelas URLs do Google Drive
-                  </p>
-                </div>
+                {/* Link Boletim Institucional - pasta Google Drive AMESP */}
+                <a
+                  href="https://drive.google.com/drive/folders/1pDn1_PWaBr7EEx1Y_1gWsoUGrbXZ10Sz?hl=pt-br"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 rounded-xl bg-white border border-teal-200/50 hover:border-teal-400 hover:bg-teal-50/50 transition-all duration-200 group/link shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center">
+                      <Newspaper className="h-5 w-5 text-teal-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">Boletim Institucional</p>
+                      <p className="text-xs text-muted-foreground">Acesse os boletins da AMESP</p>
+                    </div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-teal-600 group-hover/link:translate-x-1 transition-transform" />
+                </a>
+
+                {/* Link Documentos Colaborativos - pasta Google Drive AMESP */}
+                <a
+                  href="https://drive.google.com/drive/folders/1NpGbVP4Dc9v4HLfhC8GjrehAgNvpuW3O?hl=pt-br"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-4 rounded-xl bg-white border border-amber-200/50 hover:border-amber-400 hover:bg-amber-50/50 transition-all duration-200 group/link shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center">
+                      <Share2 className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">Documentos Colaborativos</p>
+                      <p className="text-xs text-muted-foreground">Documentos compartilhados e colaborativos</p>
+                    </div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-amber-600 group-hover/link:translate-x-1 transition-transform" />
+                </a>
               </CardContent>
             </Card>
           </div>
