@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 import { createBrowserClient } from "@supabase/ssr"
-import { LogOut, User, Fish, Calendar, FileText, Lock, DollarSign, Waves, Activity, Eye, ArrowUpRight, MapPin, ExternalLink, FolderOpen, ScrollText, Phone, Building2, Newspaper, Share2 } from "lucide-react"
+import { LogOut, User, Fish, Calendar, FileText, Lock, DollarSign, Waves, Activity, Eye, ArrowUpRight, MapPin, ExternalLink, FolderOpen, ScrollText, Phone, Building2, Newspaper, Share2, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
 
 // Função para calcular a próxima reunião (primeira segunda-feira do mês, exceto dez/jan/fev)
 function getNextMeeting() {
@@ -58,6 +58,15 @@ export default function MaricultorDashboard() {
   const [profile, setProfile] = useState<any>(null)
   const [news, setNews] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
+  const [mensalidades, setMensalidades] = useState<{
+    loading: boolean
+    year?: number
+    fee_exempt?: boolean
+    em_dia?: boolean
+    pending_months?: number[]
+    month_names?: string[]
+    message?: string
+  }>({ loading: true })
   
   // Calcular próxima reunião
   const nextMeeting = useMemo(() => getNextMeeting(), [])
@@ -108,6 +117,42 @@ export default function MaricultorDashboard() {
 
     getUser()
   }, [supabase.auth])
+
+  const fetchMensalidades = useCallback(() => {
+    if (!user?.id) return
+    setMensalidades((m) => ({ ...m, loading: true }))
+    fetch("/api/maricultor/mensalidades", { credentials: "include", cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Erro ao carregar"))))
+      .then((data) => {
+        setMensalidades({
+          loading: false,
+          year: data.year,
+          fee_exempt: data.fee_exempt,
+          em_dia: data.em_dia,
+          pending_months: data.pending_months || [],
+          month_names: data.month_names || [],
+          message: data.message,
+        })
+      })
+      .catch(() => setMensalidades((m) => ({ ...m, loading: false })))
+  }, [user?.id])
+
+  useEffect(() => {
+    if (!user?.id) {
+      setMensalidades((m) => ({ ...m, loading: false }))
+      return
+    }
+    fetchMensalidades()
+  }, [user?.id, fetchMensalidades])
+
+  useEffect(() => {
+    if (!user?.id) return
+    const onVisible = () => {
+      document.visibilityState === "visible" && fetchMensalidades()
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    return () => document.removeEventListener("visibilitychange", onVisible)
+  }, [user?.id, fetchMensalidades])
 
   useEffect(() => {
     // Buscar notícias publicadas
@@ -557,21 +602,63 @@ export default function MaricultorDashboard() {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       Mensalidades
+                      {mensalidades.year != null && (
+                        <span className="text-base font-semibold text-amber-700/90">({mensalidades.year})</span>
+                      )}
                     </CardTitle>
-                    <CardDescription className="mt-1">Gerencie suas mensalidades e pagamentos</CardDescription>
+                    <CardDescription className="mt-1">Gerencie suas mensalidades e pagamentos por ano</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-center py-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                    <Lock className="h-8 w-8 text-primary/60" />
+                {mensalidades.loading ? (
+                  <div className="flex flex-col items-center justify-center py-8 gap-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+                    <p className="text-sm text-muted-foreground">Carregando status...</p>
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-700 mb-2">Em Breve</h3>
-                  <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                    Funcionalidade de gerenciamento de mensalidades estará disponível em breve.
-                  </p>
-                </div>
+                ) : mensalidades.fee_exempt ? (
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-3">
+                      <CheckCircle className="h-7 w-7 text-amber-600" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-700">{mensalidades.message || "Você é isento de mensalidade."}</p>
+                  </div>
+                ) : mensalidades.em_dia ? (
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100 mb-3">
+                      <CheckCircle className="h-7 w-7 text-emerald-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-emerald-800 mb-1">Em dia!</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Suas mensalidades de {mensalidades.year ?? "este ano"} estão em dia até o mês atual.
+                    </p>
+                  </div>
+                ) : (mensalidades.pending_months?.length ?? 0) > 0 ? (
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-3">
+                      <AlertCircle className="h-7 w-7 text-amber-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-700 mb-1">
+                      {mensalidades.pending_months.length} mês(es) pendente(s)
+                      {mensalidades.year != null && (
+                        <span className="font-normal text-slate-600"> em {mensalidades.year}</span>
+                      )}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {mensalidades.month_names && mensalidades.pending_months
+                        ? mensalidades.pending_months.map((m) => mensalidades.month_names![m - 1]).join(", ")
+                        : ""}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Entre em contato com a AMESP para regularizar.</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 mb-3">
+                      <DollarSign className="h-7 w-7 text-slate-500" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Nenhuma mensalidade em aberto no momento.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

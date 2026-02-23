@@ -98,10 +98,10 @@ export function ProjectsDropdown() {
     <div ref={dropdownRef} className="relative z-[100]">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 flex items-center gap-1"
+        className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 flex items-center gap-1 whitespace-nowrap"
       >
         Projetos Socioambientais
-        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-3 w-3 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, LogIn, UserPlus, ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { ProjectReaderModal } from "@/components/public/ProjectReaderModal"
+import { AddToHomeScreenButton } from "@/components/public/AddToHomeScreenButton"
 
 type Project = {
   id: string
@@ -228,6 +229,7 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
 
           {/* Botões de Ação no Footer */}
           <div className="p-4 border-t space-y-3">
+            <AddToHomeScreenButton variant="button" onAfterClick={closeMenu} />
             <Button
               asChild
               className="w-full bg-gradient-to-r from-[#023299] to-cyan-500 hover:from-[#023299]/90 hover:to-cyan-500/90 text-white shadow-md hover:shadow-lg transition-all duration-200"

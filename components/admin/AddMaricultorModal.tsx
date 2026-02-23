@@ -20,6 +20,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
     email: "",
     cpf: "",
     birth_date: "",
+    association_date: "",
     phone: "",
     cep: "",
     logradouro: "",
@@ -85,6 +86,15 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
       if (onlyDigits.length > 2) masked = onlyDigits.slice(0, 2) + '/' + onlyDigits.slice(2)
       if (onlyDigits.length > 4) masked = masked.slice(0, 5) + '/' + onlyDigits.slice(4)
       setFormData(prev => ({ ...prev, birth_date: masked }))
+      return
+    }
+    // Máscara data de associação DD/MM/AAAA
+    if (name === 'association_date') {
+      const onlyDigits = value.replace(/\D/g, '').slice(0, 8)
+      let masked = onlyDigits
+      if (onlyDigits.length > 2) masked = onlyDigits.slice(0, 2) + '/' + onlyDigits.slice(2)
+      if (onlyDigits.length > 4) masked = masked.slice(0, 5) + '/' + onlyDigits.slice(4)
+      setFormData(prev => ({ ...prev, association_date: masked }))
       return
     }
 
@@ -322,6 +332,13 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                 return `${p.slice(4, 8)}-${p.slice(2, 4)}-${p.slice(0, 2)}`
               })()
             : null,
+          association_date: formData.association_date
+            ? (() => {
+                const p = formData.association_date.replace(/\D/g, '')
+                if (p.length !== 8) return null
+                return `${p.slice(4, 8)}-${p.slice(2, 4)}-${p.slice(0, 2)}`
+              })()
+            : null,
           cep: formData.cep ? String(formData.cep).replace(/\D/g, '') : '',
           logradouro: [formData.logradouro, formData.numero].filter(Boolean).join(', '),
           cidade: formData.cidade,
@@ -406,6 +423,7 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
           email: "",
           cpf: "",
           birth_date: "",
+          association_date: "",
           phone: "",
           cep: "",
           logradouro: "",
@@ -529,6 +547,20 @@ export function AddMaricultorModal({ isOpen, onClose, onSuccess }: AddMaricultor
                     maxLength={10}
                     className="rounded-xl border-2 border-blue-100 focus:border-blue-400 focus:ring-blue-100"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="association_date" className="text-sm font-semibold">Data de associação</Label>
+                  <Input
+                    id="association_date"
+                    name="association_date"
+                    value={formData.association_date}
+                    onChange={handleChange}
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                    className="rounded-xl border-2 border-blue-100 focus:border-blue-400 focus:ring-blue-100"
+                  />
+                  <p className="text-xs text-muted-foreground">Data em que o maricultor se associou à AMESP</p>
                 </div>
 
                 <div className="space-y-2">

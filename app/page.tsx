@@ -14,6 +14,7 @@ import { LogoLink } from "@/components/public/LogoLink"
 import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
 import { FishDecoration } from "@/components/decorative/FishDecoration"
+import { AddToHomeScreenButton } from "@/components/public/AddToHomeScreenButton"
 import nextDynamic from "next/dynamic"
 
 // 🚀 OTIMIZAÇÃO: Lazy load de componentes abaixo da dobra
@@ -318,60 +319,60 @@ export default async function HomePage() {
           {/* Logo - Clicável para voltar ao topo */}
           <LogoLink />
 
-          {/* Navegação Desktop */}
+          {/* Navegação Desktop - text-xs para caber em uma linha com zoom 100% */}
           <nav className="hidden xl:flex items-center space-x-0.5">
             <a
               href="#sobre"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Sobre Nós
             </a>
             <a
               href="#noticias"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Notícias
             </a>
             <a
               href="#galeria"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Galeria
             </a>
             <a
               href="#produtores"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Produtores
             </a>
             <a
               href="#maricultura"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Maricultura
             </a>
             <a
               href="#turismo"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Turismo
             </a>
             <ProjectsDropdown />
             <a
               href="/downloads"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Downloads
             </a>
             <a
               href="#eventos"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Eventos
             </a>
             <a
               href="#contato"
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Contato
             </a>
@@ -994,6 +995,7 @@ export default async function HomePage() {
                     Eventos
                   </a>
                 </li>
+                <AddToHomeScreenButton variant="link" />
               </ul>
             </div>
 

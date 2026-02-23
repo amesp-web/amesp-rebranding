@@ -1,8 +1,10 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Space_Grotesk, DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
+import { PWARegister } from "@/components/pwa-register"
+import { Toaster } from "sonner"
 import "./globals.css"
 
 const spaceGrotesk = Space_Grotesk({
@@ -26,6 +28,15 @@ export const metadata: Metadata = {
     icon: "/favicon.png",
     apple: "/favicon.png",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "AMESP",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#0d9488",
 }
 
 export default function RootLayout({
@@ -36,7 +47,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`font-mono ${spaceGrotesk.variable} ${dmSans.variable} antialiased`}>
+        <PWARegister />
         <Suspense fallback={null}>{children}</Suspense>
+        <Toaster richColors position="top-center" />
         <Analytics />
       </body>
     </html>

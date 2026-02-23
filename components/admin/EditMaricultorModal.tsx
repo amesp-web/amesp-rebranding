@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { X, Loader2, MapPin, Phone, User, Building2, Fish, Save, Mail, FileText, Download, Trash2, Upload, ImageIcon } from "lucide-react"
+import { X, Loader2, MapPin, Phone, User, Building2, Fish, Save, FileText, Download, Trash2, Upload, ImageIcon } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
@@ -25,6 +25,8 @@ interface EditMaricultorModalProps {
     company?: string
     specialties?: string
     logo_path?: string | null
+    fee_exempt?: boolean
+    association_date?: string | null
   }
 }
 
@@ -78,7 +80,6 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
-  const [email, setEmail] = useState<string | null>(null)
   const [documents, setDocuments] = useState<Array<{
     id: string
     type: string
@@ -131,31 +132,10 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
     cidade: "",
     estado: "",
     company: "",
-    specialties: ""
+    specialties: "",
+    fee_exempt: false,
+    association_date: ""
   })
-  const [sendCredentialsEmail, setSendCredentialsEmail] = useState(false)
-  const [emailParaEnvio, setEmailParaEnvio] = useState("")
-
-  useEffect(() => {
-    if (!isOpen) {
-      setEmail(null)
-      setSendCredentialsEmail(false)
-      setEmailParaEnvio("")
-      return
-    }
-    let cancelled = false
-    fetch(`/api/admin/maricultors/${maricultor?.id}/email`)
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
-        if (!cancelled) {
-          setEmail(data?.email ?? null)
-          setSendCredentialsEmail(false)
-        }
-      })
-      .catch(() => { if (!cancelled) setEmail(null) })
-    return () => { cancelled = true }
-  }, [isOpen, maricultor?.id])
-
   // Lazy load documentos: quando a seção Documentos entrar em vista ou após 400ms (evita travar abertura do modal)
   useEffect(() => {
     if (!isOpen || !maricultor?.id) {
@@ -216,7 +196,9 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
         cidade: maricultor.cidade || "",
         estado: maricultor.estado || "",
         company: maricultor.company || "",
-        specialties: maricultor.specialties || ""
+        specialties: maricultor.specialties || "",
+        fee_exempt: !!maricultor.fee_exempt,
+        association_date: formatBirthDate(maricultor.association_date)
       })
       setLocalLogoPath(maricultor.logo_path ?? null)
       setNewLogoFile(null)
@@ -251,6 +233,14 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
       if (onlyDigits.length > 2) masked = onlyDigits.slice(0, 2) + "/" + onlyDigits.slice(2)
       if (onlyDigits.length > 4) masked = masked.slice(0, 5) + "/" + onlyDigits.slice(4)
       setFormData(prev => ({ ...prev, birth_date: masked }))
+      return
+    }
+    if (name === "association_date") {
+      const onlyDigits = value.replace(/\D/g, "").slice(0, 8)
+      let masked = onlyDigits
+      if (onlyDigits.length > 2) masked = onlyDigits.slice(0, 2) + "/" + onlyDigits.slice(2)
+      if (onlyDigits.length > 4) masked = masked.slice(0, 5) + "/" + onlyDigits.slice(4)
+      setFormData(prev => ({ ...prev, association_date: masked }))
       return
     }
 
@@ -324,9 +314,15 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
           id: maricultor.id,
           ...formData,
           birth_date: birthDateIso,
+          association_date: formData.association_date
+            ? (() => {
+                const p = formData.association_date.replace(/\D/g, "")
+                if (p.length !== 8) return null
+                return `${p.slice(4, 8)}-${p.slice(2, 4)}-${p.slice(0, 2)}`
+              })()
+            : null,
           logradouro: logradouroCompleto,
-          email: emailParaEnvio?.trim() || undefined,
-          send_credentials_email: sendCredentialsEmail
+          fee_exempt: formData.fee_exempt
         })
       })
 
@@ -402,31 +398,15 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
                 <p className="text-xs text-muted-foreground">
                   Acesso ao painel: use o <strong>telefone</strong> cadastrado (campo acima) e a senha = 6 primeiros dígitos do CPF.
                 </p>
-                {formData.cpf.replace(/\D/g, "").length === 11 && (
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={sendCredentialsEmail}
-                        onChange={(e) => setSendCredentialsEmail(e.target.checked)}
-                        className="rounded border-cyan-300 text-cyan-600 focus:ring-cyan-500"
-                      />
-                      Atualizar senha (6 primeiros do CPF) e enviar credenciais por e-mail
-                    </label>
-                    {sendCredentialsEmail && (
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="email"
-                          value={emailParaEnvio}
-                          onChange={(e) => setEmailParaEnvio(e.target.value)}
-                          placeholder="E-mail para envio (opcional)"
-                          className="pl-10 border-cyan-200 dark:border-cyan-800"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.fee_exempt}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, fee_exempt: e.target.checked }))}
+                    className="rounded border-cyan-300 text-cyan-600 focus:ring-cyan-500"
+                  />
+                  Isento de mensalidade
+                </label>
               </div>
 
               <div className="space-y-2">
@@ -470,6 +450,20 @@ export function EditMaricultorModal({ isOpen, onClose, maricultor }: EditMaricul
                   maxLength={10}
                   className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="association_date" className="text-sm font-medium">Data de associação</Label>
+                <Input
+                  id="association_date"
+                  name="association_date"
+                  value={formData.association_date}
+                  onChange={handleChange}
+                  placeholder="DD/MM/AAAA"
+                  maxLength={10}
+                  className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500"
+                />
+                <p className="text-xs text-muted-foreground">Data em que o maricultor se associou à AMESP</p>
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Home, Newspaper, Users, Camera, MapPin, Settings, LogOut, ChevronLeft, ChevronRight, Info, Leaf, Download, Calendar, Monitor, Mail, Fish } from "lucide-react"
+import { Home, Newspaper, Users, Camera, MapPin, Settings, LogOut, ChevronLeft, ChevronRight, Info, Leaf, Download, Calendar, Monitor, Mail, Fish, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -15,6 +15,7 @@ const navigation = [
   { name: "Notícias", href: "/admin/news", icon: Newspaper },
   { name: "Eventos", href: "/admin/events", icon: Calendar },
   { name: "Maricultores", href: "/admin/producers", icon: MapPin },
+  { name: "Mensalidades", href: "/admin/payments", icon: DollarSign },
   { name: "Galeria", href: "/admin/gallery", icon: Camera },
   { name: "Usuários", href: "/admin/users", icon: Users },
   { name: "Newsletter", href: "/admin/newsletter", icon: Mail },

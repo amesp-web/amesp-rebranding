@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     console.log('📦 Body recebido:', body)
     
-    const { full_name, email, cpf, phone, birth_date, cep, logradouro, cidade, estado, company, specialties } = body
+    const { full_name, email, cpf, phone, birth_date, cep, logradouro, cidade, estado, company, specialties, association_date } = body
 
     if (!full_name || !phone || !cpf) {
       console.log('❌ Validação falhou: campos obrigatórios faltando')
@@ -146,6 +146,7 @@ export async function POST(request: Request) {
         cpf: cpfDigits,
         contact_phone: phone,
         birth_date: clean(birth_date) ?? null,
+        association_date: clean(association_date) ?? null,
         logradouro: clean(logradouro) ?? null,
         cidade: clean(cidade) ?? null,
         estado: clean(estado) ?? null,

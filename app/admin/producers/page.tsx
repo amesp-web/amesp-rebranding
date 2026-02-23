@@ -60,7 +60,7 @@ export default async function ProducersManagement({
   let query = supabase
     .from("maricultor_profiles")
     .select(
-      "id, full_name, cpf, contact_phone, birth_date, cep, logradouro, cidade, estado, company, specialties, latitude, longitude, logo_path, created_at, is_active, show_on_map"
+      "id, full_name, cpf, contact_phone, birth_date, cep, logradouro, cidade, estado, company, specialties, latitude, longitude, logo_path, created_at, is_active, show_on_map, fee_exempt, association_date"
     )
     .order("created_at", { ascending: false })
 

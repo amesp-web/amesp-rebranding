@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendEmail } from '@/lib/email-sender'
-import { phoneToMaricultorAuthEmail, isMaricultorAuthEmail } from '@/lib/maricultor-auth-phone'
+import { phoneToMaricultorAuthEmail } from '@/lib/maricultor-auth-phone'
 
 export async function PUT(request: Request) {
   try {
@@ -10,7 +9,7 @@ export async function PUT(request: Request) {
     const body = await request.json()
     console.log('📦 Body recebido:', body)
     
-    const { id, full_name, cpf, contact_phone, birth_date, cep, logradouro, cidade, estado, company, specialties, email: emailParaEnvio, send_credentials_email } = body
+    const { id, full_name, cpf, contact_phone, birth_date, cep, logradouro, cidade, estado, company, specialties, fee_exempt, association_date } = body
 
     if (!id || !full_name) {
       console.log('❌ Validação falhou: ID ou nome faltando')
@@ -36,7 +35,6 @@ export async function PUT(request: Request) {
     const passwordForCredentials = cpfDigits && cpfDigits.length === 11 ? cpfDigits.substring(0, 6) : null
     const authEmailFromPhone = contact_phone ? phoneToMaricultorAuthEmail(contact_phone) : null
     const shouldUpdateAuthEmail = !!authEmailFromPhone
-    const shouldUpdatePassword = send_credentials_email && passwordForCredentials
     const authUpdatePayload: { user_metadata: Record<string, unknown>; email?: string; password?: string } = {
       user_metadata: {
         name: full_name,
@@ -48,9 +46,9 @@ export async function PUT(request: Request) {
       }
     }
     if (shouldUpdateAuthEmail) authUpdatePayload.email = authEmailFromPhone
-    if (shouldUpdatePassword) authUpdatePayload.password = passwordForCredentials
+    if (passwordForCredentials) authUpdatePayload.password = passwordForCredentials
 
-    console.log('👤 Atualizando auth.users...', shouldUpdateAuthEmail ? '(login = telefone)' : '', shouldUpdatePassword ? '(senha)' : '')
+    console.log('👤 Atualizando auth.users...', shouldUpdateAuthEmail ? '(login = telefone)' : '', passwordForCredentials ? '(senha = 6 primeiros do CPF)' : '')
     const { error: authError } = await supabase.auth.admin.updateUserById(id, authUpdatePayload)
 
     if (authError) {
@@ -61,12 +59,6 @@ export async function PUT(request: Request) {
       )
     }
     console.log('✅ auth.users atualizado com sucesso!')
-
-    let emailToSendCredentials: string | null = null
-    if (send_credentials_email && passwordForCredentials) {
-      const realEmail = emailParaEnvio && String(emailParaEnvio).trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(emailParaEnvio).trim()) ? String(emailParaEnvio).trim() : null
-      if (realEmail && !isMaricultorAuthEmail(realEmail)) emailToSendCredentials = realEmail
-    }
 
     // 2. Geocodificar endereço (buscar latitude e longitude)
     let latitude: number | null = null
@@ -126,6 +118,16 @@ export async function PUT(request: Request) {
       updateData.birth_date = birth_date || null
     }
 
+    // Isento de mensalidade
+    if (fee_exempt !== undefined) {
+      updateData.fee_exempt = !!fee_exempt
+    }
+
+    // Data de associação (YYYY-MM-DD ou null)
+    if (association_date !== undefined) {
+      updateData.association_date = association_date || null
+    }
+
     // Adicionar coordenadas se obtidas
     if (latitude !== null) updateData.latitude = latitude
     if (longitude !== null) updateData.longitude = longitude
@@ -148,45 +150,6 @@ export async function PUT(request: Request) {
     }
     
     console.log('✅ Perfil atualizado com sucesso!')
-
-    // 4. Enviar credenciais por e-mail só se tiver e-mail real (opcional; login do maricultor é por telefone)
-    if (send_credentials_email && emailToSendCredentials && passwordForCredentials) {
-      console.log('📧 Enviando credenciais para', emailToSendCredentials)
-      try {
-        await sendEmail({
-          to: emailToSendCredentials,
-          subject: 'AMESP - Credenciais de acesso',
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <head><meta charset="UTF-8"></head>
-            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f6f9fc;">
-              <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-                <div style="background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.07);">
-                  <h1 style="color: #0891b2; margin: 0 0 20px 0; font-size: 28px;">Credenciais de Acesso - AMESP</h1>
-                  <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">Olá <strong>${full_name}</strong>,</p>
-                  <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">Seu cadastro foi atualizado. Use o <strong>telefone</strong> cadastrado e a senha abaixo para acessar:</p>
-                  <div style="background: #f1f5f9; border-left: 4px solid #0891b2; padding: 20px; margin: 24px 0; border-radius: 8px;">
-                    <p style="margin: 0 0 8px 0; color: #64748b; font-size: 14px;"><strong>Telefone (login):</strong></p>
-                    <p style="margin: 0 0 16px 0; color: #1e293b; font-size: 16px;">${contact_phone || '—'}</p>
-                    <p style="margin: 0 0 8px 0; color: #64748b; font-size: 14px;"><strong>Senha:</strong></p>
-                    <p style="margin: 0; color: #1e293b; font-size: 16px; font-family: monospace;">${passwordForCredentials}</p>
-                  </div>
-                  <div style="text-align: center; margin: 32px 0;">
-                    <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://amesp-rebranding.vercel.app'}/login" style="display: inline-block; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 600;">Acessar Plataforma</a>
-                  </div>
-                  <p style="color: #94a3b8; font-size: 14px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">Atenciosamente,<br><strong>Equipe AMESP</strong></p>
-                </div>
-              </div>
-            </body>
-            </html>
-          `
-        })
-        console.log('✅ E-mail de credenciais enviado.')
-      } catch (emailErr) {
-        console.error('⚠️ Erro ao enviar e-mail (não crítico):', emailErr)
-      }
-    }
 
     console.log('🎉 Atualização completa! Retornando sucesso...')
     return NextResponse.json({
