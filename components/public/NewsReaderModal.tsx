@@ -79,7 +79,7 @@ export function NewsReaderModal({ article }: { article: Article }) {
         Ler mais
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-0 shadow-2xl max-h-[85vh] flex flex-col">
+        <DialogContent className="max-w-3xl p-0 overflow-hidden border-0 shadow-2xl max-h-[85vh]">
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -88,63 +88,71 @@ export function NewsReaderModal({ article }: { article: Article }) {
           >
             <X className="h-5 w-5 text-slate-700" />
           </button>
-          {article.image_url && (
-            <div className="relative h-56 w-full shrink-0">
-              <Image src={article.image_url} alt={article.title} fill className="object-cover" />
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
-              <div className="absolute bottom-3 right-3 flex items-center space-x-3">
-                <div className="bg-background/95 backdrop-blur rounded-full px-3 py-1.5 shadow-lg">
-                  <NewsLikeButton id={String(article.id)} initialLikes={(article as any).likes || 0} />
-                </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const url = typeof window !== 'undefined' ? `${window.location.origin}/?news=${article.id}` : ''
-                      await navigator.clipboard.writeText(url)
-                      toast.success('Link copiado para a área de transferência')
-                      setCopied(true)
-                      setTimeout(() => setCopied(false), 1200)
-                    } catch (e) {
-                      toast.error('Não foi possível copiar o link')
-                    }
-                  }}
-                  className="bg-background/95 backdrop-blur rounded-full p-2 shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors"
-                  aria-label="Compartilhar"
-                >
-                  <Share2 className="h-4 w-4" />
-                </button>
-                {copied && (
-                  <div className="absolute -top-9 right-0 bg-black/80 text-white text-xs px-2 py-1 rounded-md shadow">
-                    Copiado!
+          <div className="flex flex-col max-h-[85vh] min-h-0">
+            {article.image_url && (
+              <div className="relative w-full h-[40vh] min-h-[200px] max-h-[360px] shrink-0 bg-muted/30">
+                <Image
+                  src={article.image_url}
+                  alt={article.title}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 48rem"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
+                <div className="absolute bottom-3 right-3 flex items-center space-x-3">
+                  <div className="bg-background/95 backdrop-blur rounded-full px-3 py-1.5 shadow-lg">
+                    <NewsLikeButton id={String(article.id)} initialLikes={(article as any).likes || 0} />
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const url = typeof window !== 'undefined' ? `${window.location.origin}/?news=${article.id}` : ''
+                        await navigator.clipboard.writeText(url)
+                        toast.success('Link copiado para a área de transferência')
+                        setCopied(true)
+                        setTimeout(() => setCopied(false), 1200)
+                      } catch (e) {
+                        toast.error('Não foi possível copiar o link')
+                      }
+                    }}
+                    className="bg-background/95 backdrop-blur rounded-full p-2 shadow-lg hover:bg-primary hover:text-primary-foreground transition-colors"
+                    aria-label="Compartilhar"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                  {copied && (
+                    <div className="absolute -top-9 right-0 bg-black/80 text-white text-xs px-2 py-1 rounded-md shadow">
+                      Copiado!
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-          {/* Cabeçalho fixo */}
-          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/40">
-            <DialogTitle className="text-2xl font-bold leading-tight">{article.title}</DialogTitle>
-            <DialogDescription>
-              <div className="flex items-center gap-3 text-muted-foreground text-sm">
-                {article.created_at && (
-                  <span className="flex items-center"><Calendar className="mr-1 h-3 w-3" />{new Date(article.created_at).toLocaleDateString("pt-BR")}</span>
-                )}
-                {article.read_time ? (
-                  <span className="flex items-center"><Clock className="mr-1 h-3 w-3" />{article.read_time}min</span>
-                ) : null}
+            )}
+            {/* Cabeçalho fixo */}
+            <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/40 shrink-0">
+              <DialogTitle className="text-2xl font-bold leading-tight">{article.title}</DialogTitle>
+              <DialogDescription>
+                <div className="flex items-center gap-3 text-muted-foreground text-sm">
+                  {article.created_at && (
+                    <span className="flex items-center"><Calendar className="mr-1 h-3 w-3" />{new Date(article.created_at).toLocaleDateString("pt-BR")}</span>
+                  )}
+                  {article.read_time ? (
+                    <span className="flex items-center"><Clock className="mr-1 h-3 w-3" />{article.read_time}min</span>
+                  ) : null}
                   <span className="flex items-center"><Eye className="mr-1 h-3 w-3" />{currentViews}</span>
-                {article.category ? (
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">{article.category}</Badge>
-                ) : null}
-              </div>
-            </DialogDescription>
-          </DialogHeader>
+                  {article.category ? (
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">{article.category}</Badge>
+                  ) : null}
+                </div>
+              </DialogDescription>
+            </DialogHeader>
 
-          {/* Conteúdo rolável */}
-          <div className="px-6 py-5 flex-1 overflow-y-auto">
-            <div className="prose prose-slate max-w-none whitespace-pre-wrap leading-relaxed">
-              {article.content}
+            {/* Conteúdo rolável - min-h-0 é essencial para o scroll funcionar no flex */}
+            <div className="px-6 py-5 flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+              <div className="prose prose-slate max-w-none whitespace-pre-wrap leading-relaxed">
+                {article.content || ''}
+              </div>
             </div>
           </div>
         </DialogContent>

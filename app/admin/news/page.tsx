@@ -23,8 +23,8 @@ export default async function AdminNewsList() {
               <Newspaper className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Notícias Publicadas</h1>
-              <p className="text-white/90">Gerencie as notícias exibidas na Home</p>
+              <h1 className="text-3xl font-bold text-white">Notícias</h1>
+              <p className="text-white/90">Gerencie as notícias exibidas na Home. Só aparecem na Home as notícias <strong>publicadas</strong>; a ordem se aplica entre elas. Itens em rascunho não entram na lista do site.</p>
             </div>
           </div>
           <Button asChild className="rounded-2xl px-5 bg-white text-blue-700 hover:bg-white/90 shadow-lg">

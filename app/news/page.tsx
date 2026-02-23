@@ -15,12 +15,16 @@ export const revalidate = 0
 
 export default async function AllNewsPage() {
   const supabase = await createClient()
-  const { data: news } = await supabase
+  const { data: newsRaw } = await supabase
     .from('news')
     .select('id, title, content, image_url, category, created_at, read_time, views, likes, display_order, published')
     .eq('published', true)
-    .order('display_order', { ascending: true })
+    .order('display_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
+
+  const news = (newsRaw || []).slice().sort(
+    (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">

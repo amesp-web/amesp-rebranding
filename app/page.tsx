@@ -59,8 +59,8 @@ import {
   UserPlus,
 } from "lucide-react"
 
-// 🚀 OTIMIZAÇÃO: ISR - Cacheia por 60s, regenera automaticamente
-export const revalidate = 60
+// Revalidar a cada 10s para que a ordem das notícias (display_order) atualize logo após o admin reordenar
+export const revalidate = 10
 
 async function getSupabaseData() {
   try {
@@ -76,12 +76,12 @@ async function getSupabaseData() {
       projectsResult,
       eventsResult
     ] = await Promise.all([
-      // News
+      // News (ordem: display_order primeiro, depois created_at)
       supabase
         .from("news")
         .select("*")
         .eq("published", true)
-        .order("display_order", { ascending: true })
+        .order("display_order", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(3),
       
@@ -207,8 +207,12 @@ async function getSupabaseData() {
     
     const homeInfo = homeInfoResult.data
 
+    const newsSorted = (newsResult.data || []).slice().sort(
+      (a: { display_order?: number | null }, b: { display_order?: number | null }) =>
+        (a.display_order ?? 0) - (b.display_order ?? 0)
+    )
     return { 
-      news: newsResult.data, 
+      news: newsSorted, 
       gallery: galleryHome, 
       producers: producersResult.data, 
       galleryTotalCount: totalCountResult.count || 0, 
