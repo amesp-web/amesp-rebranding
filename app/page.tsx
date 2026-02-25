@@ -420,7 +420,7 @@ export default async function HomePage() {
       <section className="relative py-20 lg:py-32 overflow-hidden w-full max-w-full">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         <FishSwarm count={3} className="hidden md:block" />
-        <div className="container mx-auto px-4 relative min-w-0 max-w-full">
+        <div className="container mx-auto px-4 relative min-w-0">
           <div className="grid lg:grid-cols-2 gap-12 items-center min-w-0">
             <div className="space-y-8">
               <div className="space-y-4">
