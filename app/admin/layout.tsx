@@ -5,7 +5,6 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { SidebarProvider } from "@/contexts/sidebar-context"
 import { AdminMainContent } from "@/components/admin/admin-main-content"
-import { Toaster } from "sonner"
 
 export default async function AdminLayout({
   children,
@@ -63,7 +62,6 @@ function AdminLayoutWrapper({
       <AdminMainContent user={user} adminProfile={adminProfile}>
         {children}
       </AdminMainContent>
-      <Toaster richColors position="top-right" />
     </div>
   )
 }
