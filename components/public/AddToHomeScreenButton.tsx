@@ -229,15 +229,21 @@ export function AddToHomeScreenButton({
           <DialogHeader>
             <DialogTitle className="flex items-center justify-center gap-2">
               <Smartphone className="h-6 w-6" />
-              {LABEL}
+              {LABEL} no iPhone
             </DialogTitle>
           </DialogHeader>
-          <p className="text-base text-muted-foreground leading-relaxed py-2">
-            Na tela que vai abrir agora, toque em <strong>Adicionar à Tela de Início</strong>. Depois toque em <strong>Adicionar</strong>.
+          <ol className="text-left text-sm text-muted-foreground leading-relaxed py-2 space-y-2 list-decimal list-inside">
+            <li>Toque nos <strong>três pontinhos (⋯)</strong> na barra de baixo.</li>
+            <li>Toque em <strong>Compartilhar</strong>.</li>
+            <li>Role ou toque em <strong>Ver mais</strong> e procure <strong>Adicionar à Tela de Início</strong>.</li>
+            <li>Toque em <strong>Adicionar à Tela de Início</strong>, depois em <strong>Adicionar</strong>.</li>
+          </ol>
+          <p className="text-xs text-muted-foreground text-left">
+            No iPhone a Apple não permite que o site adicione o app sozinho; é preciso usar esse menu. No Android o Chrome pode mostrar &quot;Instalar app&quot; em um toque.
           </p>
           <DialogFooter className="flex justify-center sm:justify-center">
-            <Button onClick={openShareSheet} size="lg" className="w-full">
-              Abrir essa tela
+            <Button onClick={() => setShowIosDialog(false)} size="lg" className="w-full">
+              Entendi
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -259,8 +265,8 @@ export function AddToHomeScreenButton({
               <ol className="text-left text-sm text-muted-foreground leading-relaxed py-2 space-y-2 list-decimal list-inside">
                 <li>Toque no botão <strong>Copiar endereço</strong> abaixo.</li>
                 <li>Saia do Chrome e abra o app <strong>Safari</strong>. Toque na barra de endereço em cima, segure até aparecer <strong>Colar</strong> e toque em Colar. Toque em Ir.</li>
-                <li>No Safari, toque nos <strong>três pontinhos (⋯)</strong> na barra, depois em <strong>Compartilhar</strong>.</li>
-                <li>Na tela que abrir, toque em <strong>Adicionar à Tela de Início</strong> (se não aparecer, toque nos três pontinhos de novo). Depois toque em <strong>Adicionar</strong>.</li>
+                <li>No Safari, toque nos <strong>três pontinhos (⋯)</strong>, depois em <strong>Compartilhar</strong>.</li>
+                <li>Role ou toque em <strong>Ver mais</strong> e procure <strong>Adicionar à Tela de Início</strong>. Toque nessa opção, depois em <strong>Adicionar</strong>.</li>
               </ol>
               {typeof window !== "undefined" && (
                 <p className="text-xs text-muted-foreground break-all text-left bg-muted/50 p-2 rounded">
@@ -284,9 +290,12 @@ export function AddToHomeScreenButton({
             </>
           ) : (
             <>
-              <p className="text-base text-muted-foreground leading-relaxed py-2 text-left">
-                Você já está no <strong>Safari</strong>. Toque nos <strong>três pontinhos (⋯)</strong> na barra, depois em <strong>Compartilhar</strong>. Na tela que abrir, toque em <strong>Adicionar à Tela de Início</strong> (se não aparecer, toque nos três pontinhos de novo). Depois toque em <strong>Adicionar</strong>.
-              </p>
+              <ol className="text-left text-sm text-muted-foreground leading-relaxed py-2 space-y-2 list-decimal list-inside">
+                <li>Toque nos <strong>três pontinhos (⋯)</strong> na barra.</li>
+                <li>Toque em <strong>Compartilhar</strong>.</li>
+                <li>Role ou toque em <strong>Ver mais</strong> e procure <strong>Adicionar à Tela de Início</strong>.</li>
+                <li>Toque em <strong>Adicionar à Tela de Início</strong>, depois em <strong>Adicionar</strong>.</li>
+              </ol>
               <DialogFooter className="flex flex-col gap-2 sm:flex-col">
                 <Button onClick={() => setShowManualDialog(false)} size="lg" className="w-full">
                   Entendi
