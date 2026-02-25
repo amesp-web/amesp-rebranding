@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendPushToTopic } from '@/lib/push'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -42,6 +43,19 @@ export async function POST(req: Request) {
       published: !!body.published,
     }]).select('*').single()
     if (error) throw error
+
+    if (data?.published && data.title) {
+      const rawText: string = String(data.description || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+      const excerpt = rawText.slice(0, 120)
+      const bodyText = excerpt.slice(0, 70) + (excerpt.length > 70 ? '…' : '')
+
+      sendPushToTopic('events', {
+        title: 'Novo evento: ' + data.title,
+        body: bodyText || 'Confira os detalhes do evento no app.',
+        url: '/#eventos',
+      }).catch((err) => console.error('[push] events create:', err))
+    }
+
     return NextResponse.json(data)
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Erro' }, { status: 500 })
