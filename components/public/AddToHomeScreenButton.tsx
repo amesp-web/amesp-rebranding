@@ -205,17 +205,12 @@ export function AddToHomeScreenButton({
               {LABEL} no Android
             </DialogTitle>
           </DialogHeader>
-          <div className="text-sm text-muted-foreground leading-relaxed py-2 text-left space-y-2">
-            <p>
-              Toque nos <strong>três pontinhos (⋮)</strong> do Chrome e procure:
-            </p>
-            <p>
-              Se aparecer <strong>Instalar app</strong> — use essa. O ícone fica <strong>só da AMESP</strong>, sem o Chrome.
-            </p>
-            <p>
-              Se aparecer só <strong>Adicionar à tela inicial</strong> — o atalho vem com o ícone do Chrome. Para ícone limpo, acesse o site com link seguro (https); aí o Chrome costuma mostrar &quot;Instalar app&quot;.
-            </p>
-          </div>
+          <ol className="text-left text-sm text-muted-foreground leading-relaxed py-2 space-y-2 list-decimal list-inside">
+            <li>Toque nos <strong>três pontinhos (⋮)</strong> no canto superior direito do Chrome.</li>
+            <li><strong>Role o menu até o final</strong> — a opção <strong>Adicionar à tela inicial</strong> ou <strong>Instalar app</strong> costuma ficar embaixo de &quot;Compartilhar&quot;, &quot;Traduzir&quot;, etc. Não está dentro de Compartilhar.</li>
+            <li>Se ainda não aparecer, em alguns aparelhos ela fica em <strong>Ferramentas</strong> ou <strong>Mais ferramentas</strong> (toque e procure dentro).</li>
+            <li>O Chrome também pode mostrar um <strong>banner na parte de baixo da página</strong> ou um ícone de instalação na barra de endereço — use esse atalho se aparecer. Use o site em <strong>https</strong> (produção) para essa opção estar disponível.</li>
+          </ol>
           <DialogFooter className="flex justify-center sm:justify-center">
             <Button onClick={() => setShowAndroidDialog(false)} size="lg" className="w-full min-h-[48px] touch-manipulation">
               Entendi
