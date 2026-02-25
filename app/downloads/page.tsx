@@ -60,47 +60,30 @@ export default function DownloadsPublicPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
-      {/* Header moderno similar ao de galeria e notícias */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#023299] via-cyan-500 to-teal-400">
-        {/* SVG Waves */}
-        <div className="absolute inset-0">
-          <svg className="absolute bottom-0 w-full h-32" viewBox="0 0 1440 320" preserveAspectRatio="none">
-            <path fill="white" fillOpacity="0.3" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,144C960,149,1056,139,1152,128C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-            <path fill="white" fillOpacity="0.2" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,165.3C960,149,1056,171,1152,186.7C1248,203,1344,213,1392,218.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-          </svg>
+    <div className="min-h-screen bg-[#ECEEEE]">
+      {/* Hero com banner enviado pelo cliente ocupando toda a largura */}
+      <div className="bg-[#ECEEEE] pt-6 md:pt-8">
+        <div className="relative w-full">
+          <div className="overflow-hidden shadow-2xl border-y border-white/40 bg-white">
+            <Image
+              src="/downloads-hero.png"
+              alt="Downloads - materiais disponíveis"
+              width={1920}
+              height={400}
+              priority
+              className="w-full h-auto"
+            />
+          </div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 py-16 md:py-20">
-          {/* Logo */}
-          <div className="flex justify-center mb-4">
-            <Image src="/amesp_logo.png" alt="AMESP" width={180} height={60} className="h-16 w-auto" />
-          </div>
-
-          {/* Badge */}
-          <div className="flex justify-center mb-4">
-            <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 backdrop-blur-sm">
-              Downloads
-            </span>
-          </div>
-
-          {/* Título e Subtítulo */}
-          <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-3">
-            Materiais para Download
-          </h1>
-          <p className="text-white/90 text-center text-lg max-w-2xl mx-auto mb-6">
-            Acesse manuais, guias e documentos técnicos da AMESP
-          </p>
-
-          {/* Voltar para Home */}
-          <div className="flex justify-center mt-8">
-            <Link href="/">
-              <Button variant="secondary" className="bg-white/90 hover:bg-white text-blue-600 shadow-lg">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar para a Home
-              </Button>
-            </Link>
-          </div>
+        {/* Voltar para Home */}
+        <div className="container mx-auto px-4 mt-4 mb-4 flex justify-center">
+          <Link href="/">
+            <Button variant="secondary" className="bg-white/90 hover:bg-white text-blue-600 shadow-lg">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para a Home
+            </Button>
+          </Link>
         </div>
       </div>
 

@@ -1,8 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/server"
-import { Newspaper, Users, Camera, MapPin, Eye, TrendingUp, Calendar, Waves, Activity, ArrowUpRight, DollarSign, Lock } from "lucide-react"
+import { Newspaper, Users, Camera, MapPin, Eye, TrendingUp, Calendar, Waves, Activity, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
+import { AdminFinancePreview } from "@/components/admin/AdminFinancePreview"
 
 // 🚀 OTIMIZAÇÃO: Cache de 60s (ISR) - 93% mais rápido após primeira visita
 export const revalidate = 60
@@ -256,34 +257,8 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Módulo Financeiro */}
-        <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-amber-50 via-orange-50/30 to-white">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-          <CardHeader className="relative z-10">
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-amber-600" />
-              </div>
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  Módulo Financeiro
-                </CardTitle>
-                <CardDescription className="mt-1">Gestão financeira e relatórios</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 relative z-10">
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <Lock className="h-8 w-8 text-primary/60" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-700 mb-2">Em Breve</h3>
-              <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                Funcionalidade de gestão financeira estará disponível em breve.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Módulo Financeiro - Preview */}
+        <AdminFinancePreview />
       </div>
     </div>
   )
