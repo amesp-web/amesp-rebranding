@@ -293,9 +293,9 @@ export default async function HomePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-gradient-to-br from-background via-primary/[0.08] to-accent/[0.12]">
       {/* Header Modernizado */}
-      <header className="sticky top-0 z-50 w-full border-b border-primary/10 bg-gradient-to-r from-background via-background/98 to-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 relative shadow-sm">
+      <header className="sticky top-0 z-50 w-full max-w-full border-b border-primary/10 bg-gradient-to-r from-background via-background/98 to-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 relative shadow-sm">
         {/* Elementos decorativos sutis */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
           <div className="absolute top-2 left-4 opacity-20">
@@ -320,7 +320,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 flex h-20 items-center justify-between relative">
+        <div className="container mx-auto px-4 flex h-20 items-center justify-between relative min-w-0 max-w-full">
           {/* Logo - Clicável para voltar ao topo */}
           <LogoLink />
 
@@ -417,11 +417,11 @@ export default async function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
+      <section className="relative py-20 lg:py-32 overflow-hidden w-full max-w-full">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         <FishSwarm count={3} className="hidden md:block" />
-        <div className="container mx-auto px-4 relative">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="container mx-auto px-4 relative min-w-0 max-w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center min-w-0">
             <div className="space-y-8">
               <div className="space-y-4">
                 <Badge variant="secondary" className="w-fit">

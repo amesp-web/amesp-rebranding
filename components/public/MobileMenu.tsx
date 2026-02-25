@@ -119,13 +119,13 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
         />
       )}
 
-      {/* Menu Mobile — invisível quando fechado para não aparecer ao carregar (ex.: Android) */}
+      {/* Menu Mobile — invisível quando fechado; right negativo quando fechado evita overflow horizontal no Android */}
       <div
         className={`
-          fixed top-0 right-0 h-screen w-80 bg-white shadow-2xl z-50 
+          fixed top-0 h-screen w-80 bg-white shadow-2xl z-50 
           transform transition-transform duration-300 ease-in-out
           xl:hidden
-          ${isOpen ? 'translate-x-0 visible' : 'translate-x-full invisible'}
+          ${isOpen ? 'right-0 translate-x-0 visible' : 'right-0 translate-x-full invisible'}
         `}
         aria-hidden={!isOpen}
       >
