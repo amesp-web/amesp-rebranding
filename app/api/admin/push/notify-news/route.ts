@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     if (error || !news) return NextResponse.json({ error: "Notícia não encontrada" }, { status: 404 })
     if (!news.published) return NextResponse.json({ success: true, skipped: "not published" })
 
-    const body = (news.excerpt || "").slice(0, 120) + ((news.excerpt || "").length > 120 ? "…" : "")
+    const body = (news.excerpt || "").slice(0, 70) + ((news.excerpt || "").length > 70 ? "…" : "")
     await sendPushToTopic("news", {
       title: "Nova notícia: " + news.title,
       body: body || "Confira no app.",

@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     if (data?.published && data.title) {
       sendPushToTopic('news', {
         title: 'Nova notícia: ' + data.title,
-        body: excerpt.slice(0, 120) + (excerpt.length > 120 ? '…' : ''),
+        body: excerpt.slice(0, 70) + (excerpt.length > 70 ? '…' : ''),
         url: '/news',
       }).catch((err) => console.error('[push] news:', err))
     }

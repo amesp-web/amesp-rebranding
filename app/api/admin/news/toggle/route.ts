@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     if (published) {
       const { data: news } = await supabase.from('news').select('title, excerpt').eq('id', id).single()
       if (news?.title) {
-        const body = (news.excerpt || '').slice(0, 120) + ((news.excerpt || '').length > 120 ? '…' : '')
+        const body = (news.excerpt || '').slice(0, 70) + ((news.excerpt || '').length > 70 ? '…' : '')
         sendPushToTopic('news', {
           title: 'Nova notícia: ' + news.title,
           body: body || 'Confira no app.',
