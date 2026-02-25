@@ -22,6 +22,15 @@ type MobileMenuProps = {
 
 export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Garantir menu fechado ao carregar (evita abrir sozinho no Android/Chrome)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  useEffect(() => {
+    if (mounted) setIsOpen(false)
+  }, [mounted])
   const [projectsExpanded, setProjectsExpanded] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [fullProjects, setFullProjects] = useState<Map<string, Project>>(new Map())
@@ -110,14 +119,15 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
         />
       )}
 
-      {/* Menu Mobile */}
+      {/* Menu Mobile — invisível quando fechado para não aparecer ao carregar (ex.: Android) */}
       <div
         className={`
           fixed top-0 right-0 h-screen w-80 bg-white shadow-2xl z-50 
           transform transition-transform duration-300 ease-in-out
           xl:hidden
-          ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+          ${isOpen ? 'translate-x-0 visible' : 'translate-x-full invisible'}
         `}
+        aria-hidden={!isOpen}
       >
         <div className="flex flex-col h-screen overflow-hidden">
           {/* Header do Menu */}

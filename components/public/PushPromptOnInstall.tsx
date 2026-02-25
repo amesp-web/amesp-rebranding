@@ -122,7 +122,7 @@ export function PushPromptOnInstall() {
         </button>
       )}
     <Dialog open={open} onOpenChange={(v) => !loading && setOpen(v)}>
-      <DialogContent className="max-w-sm mx-4 text-center sm:rounded-2xl">
+      <DialogContent className="max-w-sm text-center sm:rounded-2xl">
         <DialogHeader>
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
             <Bell className="h-7 w-7 text-primary" />
