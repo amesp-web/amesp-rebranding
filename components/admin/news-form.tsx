@@ -74,15 +74,23 @@ export function NewsForm({ initialData }: NewsFormProps) {
     }
 
       let result
+      let savedId = initialData?.id
       if (initialData?.id) {
-        // Update existing article
         result = await supabase.from("news").update(newsData).eq("id", initialData.id)
       } else {
-        // Create new article
-        result = await supabase.from("news").insert([newsData])
+        result = await supabase.from("news").insert([newsData]).select("id").single()
+        if (result.data?.id) savedId = result.data.id
       }
 
       if (result.error) throw result.error
+
+      if (published && savedId) {
+        fetch("/api/admin/push/notify-news", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: savedId }),
+        }).catch(() => {})
+      }
 
       router.push("/admin/news")
       router.refresh()
