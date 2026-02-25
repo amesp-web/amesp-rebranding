@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Bell } from "lucide-react"
 import { toast } from "sonner"
-import { isPushSupported, hasVapidKey, subscribeToPush } from "@/lib/push-client"
+import { isPushSupported, hasVapidKey, subscribeToPush, isSubscribed } from "@/lib/push-client"
 
 const STORAGE_KEY_DISMISSED = "amesp_push_prompt_dismissed_until"
 const STORAGE_KEY_ACCEPTED = "amesp_push_prompt_accepted"
@@ -32,18 +32,15 @@ function isMobile(): boolean {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 }
 
-function shouldShowPrompt(standalone: boolean): boolean {
+/** No browser (não standalone): só mostra se permissão ainda não foi dada e não está no período de "Agora não". */
+function shouldShowPromptInBrowser(): boolean {
   if (typeof window === "undefined") return false
   if (Notification.permission !== "default") return false
-  const accepted = localStorage.getItem(STORAGE_KEY_ACCEPTED)
-  if (accepted === "1") return false
-  // Ao abrir pelo ícone (standalone), sempre oferecer de novo até permitir (ignora "Agora não")
-  if (!standalone) {
-    const dismissed = localStorage.getItem(STORAGE_KEY_DISMISSED)
-    if (dismissed) {
-      const until = parseInt(dismissed, 10)
-      if (Date.now() < until) return false
-    }
+  if (localStorage.getItem(STORAGE_KEY_ACCEPTED) === "1") return false
+  const dismissed = localStorage.getItem(STORAGE_KEY_DISMISSED)
+  if (dismissed) {
+    const until = parseInt(dismissed, 10)
+    if (Date.now() < until) return false
   }
   return true
 }
@@ -53,12 +50,23 @@ export function PushPromptOnInstall() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!hasVapidKey()) return
-    if (!isPushSupported()) return
+    if (!hasVapidKey() || !isPushSupported()) return
     const standalone = isStandalone()
     const mobile = isMobile()
     if (!standalone && !mobile) return
-    if (!shouldShowPrompt(standalone)) return
+
+    if (standalone) {
+      // PWA aberto pelo ícone (Android ou iPhone): sempre mostrar o popup até o usuário estar inscrito
+      const showIfNotSubscribed = async () => {
+        await new Promise((r) => setTimeout(r, 1500)) // dá tempo do SW estar pronto
+        const subscribed = await isSubscribed()
+        if (!subscribed) setOpen(true)
+      }
+      showIfNotSubscribed()
+      return
+    }
+
+    if (!shouldShowPromptInBrowser()) return
     const t = setTimeout(() => setOpen(true), 1200)
     return () => clearTimeout(t)
   }, [])
@@ -72,7 +80,12 @@ export function PushPromptOnInstall() {
         setOpen(false)
         toast.success("Notificações ativadas. Você receberá novidades, eventos e lembretes.")
       } else {
-        toast.error("Não foi possível ativar. Verifique as permissões do navegador.")
+        const denied = typeof Notification !== "undefined" && Notification.permission === "denied"
+        if (denied) {
+          toast.error("Notificações estão bloqueadas. Toque no ícone de cadeado na barra de endereço → Permissões → Notificações → Permitir.")
+        } else {
+          toast.error("Não foi possível ativar. Verifique as permissões do navegador.")
+        }
       }
     } catch (e) {
       console.error(e)
@@ -88,11 +101,17 @@ export function PushPromptOnInstall() {
     setOpen(false)
   }
 
-  const canAsk = typeof window !== "undefined" && isPushSupported() && hasVapidKey() && Notification.permission === "default" && localStorage.getItem(STORAGE_KEY_ACCEPTED) !== "1"
+  const canAsk =
+    typeof window !== "undefined" &&
+    isPushSupported() &&
+    hasVapidKey() &&
+    localStorage.getItem(STORAGE_KEY_ACCEPTED) !== "1" &&
+    isMobile() &&
+    (isStandalone() || Notification.permission === "default")
 
   return (
     <>
-      {canAsk && isMobile() && (
+      {canAsk && (
         <button
           type="button"
           onClick={() => setOpen(true)}
