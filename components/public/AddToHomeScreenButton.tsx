@@ -211,6 +211,9 @@ export function AddToHomeScreenButton({
             <li>Se ainda não aparecer, em alguns aparelhos ela fica em <strong>Ferramentas</strong> ou <strong>Mais ferramentas</strong> (toque e procure dentro).</li>
             <li>O Chrome também pode mostrar um <strong>banner na parte de baixo da página</strong> ou um ícone de instalação na barra de endereço — use esse atalho se aparecer. Use o site em <strong>https</strong> (produção) para essa opção estar disponível.</li>
           </ol>
+          <p className="text-xs text-muted-foreground text-left pt-1">
+            Se ainda não aparecer: no computador abra o site, F12 → <strong>Application</strong> → <strong>Manifest</strong>. O Chrome mostra se o app está &quot;Installable&quot; ou o motivo de não estar.
+          </p>
           <DialogFooter className="flex justify-center sm:justify-center">
             <Button onClick={() => setShowAndroidDialog(false)} size="lg" className="w-full min-h-[48px] touch-manipulation">
               Entendi
