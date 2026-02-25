@@ -4,6 +4,7 @@ import { Space_Grotesk, DM_Sans } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { PWARegister } from "@/components/pwa-register"
+import { PushPromptOnInstall } from "@/components/public/PushPromptOnInstall"
 import { Toaster } from "sonner"
 import "./globals.css"
 
@@ -48,6 +49,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={`font-mono ${spaceGrotesk.variable} ${dmSans.variable} antialiased`}>
         <PWARegister />
+        <PushPromptOnInstall />
         <Suspense fallback={null}>{children}</Suspense>
         <Toaster richColors position="top-center" />
         <Analytics />

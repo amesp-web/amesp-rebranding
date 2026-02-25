@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendPushToTopic } from '@/lib/push'
 
 export async function POST(req: Request) {
   try {
@@ -32,6 +33,15 @@ export async function POST(req: Request) {
 
     const { data, error } = await supabase.from('news').insert(payload).select().single()
     if (error) throw error
+
+    if (data?.published && data.title) {
+      sendPushToTopic('news', {
+        title: 'Nova notícia: ' + data.title,
+        body: excerpt.slice(0, 120) + (excerpt.length > 120 ? '…' : ''),
+        url: '/news',
+      }).catch((err) => console.error('[push] news:', err))
+    }
+
     return NextResponse.json({ success: true, news: data })
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Erro' }, { status: 500 })

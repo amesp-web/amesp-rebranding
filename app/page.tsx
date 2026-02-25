@@ -15,6 +15,7 @@ import Image from "next/image"
 import HomeEventsSection from "@/components/public/HomeEventsSection"
 import { FishDecoration } from "@/components/decorative/FishDecoration"
 import { AddToHomeScreenButton } from "@/components/public/AddToHomeScreenButton"
+import { PushNotificationsToggle } from "@/components/public/PushNotificationsToggle"
 import nextDynamic from "next/dynamic"
 
 // 🚀 OTIMIZAÇÃO: Lazy load de componentes abaixo da dobra
@@ -1010,6 +1011,9 @@ export default async function HomePage() {
                 <li>amesp@amespmaricultura.org.br</li>
                 <li>Ubatuba - SP, Brasil</li>
               </ul>
+              <div className="mt-4">
+                <PushNotificationsToggle />
+              </div>
             </div>
 
             <div>
