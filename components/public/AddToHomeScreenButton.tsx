@@ -122,17 +122,22 @@ export function AddToHomeScreenButton({
   }, [])
 
   const handleClick = useCallback(async () => {
-    onAfterClick?.()
+    // Não fechar o menu antes de disparar o prompt no Android: o Chrome exige que
+    // installPrompt.prompt() seja chamado na mesma gesto do usuário; fechar o menu
+    // antes pode consumir a gesto e o prompt não aparece. onAfterClick é chamado
+    // depois de acionar o fluxo (prompt nativo ou abertura do dialog).
 
     if (installPrompt) {
       try {
         await installPrompt.prompt()
+        onAfterClick?.()
         const { outcome } = await installPrompt.userChoice
         if (outcome === "accepted") {
           toast.success("Pronto! O app AMESP está na sua tela inicial.")
         }
         setInstallPrompt(null)
       } catch {
+        onAfterClick?.()
         if (isIOS) setShowManualDialog(true)
         else if (android) setShowAndroidDialog(true)
         else toast.error("Não foi possível. Tente novamente.")
@@ -141,17 +146,20 @@ export function AddToHomeScreenButton({
     }
 
     if (isIOS) {
+      onAfterClick?.()
       setShowIosDialog(true)
       return
     }
 
     if (android) {
+      onAfterClick?.()
       setShowAndroidDialog(true)
       return
     }
 
     if (canShare && typeof navigator !== "undefined") {
       try {
+        onAfterClick?.()
         await navigator.share({
           title: "AMESP",
           text: "Associação dos Maricultores do Estado de São Paulo",
@@ -166,6 +174,7 @@ export function AddToHomeScreenButton({
       return
     }
 
+    onAfterClick?.()
     if (isIOS) setShowManualDialog(true)
     else if (android) setShowAndroidDialog(true)
     else toast.error("Não foi possível. Tente novamente.")
