@@ -155,11 +155,11 @@ export function ContactForm() {
         <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground mt-6 pt-6 border-t border-border/50">
           <div className="flex items-center space-x-2">
             <Phone className="h-4 w-4 text-primary" />
-            <span>(12) 3833-8000</span>
+            <span>(12) 98800-5883</span>
           </div>
           <div className="flex items-center space-x-2">
             <Mail className="h-4 w-4 text-primary" />
-            <span>contato@amespmaricultura.org.br</span>
+            <span>amesp@amespmaricultura.org.br</span>
           </div>
           <div className="flex items-center space-x-2">
             <MapPin className="h-4 w-4 text-primary" />

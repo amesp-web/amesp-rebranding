@@ -1006,8 +1006,8 @@ export default async function HomePage() {
             <div>
               <h4 className="font-medium mb-4">Contato</h4>
               <ul className="space-y-2 text-sm text-primary-foreground/80">
-                <li>(12) 3833-8000</li>
-                <li>contato@amespmaricultura.org.br</li>
+                <li>(12) 98800-5883</li>
+                <li>amesp@amespmaricultura.org.br</li>
                 <li>Ubatuba - SP, Brasil</li>
               </ul>
             </div>
