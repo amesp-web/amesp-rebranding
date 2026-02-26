@@ -56,10 +56,12 @@ export default function HomeEventsSection({ initialEvents = [] }: { initialEvent
   const [events, setEvents] = useState<PublicEvent[]>(initialEvents)
   const [selected, setSelected] = useState<PublicEvent | null>(null)
 
-  // 🚀 OTIMIZAÇÃO: Só busca se initialEvents estiver vazio (fallback)
+  // 🚀 OTIMIZAÇÃO: apenas busca na API se o server NÃO enviou nada (initialEvents undefined/null).
+  // Se o server disser \"lista vazia\", respeitamos isso e mostramos o estado vazio.
   useEffect(() => {
-    if (initialEvents && initialEvents.length > 0) {
-      // Já tem dados do server, não precisa fetch
+    if (initialEvents !== undefined && initialEvents !== null) {
+      // Já temos a fonte da verdade (inclusive lista vazia)
+      setEvents(initialEvents)
       return
     }
 
@@ -74,7 +76,7 @@ export default function HomeEventsSection({ initialEvents = [] }: { initialEvent
       }
     })()
     return () => { mounted = false }
-  }, [])
+  }, [initialEvents])
 
   // Header + Carrossel NO MESMO LAYOUT original da Home (mantendo visual)
   return (
@@ -139,34 +141,18 @@ export default function HomeEventsSection({ initialEvents = [] }: { initialEvent
           )}
         </Carousel>
       ) : (
-        <Card className="max-w-4xl mx-auto overflow-hidden border-0 shadow-xl">
-          <div className="grid md:grid-cols-2">
-            <div className="relative h-64 md:h-auto">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/professional-conference-room-with-aquaculture-expe.jpg"
-                alt="Workshop Nacional da Maricultura"
-                className="w-full h-full object-cover block"
-              />
-            </div>
-            <CardContent className="p-8 flex flex-col justify-center bg-gradient-to-br from-card to-card/50">
-              <div className="space-y-4">
-                <Badge variant="secondary" className="w-fit bg-primary/10 border-primary text-primary font-medium">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  30 de Agosto a 1 de Setembro de 2024
-                </Badge>
-                <CardTitle className="text-2xl font-sans">I Workshop Nacional da Maricultura</CardTitle>
-                <CardDescription className="text-base">
-                  <div className="flex items-center mb-2">
-                    <MapPin className="mr-2 h-4 w-4" />
-                    Ubatuba - SP
-                  </div>
-                  Um evento único para discutir o futuro da maricultura brasileira, com palestras, workshops práticos e networking entre profissionais do setor.
-                </CardDescription>
-                <Button className="w-fit hover:scale-105 transition-transform" disabled>Em breve</Button>
-              </div>
-            </CardContent>
-          </div>
+        <Card className="max-w-3xl mx-auto border-dashed border-2 border-muted-foreground/30 bg-muted/10">
+          <CardContent className="py-12 text-center space-y-4">
+            <Badge variant="secondary" className="bg-primary/10 border-primary text-primary font-medium">
+              Em breve
+            </Badge>
+            <CardTitle className="text-2xl font-sans">
+              Estamos preparando novidades para você
+            </CardTitle>
+            <CardDescription className="text-base max-w-xl mx-auto">
+              No momento não há eventos publicados. Em breve divulgaremos novas atividades e encontros da maricultura.
+            </CardDescription>
+          </CardContent>
         </Card>
       )}
 
