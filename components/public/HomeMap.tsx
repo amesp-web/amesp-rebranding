@@ -44,8 +44,9 @@ export default function HomeMap() {
         map = new maplibregl.Map({
           container: mapContainerRef.current,
           style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-          center: [-45.08, -23.43], // Ubatuba
-          zoom: 11, // Zoom maior para região de Ubatuba
+          center: [-45.25, -23.52], // entre Ubatuba e Caraguatatuba
+          zoom: 10, // mostra a região das duas cidades
+          scrollZoom: false, // rodinha rola a página em vez de dar zoom no mapa; zoom pelos botões +/-
         })
 
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
