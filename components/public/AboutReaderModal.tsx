@@ -1,12 +1,100 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { createPortal } from "react-dom"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+
+/** Para uso no modal: imagens do Supabase em tamanho menor = carregamento mais rápido */
+function getResizedImageUrl(originalUrl: string, width: number = 900): string {
+  if (typeof window === "undefined") return originalUrl
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!supabaseUrl || !originalUrl?.startsWith(supabaseUrl)) return originalUrl
+  const params = new URLSearchParams({ url: originalUrl, w: String(width), q: "75" })
+  return `/api/image?${params.toString()}`
+}
+
+/** Retorna a URL da primeira imagem dos blocos para preload e prioridade */
+function getFirstImageUrl(blocks: { type: string; data?: any }[]): string | null {
+  for (const block of blocks) {
+    if (block.type === "banner" && block.data?.image_url) return block.data.image_url
+    if (block.type === "photo" && block.data?.url) return block.data.url
+    if (block.type === "gallery" && block.data?.images?.length) return block.data.images[0]
+    if (block.type === "team" && block.data?.members?.length) {
+      const first = block.data.members.find((m: any) => m.avatar_url)
+      if (first) return first.avatar_url
+    }
+    if (block.type === "logo" && block.data?.logos?.length) return block.data.logos[0]?.url ?? null
+    if (block.type === "foto redimensionada" && block.data?.url) return block.data.url
+  }
+  return null
+}
+
+/** Imagem com skeleton; prioridade = carrega já; senão só carrega quando entrar na viewport (evita 27 requests de uma vez) */
+function ModalImage({
+  src,
+  alt,
+  className,
+  style,
+  wrapperClassName,
+  priority = false,
+}: {
+  src: string
+  alt: string
+  className?: string
+  style?: React.CSSProperties
+  wrapperClassName?: string
+  priority?: boolean
+}) {
+  const [loaded, setLoaded] = useState(false)
+  const [inView, setInView] = useState(priority)
+  const wrapperRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    if (priority) return
+    const el = wrapperRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) setInView(true)
+      },
+      { rootMargin: "200px", threshold: 0.01 }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [priority])
+
+  const showImage = inView
+  return (
+    <span
+      ref={wrapperRef}
+      className={["relative block", wrapperClassName].filter(Boolean).join(" ")}
+    >
+      {!loaded && (
+        <span
+          className="absolute inset-0 rounded-xl bg-slate-200 animate-pulse"
+          aria-hidden
+        />
+      )}
+      {showImage ? (
+        <img
+          src={src}
+          alt={alt}
+          className={className}
+          style={{ ...style, opacity: loaded ? 1 : 0, transition: "opacity 0.25s ease-in" }}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : undefined}
+          onLoad={() => setLoaded(true)}
+        />
+      ) : (
+        <span className={className} style={{ display: "block", background: "var(--tw-color-slate-200)" }} aria-hidden />
+      )}
+    </span>
+  )
+}
 
 type Block = {
   id: string
@@ -23,6 +111,7 @@ type AboutReaderModalProps = {
 
 export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReaderModalProps) {
   const [mounted, setMounted] = useState(false)
+  const firstImageUrl = getFirstImageUrl(blocks)
 
   useEffect(() => {
     setMounted(true)
@@ -38,6 +127,20 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
       document.body.style.overflow = 'unset'
     }
   }, [isOpen])
+
+  // Preload da primeira imagem (versão redimensionada) para carregar mais rápido
+  const firstImageUrlResized = firstImageUrl ? getResizedImageUrl(firstImageUrl, 1200) : null
+  useEffect(() => {
+    if (!isOpen || !firstImageUrlResized || !firstImageUrlResized.startsWith("/")) return
+    const link = document.createElement("link")
+    link.rel = "preload"
+    link.as = "image"
+    link.href = firstImageUrlResized
+    document.head.appendChild(link)
+    return () => {
+      link.remove()
+    }
+  }, [isOpen, firstImageUrlResized])
 
   if (!mounted || !isOpen) return null
 
@@ -105,10 +208,11 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                   
                   return (
                     <div key={block.id} className="w-full flex justify-center bg-slate-50">
-                      <img 
-                        src={block.data.image_url} 
-                        alt="Banner" 
-                        className={`h-auto ${bannerHeightClass} object-contain rounded-2xl shadow-lg`} 
+                      <ModalImage
+                        src={getResizedImageUrl(block.data.image_url, 1200)}
+                        alt="Banner"
+                        className={`h-auto ${bannerHeightClass} object-contain rounded-2xl shadow-lg w-full`}
+                        priority={block.data.image_url === firstImageUrl}
                       />
                     </div>
                   )
@@ -124,7 +228,12 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                   return (
                     <div key={block.id} className="flex justify-center">
                       {block.data.url && (
-                        <img src={block.data.url} alt="Foto" className="w-full h-auto max-h-[600px] object-contain rounded-2xl shadow-lg" />
+                        <ModalImage
+                          src={getResizedImageUrl(block.data.url, 900)}
+                          alt="Foto"
+                          className="w-full h-auto max-h-[600px] object-contain rounded-2xl shadow-lg"
+                          priority={block.data.url === firstImageUrl}
+                        />
                       )}
                     </div>
                   )
@@ -150,7 +259,7 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                           <CarouselContent>
                             {block.data.images.map((img: string, idx: number) => (
                               <CarouselItem key={idx}>
-                                <img src={img} alt={`Galeria ${idx + 1}`} className="w-full h-96 object-cover rounded-2xl" />
+                                <ModalImage src={getResizedImageUrl(img, 800)} alt={`Galeria ${idx + 1}`} className="w-full h-96 object-cover rounded-2xl" priority={img === firstImageUrl} />
                               </CarouselItem>
                             ))}
                           </CarouselContent>
@@ -171,7 +280,7 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                         {groups.map((group, gIdx) => (
                           <div key={gIdx} className="grid grid-cols-2 gap-4">
                             {group.map((img: string, idx: number) => (
-                              <img key={idx} src={img} alt={`Imagem ${idx + 1}`} className="w-full h-64 object-cover rounded-xl" />
+                              <ModalImage key={idx} src={getResizedImageUrl(img, 800)} alt={`Imagem ${idx + 1}`} className="w-full h-64 object-cover rounded-xl" priority={img === firstImageUrl} />
                             ))}
                           </div>
                         ))}
@@ -182,7 +291,7 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                   return (
                     <div key={block.id} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {block.data.images.map((img: string, idx: number) => (
-                        <img key={idx} src={img} alt={`Galeria ${idx + 1}`} className="w-full h-48 object-cover rounded-xl shadow-md hover:shadow-xl transition-shadow" />
+                        <ModalImage key={idx} src={getResizedImageUrl(img, 800)} alt={`Galeria ${idx + 1}`} className="w-full h-48 object-cover rounded-xl shadow-md hover:shadow-xl transition-shadow" priority={img === firstImageUrl} />
                       ))}
                     </div>
                   )
@@ -197,7 +306,7 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                         <div key={idx} className="text-center">
                           {member.avatar_url && (
                             <div className="relative w-32 h-32 mx-auto mb-3 rounded-full overflow-hidden shadow-lg">
-                              <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
+                              <ModalImage src={getResizedImageUrl(member.avatar_url, 256)} alt={member.name} className="w-full h-full object-cover" priority={member.avatar_url === firstImageUrl} />
                             </div>
                           )}
                           <h3 className="font-semibold text-lg text-slate-900">{member.name}</h3>
@@ -219,10 +328,11 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                       <div className="flex flex-wrap justify-center items-center gap-8">
                         {block.data.logos.map((logo: any, idx: number) => (
                           <div key={idx} className="text-center">
-                            <img
-                              src={logo.url}
+                            <ModalImage
+                              src={getResizedImageUrl(logo.url, 400)}
                               alt={logo.name || `Logo ${idx + 1}`}
                               className={`${sizeObj.width} ${sizeObj.height} object-contain`}
+                              priority={logo.url === firstImageUrl}
                             />
                             {logo.name && (
                               <p className="mt-2 text-sm text-muted-foreground">{logo.name}</p>
@@ -238,7 +348,13 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                   return (
                     <div key={block.id} className="flex justify-center">
                       <div style={{ width: `${block.data.width}px`, height: `${block.data.height}px` }} className="relative">
-                        <img src={block.data.url} alt="Foto" className="w-full h-full object-contain rounded-xl shadow-lg" />
+                        <ModalImage
+                          src={getResizedImageUrl(block.data.url, block.data.width ? Math.min(block.data.width, 900) : 900)}
+                          alt="Foto"
+                          wrapperClassName="absolute inset-0"
+                          className="w-full h-full object-contain rounded-xl shadow-lg"
+                          priority={block.data.url === firstImageUrl}
+                        />
                       </div>
                     </div>
                   )
