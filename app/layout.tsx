@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     "Associação dos Maricultores do Estado de São Paulo. Trabalhamos pelo desenvolvimento da maricultura sustentável, apoiando produtores, pesquisas e projetos socioambientais no litoral paulista.",
   generator: "v0.app",
   icons: {
-    icon: "/favicon.png",
+    icon: { url: "/favicon.png", sizes: "192x192", type: "image/png" },
     apple: "/favicon.png",
   },
   appleWebApp: {
