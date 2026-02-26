@@ -45,9 +45,13 @@ function shouldShowPromptInBrowser(): boolean {
   return true
 }
 
+const BLOCKED_MESSAGE =
+  "Notificações estão bloqueadas. Toque no ícone de cadeado na barra de endereço → Permissões → Notificações → Permitir."
+
 export function PushPromptOnInstall() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showBlockedMessage, setShowBlockedMessage] = useState(false)
 
   useEffect(() => {
     if (!hasVapidKey() || !isPushSupported()) return
@@ -73,6 +77,7 @@ export function PushPromptOnInstall() {
 
   const handleAllow = async () => {
     setLoading(true)
+    setShowBlockedMessage(false)
     try {
       const ok = await subscribeToPush()
       if (ok) {
@@ -82,7 +87,7 @@ export function PushPromptOnInstall() {
       } else {
         const denied = typeof Notification !== "undefined" && Notification.permission === "denied"
         if (denied) {
-          toast.error("Notificações estão bloqueadas. Toque no ícone de cadeado na barra de endereço → Permissões → Notificações → Permitir.")
+          setShowBlockedMessage(true)
         } else {
           toast.error("Não foi possível ativar. Verifique as permissões do navegador.")
         }
@@ -121,37 +126,60 @@ export function PushPromptOnInstall() {
           Receba notificações — toque para ativar
         </button>
       )}
-    <Dialog open={open} onOpenChange={(v) => !loading && setOpen(v)}>
+    <Dialog open={open} onOpenChange={(v) => { if (!loading) { setOpen(v); if (!v) setShowBlockedMessage(false) } }}>
       <DialogContent className="max-w-sm text-center sm:rounded-2xl">
-        <DialogHeader>
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
-            <Bell className="h-7 w-7 text-primary" />
-          </div>
-          <DialogTitle className="text-xl">
-            Receba notificações
-          </DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground leading-relaxed py-2">
-          Ative para receber avisos de <strong>novas notícias</strong>, <strong>eventos</strong> e
-          <strong> lembretes de mensalidade</strong>.
-        </p>
-        <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:gap-2">
-          <Button
-            onClick={handleAllow}
-            disabled={loading}
-            className="w-full h-12 text-base font-semibold"
-          >
-            {loading ? "Ativando…" : "Permitir notificações"}
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={handleLater}
-            disabled={loading}
-            className="w-full"
-          >
-            Agora não
-          </Button>
-        </DialogFooter>
+        {showBlockedMessage ? (
+          <>
+            <DialogHeader>
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 mb-2">
+                <Bell className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+              </div>
+              <DialogTitle className="text-xl">
+                Notificações bloqueadas
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground leading-relaxed py-2 text-left">
+              {BLOCKED_MESSAGE}
+            </p>
+            <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:gap-2">
+              <Button onClick={() => { setOpen(false); setShowBlockedMessage(false) }} className="w-full">
+                Entendi
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
+                <Bell className="h-7 w-7 text-primary" />
+              </div>
+              <DialogTitle className="text-xl">
+                Receba notificações
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground leading-relaxed py-2">
+              Ative para receber avisos de <strong>novas notícias</strong>, <strong>eventos</strong> e
+              <strong> lembretes de mensalidade</strong>.
+            </p>
+            <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:gap-2">
+              <Button
+                onClick={handleAllow}
+                disabled={loading}
+                className="w-full h-12 text-base font-semibold"
+              >
+                {loading ? "Ativando…" : "Permitir notificações"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleLater}
+                disabled={loading}
+                className="w-full"
+              >
+                Agora não
+              </Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
     </>
