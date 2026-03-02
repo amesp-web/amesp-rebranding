@@ -41,6 +41,7 @@ export function NewsForm({ initialData }: NewsFormProps) {
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const triggerFileSelect = () => fileInputRef.current?.click()
+  const wasPublished = !!initialData?.published
 
   const handleAISuggestion = (suggestion: { title: string; content: string; excerpt: string }) => {
     setFormData((prev) => ({
@@ -89,7 +90,8 @@ export function NewsForm({ initialData }: NewsFormProps) {
 
       if (result.error) throw result.error
 
-      if (published && savedId) {
+      // Enviar push apenas quando a notícia passa de não publicada -> publicada.
+      if (!wasPublished && published && savedId) {
         fetch("/api/admin/push/notify-news", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
