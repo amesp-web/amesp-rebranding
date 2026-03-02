@@ -645,6 +645,8 @@ export default async function HomePage() {
                     title: article.title,
                     content: article.content,
                     image_url: article.image_url,
+                    // @ts-ignore coluna opcional images
+                    images: (article as any).images,
                     category: article.category,
                     created_at: article.created_at,
                     read_time: article.read_time,

@@ -17,7 +17,7 @@ export default async function AllNewsPage() {
   const supabase = await createClient()
   const { data: newsRaw } = await supabase
     .from('news')
-    .select('id, title, content, image_url, category, created_at, read_time, views, likes, display_order, published')
+    .select('id, title, content, image_url, images, category, created_at, read_time, views, likes, display_order, published')
     .eq('published', true)
     .order('display_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
@@ -103,6 +103,8 @@ export default async function AllNewsPage() {
                 title: article.title,
                 content: article.content,
                 image_url: article.image_url,
+                // @ts-ignore coluna opcional com lista de imagens
+                images: article.images,
                 category: article.category,
                 created_at: article.created_at,
                 read_time: article.read_time,

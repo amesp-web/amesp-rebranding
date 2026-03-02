@@ -28,6 +28,9 @@ export function NewsForm({ initialData }: NewsFormProps) {
     image_url: initialData?.image_url || "",
     read_time: initialData?.read_time || 5,
     published: initialData?.published || false,
+    images: Array.isArray(initialData?.images)
+      ? (initialData.images as string[])
+      : (initialData?.image_url ? [initialData.image_url as string] : []),
   })
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -60,13 +63,14 @@ export function NewsForm({ initialData }: NewsFormProps) {
         throw new Error("User not authenticated")
       }
 
-    const { title, excerpt, content, category, image_url, read_time, published } = formData
+    const { title, excerpt, content, category, image_url, read_time, published, images } = formData
     const newsData = {
       title,
       excerpt,
       content,
       category,
       image_url,
+      images,
       read_time,
       published,
       author_id: user.id,
@@ -106,29 +110,40 @@ export function NewsForm({ initialData }: NewsFormProps) {
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
     try {
       setIsUploading(true)
-      // Preview imediato no cliente
-      const objectUrl = URL.createObjectURL(file)
-      setPreviewUrl(objectUrl)
+      for (const file of files) {
+        // Preview imediato no cliente (fica com a última imagem enviada)
+        const objectUrl = URL.createObjectURL(file)
+        setPreviewUrl(objectUrl)
 
-      // Upload para Supabase Storage (bucket "news")
-      const safeName = file.name
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9_.-]/g, '-')
-      const path = `news/${Date.now()}-${safeName}`
-      const { error: upErr } = await supabase.storage
-        .from('news')
-        .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
-      if (upErr) throw upErr
+        // Upload para Supabase Storage (bucket "news")
+        const safeName = file.name
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9_.-]/g, '-')
+        const path = `news/${Date.now()}-${safeName}`
+        const { error: upErr } = await supabase.storage
+          .from('news')
+          .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
+        if (upErr) throw upErr
 
-      const { data } = supabase.storage.from('news').getPublicUrl(path)
-      const publicUrl = data.publicUrl
-      setFormData((prev) => ({ ...prev, image_url: publicUrl }))
-      setPreviewUrl(publicUrl)
+        const { data } = supabase.storage.from('news').getPublicUrl(path)
+        const publicUrl = data.publicUrl
+        setFormData((prev) => {
+          const currentImages = Array.isArray(prev.images) ? prev.images : []
+          const nextImages = [...currentImages, publicUrl]
+          return {
+            ...prev,
+            images: nextImages,
+            image_url: nextImages[0] || publicUrl,
+          }
+        })
+      }
+      // limpa o input para permitir selecionar os mesmos arquivos novamente se quiser
+      e.target.value = ''
     } catch (err) {
       console.error('Erro ao enviar imagem:', err)
     } finally {
@@ -182,15 +197,16 @@ export function NewsForm({ initialData }: NewsFormProps) {
               id="image_file"
               type="file"
               accept="image/*"
+              multiple
               onChange={handleFileChange}
               disabled={isUploading}
               className="hidden"
             />
-            {(previewUrl || formData.image_url) && (
+            {(previewUrl || formData.image_url || formData.images[0]) && (
               <div className="mt-2 mx-auto w-full max-w-md cursor-pointer" onClick={triggerFileSelect}>
                 <div className="relative aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-black/5 shadow-md bg-white">
                   <img
-                    src={(previewUrl || formData.image_url) || "/placeholder.svg"}
+                    src={(previewUrl || formData.image_url || formData.images[0]) || "/placeholder.svg"}
                     alt="Preview"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
@@ -204,6 +220,56 @@ export function NewsForm({ initialData }: NewsFormProps) {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {Array.isArray(formData.images) && formData.images.length > 1 && (
+              <div className="mt-3 flex flex-wrap gap-3">
+                {formData.images.map((url, idx) => (
+                  <div key={url} className="relative w-20 h-20 rounded-lg overflow-hidden ring-1 ring-slate-200 bg-slate-50">
+                    <img src={url} alt={`Imagem ${idx + 1}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 text-[10px] text-white px-1 py-0.5 flex justify-between items-center">
+                      <span>{idx === 0 ? "Principal" : `Foto ${idx + 1}`}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => {
+                          const current = Array.isArray(prev.images) ? [...prev.images] : []
+                          const filtered = current.filter((u) => u !== url)
+                          if (filtered.length === 0) {
+                            return { ...prev, images: [], image_url: "" }
+                          }
+                          const nextImages = filtered
+                          return {
+                            ...prev,
+                            images: nextImages,
+                            image_url: nextImages[0],
+                          }
+                        })
+                      }}
+                      className="absolute top-1 right-1 inline-flex items-center justify-center rounded-full bg-white/90 text-xs px-1 py-0.5 shadow"
+                    >
+                      ×
+                    </button>
+                    {idx > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => {
+                            const current = Array.isArray(prev.images) ? [...prev.images] : []
+                            const without = current.filter((u) => u !== url)
+                            const nextImages = [url, ...without]
+                            return { ...prev, images: nextImages, image_url: url }
+                          })
+                        }}
+                        className="absolute inset-x-0 top-0 bg-black/50 text-[10px] text-white px-1 py-0.5"
+                      >
+                        Tornar principal
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
             {!previewUrl && !formData.image_url && (

@@ -2,17 +2,18 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import Image from "next/image"
 import { Calendar, Clock, Eye, X, Share2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NewsLikeButton } from "@/components/public/NewsLikeButton"
 import { toast } from "sonner"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 
 type Article = {
   id: string | number
   title: string
   content: string
   image_url?: string | null
+  images?: string[] | null
   category?: string | null
   created_at?: string | null
   read_time?: number | null
@@ -23,6 +24,10 @@ export function NewsReaderModal({ article }: { article: Article }) {
   const [open, _setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [currentViews, setCurrentViews] = useState<number>(article.views || 0)
+
+  const images: string[] = Array.isArray((article as any).images) && (article as any).images.length > 0
+    ? ((article as any).images as string[])
+    : (article.image_url ? [article.image_url] : [])
 
   const setOpen = (next: boolean) => {
     _setOpen(next)
@@ -79,7 +84,7 @@ export function NewsReaderModal({ article }: { article: Article }) {
         Ler mais
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-0 shadow-2xl max-h-[85vh]">
+        <DialogContent className="!max-w-[95vw] w-[95vw] !max-h-[90vh] h-[90vh] sm:!max-w-[95vw] p-0 overflow-hidden border-0 shadow-2xl">
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -88,16 +93,43 @@ export function NewsReaderModal({ article }: { article: Article }) {
           >
             <X className="h-5 w-5 text-slate-700" />
           </button>
-          <div className="flex flex-col max-h-[85vh] min-h-0">
-            {article.image_url && (
-              <div className="relative w-full h-[40vh] min-h-[200px] max-h-[360px] shrink-0 bg-muted/30">
-                <Image
-                  src={article.image_url}
-                  alt={article.title}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 768px) 100vw, 48rem"
-                />
+          <div className="flex flex-col h-full max-h-[90vh] min-h-0">
+            {images.length > 0 && (
+              <div className="relative w-full h-[60vh] max-h-[520px] shrink-0 bg-muted/30 overflow-hidden">
+                {images.length > 1 ? (
+                  <Carousel className="h-full">
+                    <CarouselContent className="h-full">
+                      {images
+                        .filter((src) => typeof src === "string" && src.trim().length > 0)
+                        .map((src) => (
+                          <CarouselItem key={src} className="h-full">
+                          <div className="relative w-full h-full flex items-center justify-center">
+                            {/* Usar <img> simples aqui evita qualquer restrição de domínio do next/image */}
+                            <img
+                              src={src}
+                              alt={article.title}
+                              className="max-h-full max-w-full object-contain"
+                            />
+                          </div>
+                          </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    {images.length > 1 && (
+                      <>
+                        <CarouselPrevious className="left-2 md:left-4 bg-background/80 hover:bg-background" />
+                        <CarouselNext className="right-2 md:right-4 bg-background/80 hover:bg-background" />
+                      </>
+                    )}
+                  </Carousel>
+                ) : (
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <img
+                      src={images[0]}
+                      alt={article.title}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                )}
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
                 <div className="absolute bottom-3 right-3 flex items-center space-x-3">
                   <div className="bg-background/95 backdrop-blur rounded-full px-3 py-1.5 shadow-lg">
