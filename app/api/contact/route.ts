@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
                     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
 
                     <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0;">
-                      Mensagem recebida em: <strong>${new Date().toLocaleString('pt-BR')}</strong><br>
+                      Mensagem recebida em: <strong>${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</strong><br>
                       Para responder, clique em "Responder" que o email será enviado automaticamente para: <strong>${email}</strong>
                     </p>
                   </td>
