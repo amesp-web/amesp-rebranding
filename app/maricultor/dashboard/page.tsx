@@ -397,8 +397,17 @@ export default function MaricultorDashboard() {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground pt-1">
-                  📍 Sede AMESP • 19h
+                  📍 Sede AMESP • 9h
                 </p>
+                <a
+                  href="https://meet.google.com/zhf-rgqs-srz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Participar no Google Meet
+                </a>
               </div>
             </CardContent>
           </Card>
