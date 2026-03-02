@@ -182,9 +182,10 @@ export function NewsReaderModal({ article }: { article: Article }) {
 
             {/* Conteúdo rolável - min-h-0 é essencial para o scroll funcionar no flex */}
             <div className="px-6 py-5 flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-              <div className="prose prose-slate max-w-none whitespace-pre-wrap leading-relaxed">
-                {article.content || ''}
-              </div>
+              <div
+                className="prose prose-slate max-w-none leading-relaxed whitespace-pre-wrap [&_p]:mb-4 [&_p]:last:mb-0"
+                dangerouslySetInnerHTML={{ __html: article.content || '' }}
+              />
             </div>
           </div>
         </DialogContent>

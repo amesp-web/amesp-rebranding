@@ -14,6 +14,7 @@ import { useRef, useState } from "react"
 import { ArrowLeft, Save, ImagePlus, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { AIAssistantModal } from "./AIAssistantModal"
+import { RichTextEditor } from "@/components/admin/RichTextEditor"
 
 interface NewsFormProps {
   initialData?: any
@@ -315,14 +316,10 @@ export function NewsForm({ initialData }: NewsFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="content">Conteúdo *</Label>
-            <Textarea
-              id="content"
+            <RichTextEditor
               value={formData.content}
-              onChange={(e) => handleChange("content", e.target.value)}
-              placeholder="Conteúdo completo da notícia"
-              rows={15}
-              className="border-2 border-blue-200/60 bg-white/90 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              required
+              onChange={(html) => handleChange("content", html)}
+              placeholder="Conteúdo completo da notícia (você pode usar negrito, tamanhos de fonte, cores, etc.)"
             />
           </div>
         </div>

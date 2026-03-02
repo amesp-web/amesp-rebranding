@@ -18,6 +18,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   const [currentColor, setCurrentColor] = useState('#000000')
   const [fontSize, setFontSize] = useState('16')
   const [fontFamily, setFontFamily] = useState('Arial')
+  const isBrowser = typeof document !== 'undefined'
 
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.innerHTML) {
@@ -26,6 +27,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   }, [value])
 
   const applyFormat = (command: string, value?: string) => {
+    if (!isBrowser) return
     document.execCommand(command, false, value)
     editorRef.current?.focus()
     updateContent()
@@ -50,6 +52,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   }
 
   const isFormatActive = (format: string): boolean => {
+    if (!isBrowser) return false
     return document.queryCommandState(format)
   }
 
