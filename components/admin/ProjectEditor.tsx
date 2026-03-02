@@ -12,11 +12,11 @@ import { toast } from "sonner"
 import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core"
 import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { GripVertical, X, Plus, Image as ImageIcon, FileText, Camera, Images, Users, Building2, UserCircle, List } from "lucide-react"
+import { GripVertical, X, Plus, Image as ImageIcon, FileText, Camera, Images, Users, Building2, UserCircle, List, Link2 } from "lucide-react"
 import { RichTextEditor } from "@/components/admin/RichTextEditor"
 import { ImageResizer } from "@/components/admin/ImageResizer"
 
-type BlockType = 'banner' | 'title' | 'photo' | 'description' | 'gallery' | 'logos' | 'logo' | 'team' | 'accordion'
+type BlockType = 'banner' | 'title' | 'photo' | 'description' | 'gallery' | 'logos' | 'logo' | 'team' | 'accordion' | 'links'
 
 interface Block {
   id: string
@@ -34,6 +34,7 @@ const BLOCK_TYPES: { type: BlockType; label: string; icon: any }[] = [
   { type: 'logos', label: 'Foto Redimensionada', icon: ImageIcon },
   { type: 'logo', label: 'Logos', icon: Building2 },
   { type: 'team', label: 'Equipe', icon: Users },
+  { type: 'links', label: 'Lista de Links', icon: Link2 },
 ]
 
 function SortableBlock({ block, onUpdate, onRemove }: { block: Block; onUpdate: (data: any) => void; onRemove: () => void }) {
@@ -815,6 +816,106 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
             </CardContent>
           </Card>
         )
+
+      case 'links': {
+        const items = Array.isArray(block.data?.items) ? block.data.items as { label: string; url: string }[] : []
+        return (
+          <Card className="border-2 border-dashed border-blue-300">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Link2 className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-sm font-semibold">Lista de Links</CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    {...dragHandle.attributes}
+                    {...dragHandle.listeners}
+                    type="button"
+                    className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <GripVertical className="h-4 w-4 text-gray-500" />
+                  </button>
+                  <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded text-red-600">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Título da seção (opcional)</Label>
+                <Input
+                  value={block.data?.sectionTitle || ''}
+                  onChange={(e) => onUpdate({ ...block.data, sectionTitle: e.target.value })}
+                  placeholder="Ex.: Documentos importantes"
+                />
+              </div>
+              <div className="space-y-3">
+                {items.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Adicione links como “Atas de reunião”, “Estatuto da AMESP”, etc. Cada link abre em uma nova aba.
+                  </p>
+                )}
+                {items.map((item, idx) => (
+                  <div key={idx} className="rounded-xl border border-slate-200 p-3 space-y-2 bg-slate-50/50">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary">Link {idx + 1}</Badge>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = items.filter((_, i) => i !== idx)
+                          onUpdate({ ...block.data, items: next })
+                        }}
+                        className="text-xs text-red-600 hover:underline"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Nome do link</Label>
+                      <Input
+                        value={item.label}
+                        onChange={(e) => {
+                          const next = [...items]
+                          next[idx] = { ...next[idx], label: e.target.value }
+                          onUpdate({ ...block.data, items: next })
+                        }}
+                        placeholder="Ex.: Atas de reunião"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">URL</Label>
+                      <Input
+                        value={item.url}
+                        onChange={(e) => {
+                          const next = [...items]
+                          next[idx] = { ...next[idx], url: e.target.value }
+                          onUpdate({ ...block.data, items: next })
+                        }}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const next = [...items, { label: '', url: '' }]
+                  onUpdate({ ...block.data, items: next })
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Adicionar link
+              </Button>
+            </CardContent>
+          </Card>
+        )
+      }
 
       default:
         return null

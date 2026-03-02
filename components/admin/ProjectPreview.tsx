@@ -268,6 +268,33 @@ export function ProjectPreview({ blocks, isOpen, onClose }: { blocks: Block[]; i
           </div>
         )
 
+      case 'links': {
+        const items = Array.isArray(block.data?.items) ? block.data.items as { label: string; url: string }[] : []
+        if (items.length === 0) return null
+        const sectionTitleLinks = block.data?.sectionTitle || ''
+        return (
+          <div key={block.id} className="max-w-4xl mx-auto px-4 py-8">
+            {sectionTitleLinks && (
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">{sectionTitleLinks}</h2>
+            )}
+            <div className="space-y-2">
+              {items.map((item, idx) => (
+                <a
+                  key={idx}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                >
+                  <span className="font-medium text-slate-800">{item.label || item.url}</span>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
       default:
         return null
     }

@@ -377,6 +377,32 @@ export function AboutReaderModal({ isOpen, onClose, blocks, title }: AboutReader
                     </Accordion>
                   )
 
+                case 'links':
+                  if (!Array.isArray(block.data?.items) || block.data.items.length === 0) return null
+                  return (
+                    <div key={block.id} className="w-full space-y-4">
+                      {block.data.sectionTitle && (
+                        <h3 className="text-2xl font-bold text-center text-slate-900">{block.data.sectionTitle}</h3>
+                      )}
+                      <div className="space-y-2">
+                        {block.data.items.map((item: any, idx: number) => (
+                          <a
+                            key={idx}
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm hover:border-[#023299] hover:bg-[#023299]/5 transition-colors"
+                          >
+                            <span className="font-medium text-slate-800">
+                              {item.label || item.url}
+                            </span>
+                            <span className="text-xs text-slate-500">Abrir em nova aba</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )
+
                 default:
                   return null
               }
