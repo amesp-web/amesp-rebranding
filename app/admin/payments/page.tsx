@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DollarSign, Loader2, Plus, Search, Trash2 } from "lucide-react"
+import { DollarSign, Loader2, Plus, Search, Trash2, FileDown } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -135,6 +135,68 @@ export default function PaymentsPage() {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  const handleExportCsv = () => {
+    if (maricultors.length === 0) {
+      toast.error("Não há dados para exportar.")
+      return
+    }
+
+    const header = [
+      "Ano",
+      "Mês",
+      "Maricultor",
+      "Valor",
+      "Forma de pagamento",
+      "Pago em",
+      "Observações",
+    ]
+
+    const rows: string[][] = []
+
+    maricultors.forEach((m) => {
+      m.payments.forEach((p) => {
+        if (!p) return
+        const monthLabel = MONTH_NAMES[(p.month ?? 1) - 1] || String(p.month)
+        const amountStr = p.amount != null ? String(p.amount).replace(".", ",") : ""
+        const methodLabel = p.payment_method ? (PAYMENT_METHOD_LABELS[p.payment_method] || p.payment_method) : ""
+        const paidAtStr = p.paid_at ? formatDate(p.paid_at) : ""
+        rows.push([
+          String(p.year ?? year),
+          monthLabel,
+          m.full_name || "",
+          amountStr,
+          methodLabel,
+          paidAtStr,
+          p.notes || "",
+        ])
+      })
+    })
+
+    if (rows.length === 0) {
+      toast.error("Não há pagamentos registrados para exportar.")
+      return
+    }
+
+    const escapeCell = (value: string) =>
+      `"${value.replace(/"/g, '""')}"`
+
+    const csvContent =
+      "\uFEFF" +
+      [header, ...rows]
+        .map((cols) => cols.map(escapeCell).join(";"))
+        .join("\r\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", `mensalidades-${year}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   const openCreate = (m: MaricultorRow, month: number) => {
     setModalMode("create")
@@ -260,6 +322,17 @@ export default function PaymentsPage() {
               className="pl-9 w-[220px] sm:w-[260px] border-slate-200"
             />
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            disabled={loading}
+            className="inline-flex items-center gap-2 border-slate-300 hover:border-slate-400"
+          >
+            <FileDown className="h-4 w-4" />
+            Exportar CSV
+          </Button>
           <div className="flex items-center gap-2">
             <Label className="text-sm font-medium text-slate-700">Ano</Label>
             <Select value={String(year)} onValueChange={(v) => setYear(parseInt(v, 10))}>
