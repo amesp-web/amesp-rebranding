@@ -84,6 +84,8 @@ function formatDate(value: string | null | undefined): string {
 
 export default function PaymentsPage() {
   const currentYear = new Date().getFullYear()
+  const currentMonth = new Date().getMonth() + 1
+  const defaultPeriod = `${currentYear}-${String(currentMonth).padStart(2, "0")}`
   const [year, setYear] = useState(currentYear)
   const [maricultors, setMaricultors] = useState<MaricultorRow[]>([])
   const [summary, setSummary] = useState<Summary | null>(null)
@@ -103,6 +105,16 @@ export default function PaymentsPage() {
   const [formDeleting, setFormDeleting] = useState(false)
   const [searchName, setSearchName] = useState("")
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [bulkOpen, setBulkOpen] = useState(false)
+  const [bulkMaricultor, setBulkMaricultor] = useState<MaricultorRow | null>(null)
+  const [bulkAmount, setBulkAmount] = useState("60")
+  const [bulkStartPeriod, setBulkStartPeriod] = useState(defaultPeriod)
+  const [bulkEndPeriod, setBulkEndPeriod] = useState(defaultPeriod)
+  const [bulkMethod, setBulkMethod] = useState<string>("dinheiro")
+  const [bulkPaidAt, setBulkPaidAt] = useState(new Date().toISOString().slice(0, 10))
+  const [bulkNotes, setBulkNotes] = useState("")
+  const [bulkOverflow, setBulkOverflow] = useState<"forward" | "backward">("forward")
+  const [bulkSaving, setBulkSaving] = useState(false)
 
   const filteredMaricultors = useMemo(() => {
     if (!searchName.trim()) return maricultors
@@ -299,6 +311,62 @@ export default function PaymentsPage() {
     }
   }
 
+  const openBulk = (m: MaricultorRow) => {
+    setBulkMaricultor(m)
+    setBulkAmount("60")
+    setBulkStartPeriod(defaultPeriod)
+    setBulkEndPeriod(defaultPeriod)
+    setBulkMethod("dinheiro")
+    setBulkPaidAt(new Date().toISOString().slice(0, 10))
+    setBulkNotes("")
+    setBulkOverflow("forward")
+    setBulkOpen(true)
+  }
+
+  const handleBulkSave = async () => {
+    if (!bulkMaricultor) return
+    setBulkSaving(true)
+    try {
+      const amountNum = Number(bulkAmount.replace(",", "."))
+      if (!amountNum || amountNum <= 0) {
+        toast.error("Informe um valor total válido.")
+        return
+      }
+
+      const res = await fetch("/api/admin/payments/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          maricultor_id: bulkMaricultor.id,
+          amount_total: amountNum,
+          start_period: bulkStartPeriod,
+          end_period: bulkEndPeriod,
+          payment_method: bulkMethod,
+          paid_at: bulkMethod === "isento" ? null : bulkPaidAt,
+          notes: bulkNotes || null,
+          overflow_strategy: bulkOverflow,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao registrar pagamento em lote")
+      }
+
+      toast.success(
+        `Lote registrado: ${data.installments_allocated} mensalidade(s). Competências: ${(
+          data.competencies || []
+        ).join(", ")}`
+      )
+      setBulkOpen(false)
+      fetchData()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar pagamento em lote")
+    } finally {
+      setBulkSaving(false)
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -441,14 +509,25 @@ export default function PaymentsPage() {
                 {filteredMaricultors.map((m) => (
                   <TableRow key={m.id} className="group hover:bg-slate-50/50">
                     <TableCell className="font-medium sticky left-0 z-10 bg-white group-hover:bg-slate-50/50 border-r border-slate-100">
-                      <span className="flex items-center gap-2">
-                        {m.full_name || "—"}
-                        {m.fee_exempt && (
-                          <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                            Isento
-                          </span>
-                        )}
-                      </span>
+                      <div className="space-y-2">
+                        <span className="flex items-center gap-2">
+                          {m.full_name || "—"}
+                          {m.fee_exempt && (
+                            <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                              Isento
+                            </span>
+                          )}
+                        </span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => openBulk(m)}
+                        >
+                          Lançar lote
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell className="sticky left-0 z-10 bg-white group-hover:bg-slate-50/50 border-r border-slate-100 text-slate-600">
                       {formatDateOnly(m.association_date) !== "—" ? formatDateOnly(m.association_date) : formatDate(m.created_at)}
@@ -590,6 +669,98 @@ export default function PaymentsPage() {
         variant="delete"
         icon={<Trash2 className="h-8 w-8 text-red-600" />}
       />
+
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Pagamento em lote</DialogTitle>
+            <DialogDescription>
+              {bulkMaricultor?.full_name} • Mensalidade fixa de R$ 10,00 por competência
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label>Valor total recebido</Label>
+              <Input
+                type="text"
+                inputMode="decimal"
+                placeholder="Ex: 60,00"
+                value={bulkAmount}
+                onChange={(e) => setBulkAmount(e.target.value)}
+              />
+              <p className="text-xs text-slate-500">
+                O valor deve ser múltiplo de R$ 10,00.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label>Período inicial</Label>
+                <Input type="month" value={bulkStartPeriod} onChange={(e) => setBulkStartPeriod(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Período final</Label>
+                <Input type="month" value={bulkEndPeriod} onChange={(e) => setBulkEndPeriod(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Se houver meses já pagos no período</Label>
+              <Select value={bulkOverflow} onValueChange={(v: "forward" | "backward") => setBulkOverflow(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="forward">Adiantar para meses seguintes</SelectItem>
+                  <SelectItem value="backward">Cobrir meses anteriores</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Forma de pagamento</Label>
+              <Select value={bulkMethod} onValueChange={setBulkMethod}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(PAYMENT_METHOD_LABELS).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>
+                      {v}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {bulkMethod !== "isento" && (
+              <div className="grid gap-2">
+                <Label>Data do pagamento</Label>
+                <Input type="date" value={bulkPaidAt} onChange={(e) => setBulkPaidAt(e.target.value)} />
+              </div>
+            )}
+
+            <div className="grid gap-2">
+              <Label>Observação (opcional)</Label>
+              <Input
+                value={bulkNotes}
+                onChange={(e) => setBulkNotes(e.target.value)}
+                placeholder="Ex: pagamento entregue em espécie no escritório"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setBulkOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleBulkSave} disabled={bulkSaving}>
+              {bulkSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar lote"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
