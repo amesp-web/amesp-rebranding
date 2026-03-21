@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X, LogIn, UserPlus, ChevronDown } from "lucide-react"
 import Link from "next/link"
+import { Menu, X, LogIn, UserPlus, ChevronDown } from "lucide-react"
 import { ProjectReaderModal } from "@/components/public/ProjectReaderModal"
 import { AddToHomeScreenButton } from "@/components/public/AddToHomeScreenButton"
 
@@ -143,13 +143,14 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
 
           {/* Links de Navegação */}
           <div className="flex-1 overflow-y-auto p-4 space-y-1">
-            <a
-              href="#sobre"
+            <Link
+              href="/?open=sobre"
+              scroll={false}
               onClick={closeMenu}
               className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
             >
               Sobre Nós
-            </a>
+            </Link>
             <a
               href="#noticias"
               onClick={closeMenu}
@@ -171,20 +172,22 @@ export function MobileMenu({ projects: initialProjects }: MobileMenuProps) {
             >
               Produtores
             </a>
-            <a
-              href="#maricultura"
+            <Link
+              href="/?open=maricultura"
+              scroll={false}
               onClick={closeMenu}
               className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
             >
               Maricultura
-            </a>
-            <a
-              href="#turismo"
+            </Link>
+            <Link
+              href="/?open=turismo"
+              scroll={false}
               onClick={closeMenu}
               className="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
             >
               Turismo
-            </a>
+            </Link>
 
             {/* Projetos Socioambientais (Expandível) */}
             <div>

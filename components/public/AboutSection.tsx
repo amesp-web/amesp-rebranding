@@ -1,18 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Fish, Users, Waves, Award, MapPin, Camera } from "lucide-react"
 import { AboutReaderModal } from "@/components/public/AboutReaderModal"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 type AboutSectionProps = {
   about: any
 }
 
 export function AboutSection({ about }: AboutSectionProps) {
-  const [showModal, setShowModal] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const openFromQuery = searchParams.get("open") === "sobre"
+  const [showModal, setShowModal] = useState(openFromQuery)
+  const [closingFromQuery, setClosingFromQuery] = useState(false)
 
   const iconMap: Record<string, any> = {
     fish: Fish,
@@ -27,6 +33,25 @@ export function AboutSection({ about }: AboutSectionProps) {
 
   const features = about?.features || []
   const contentBlocks = about?.content?.content || []
+
+  useEffect(() => {
+    if (openFromQuery && !showModal && !closingFromQuery) {
+      setShowModal(true)
+    }
+    if (!openFromQuery && closingFromQuery) {
+      setClosingFromQuery(false)
+    }
+  }, [openFromQuery, showModal, closingFromQuery])
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    if (!openFromQuery) return
+    setClosingFromQuery(true)
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("open")
+    const nextQuery = params.toString()
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false })
+  }
 
   return (
     <>
@@ -75,7 +100,7 @@ export function AboutSection({ about }: AboutSectionProps) {
       {showModal && (
         <AboutReaderModal
           isOpen={showModal}
-          onClose={() => setShowModal(false)}
+          onClose={handleCloseModal}
           blocks={contentBlocks}
           title="Conheça a AMESP!"
         />

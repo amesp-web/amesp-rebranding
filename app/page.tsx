@@ -17,6 +17,7 @@ import { FishDecoration } from "@/components/decorative/FishDecoration"
 import { AddToHomeScreenButton } from "@/components/public/AddToHomeScreenButton"
 import { PushNotificationsToggle } from "@/components/public/PushNotificationsToggle"
 import nextDynamic from "next/dynamic"
+import Link from "next/link"
 
 // 🚀 OTIMIZAÇÃO: Lazy load de componentes abaixo da dobra
 const ContactForm = nextDynamic(
@@ -326,12 +327,13 @@ export default async function HomePage() {
 
           {/* Navegação Desktop - text-xs para caber em uma linha com zoom 100% */}
           <nav className="hidden xl:flex items-center space-x-0.5">
-            <a
-              href="#sobre"
+            <Link
+              href="/?open=sobre"
+              scroll={false}
               className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Sobre Nós
-            </a>
+            </Link>
             <a
               href="#noticias"
               className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
@@ -350,18 +352,20 @@ export default async function HomePage() {
             >
               Produtores
             </a>
-            <a
-              href="#maricultura"
+            <Link
+              href="/?open=maricultura"
+              scroll={false}
               className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Maricultura
-            </a>
-            <a
-              href="#turismo"
+            </Link>
+            <Link
+              href="/?open=turismo"
+              scroll={false}
               className="px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               Turismo
-            </a>
+            </Link>
             <ProjectsDropdown />
             <a
               href="/downloads"
@@ -978,9 +982,9 @@ export default async function HomePage() {
               <h4 className="font-medium mb-4">Navegação</h4>
               <ul className="space-y-2 text-sm text-primary-foreground/80">
                 <li>
-                  <a href="#sobre" className="hover:text-primary-foreground transition-colors">
+                  <Link href="/?open=sobre" scroll={false} className="hover:text-primary-foreground transition-colors">
                     Sobre Nós
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a href="#noticias" className="hover:text-primary-foreground transition-colors">

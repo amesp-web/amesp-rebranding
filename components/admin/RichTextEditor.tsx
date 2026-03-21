@@ -18,7 +18,46 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   const [currentColor, setCurrentColor] = useState('#000000')
   const [fontSize, setFontSize] = useState('16')
   const [fontFamily, setFontFamily] = useState('Arial')
+  const [boldActive, setBoldActive] = useState(false)
+  const [italicActive, setItalicActive] = useState(false)
   const isBrowser = typeof document !== 'undefined'
+
+  const sanitizePastedHtml = (rawHtml: string) => {
+    if (!isBrowser) return rawHtml
+
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(rawHtml, 'text/html')
+
+    // Remove tags que frequentemente carregam estilos externos de Word/Google Docs
+    doc.querySelectorAll('style, meta, link, script').forEach((el) => el.remove())
+
+    // Normaliza <font> para <span> sem atributos legados
+    doc.querySelectorAll('font').forEach((fontEl) => {
+      const span = doc.createElement('span')
+      span.innerHTML = fontEl.innerHTML
+      fontEl.replaceWith(span)
+    })
+
+    // Limpa atributos que causam inconsistência visual após colar
+    doc.querySelectorAll('*').forEach((el) => {
+      const style = (el.getAttribute('style') || '').split(';').map((s) => s.trim()).filter(Boolean)
+      const filteredStyle = style.filter((rule) => {
+        const key = rule.split(':')[0]?.trim().toLowerCase()
+        // Mantém estilos de estrutura/ênfase e remove estilos tipográficos externos
+        return !['font-family', 'font-size', 'color', 'background-color'].includes(key)
+      })
+
+      if (filteredStyle.length > 0) el.setAttribute('style', filteredStyle.join('; '))
+      else el.removeAttribute('style')
+
+      el.removeAttribute('class')
+      el.removeAttribute('face')
+      el.removeAttribute('size')
+      el.removeAttribute('color')
+    })
+
+    return doc.body.innerHTML
+  }
 
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.innerHTML) {
@@ -56,6 +95,26 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     return document.queryCommandState(format)
   }
 
+  const syncToolbarState = () => {
+    if (!isBrowser) return
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return
+
+    // Só sincroniza quando o cursor/seleção está dentro do editor
+    const anchorNode = selection.anchorNode
+    if (anchorNode && editorRef.current && !editorRef.current.contains(anchorNode)) return
+
+    setBoldActive(isFormatActive('bold'))
+    setItalicActive(isFormatActive('italic'))
+  }
+
+  useEffect(() => {
+    if (!isBrowser) return
+    const onSelectionChange = () => syncToolbarState()
+    document.addEventListener('selectionchange', onSelectionChange)
+    return () => document.removeEventListener('selectionchange', onSelectionChange)
+  }, [])
+
   const handleColorChange = (color: string) => {
     setCurrentColor(color)
     
@@ -75,6 +134,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     }
     
     updateContent()
+    syncToolbarState()
   }
 
   const handleFontSizeChange = (size: string) => {
@@ -104,6 +164,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     
     editorRef.current?.focus()
     updateContent()
+    syncToolbarState()
   }
 
   const handleFontFamilyChange = (font: string) => {
@@ -111,6 +172,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     document.execCommand('fontName', false, font)
     editorRef.current?.focus()
     updateContent()
+    syncToolbarState()
   }
 
   return (
@@ -123,8 +185,11 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => applyFormat('bold')}
-            className={`h-8 w-8 p-0 ${isFormatActive('bold') ? 'bg-blue-100 text-blue-700' : ''}`}
+            onClick={() => {
+              applyFormat('bold')
+              syncToolbarState()
+            }}
+            className={`h-8 w-8 p-0 ${boldActive ? 'bg-blue-100 text-blue-700' : ''}`}
             title="Negrito (Ctrl+B)"
           >
             <Bold className="h-4 w-4" />
@@ -133,8 +198,11 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => applyFormat('italic')}
-            className={`h-8 w-8 p-0 ${isFormatActive('italic') ? 'bg-blue-100 text-blue-700' : ''}`}
+            onClick={() => {
+              applyFormat('italic')
+              syncToolbarState()
+            }}
+            className={`h-8 w-8 p-0 ${italicActive ? 'bg-blue-100 text-blue-700' : ''}`}
             title="Itálico (Ctrl+I)"
           >
             <Italic className="h-4 w-4" />
@@ -218,9 +286,28 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       <div
         ref={editorRef}
         contentEditable
+        onPaste={(e) => {
+          e.preventDefault()
+          const html = e.clipboardData.getData('text/html')
+          const text = e.clipboardData.getData('text/plain')
+
+          if (html) {
+            const sanitized = sanitizePastedHtml(html)
+            document.execCommand('insertHTML', false, sanitized)
+          } else {
+            document.execCommand('insertText', false, text)
+          }
+
+          updateContent()
+        }}
         onInput={updateContent}
-        onFocus={() => setIsFocused(true)}
+        onFocus={() => {
+          setIsFocused(true)
+          syncToolbarState()
+        }}
         onBlur={() => setIsFocused(false)}
+        onMouseUp={syncToolbarState}
+        onKeyUp={syncToolbarState}
         onKeyDown={(e) => {
           // Permitir Enter para quebra de linha natural
           if (e.key === 'Enter') {
@@ -234,6 +321,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         style={{
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
+          fontFamily,
         }}
         suppressContentEditableWarning
         data-placeholder={placeholder || 'Digite a descrição do projeto...'}

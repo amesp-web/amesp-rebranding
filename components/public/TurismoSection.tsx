@@ -1,17 +1,23 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Fish, Users, Waves, Award, MapPin, Camera, Calendar } from "lucide-react"
 import { AboutReaderModal } from "@/components/public/AboutReaderModal"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 type TurismoSectionProps = {
   turismo: any
 }
 
 export function TurismoSection({ turismo }: TurismoSectionProps) {
-  const [showModal, setShowModal] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const openFromQuery = searchParams.get("open") === "turismo"
+  const [showModal, setShowModal] = useState(openFromQuery)
+  const [closingFromQuery, setClosingFromQuery] = useState(false)
 
   const iconMap: Record<string, any> = {
     fish: Fish,
@@ -27,6 +33,25 @@ export function TurismoSection({ turismo }: TurismoSectionProps) {
 
   const features = turismo?.features || []
   const contentBlocks = turismo?.content?.content || []
+
+  useEffect(() => {
+    if (openFromQuery && !showModal && !closingFromQuery) {
+      setShowModal(true)
+    }
+    if (!openFromQuery && closingFromQuery) {
+      setClosingFromQuery(false)
+    }
+  }, [openFromQuery, showModal, closingFromQuery])
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    if (!openFromQuery) return
+    setClosingFromQuery(true)
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("open")
+    const nextQuery = params.toString()
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false })
+  }
 
   return (
     <>
@@ -76,7 +101,7 @@ export function TurismoSection({ turismo }: TurismoSectionProps) {
       {showModal && (
         <AboutReaderModal
           isOpen={showModal}
-          onClose={() => setShowModal(false)}
+          onClose={handleCloseModal}
           blocks={contentBlocks}
           title="Turismo"
         />

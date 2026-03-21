@@ -53,11 +53,24 @@ function getNextMeeting() {
 }
 
 export default function MaricultorDashboard() {
+  type MaricultorDocument = {
+    id: string
+    type: string
+    label: string | null
+    type_label: string
+    file_name: string
+    content_type: string | null
+    file_size_bytes: number | null
+    created_at: string
+  }
+
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<any>(null)
   const [news, setNews] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
+  const [documents, setDocuments] = useState<MaricultorDocument[]>([])
+  const [documentsLoading, setDocumentsLoading] = useState(true)
   const [mensalidades, setMensalidades] = useState<{
     loading: boolean
     year?: number
@@ -193,6 +206,31 @@ export default function MaricultorDashboard() {
     fetchEvents()
   }, [])
 
+  useEffect(() => {
+    if (!user?.id) {
+      setDocuments([])
+      setDocumentsLoading(false)
+      return
+    }
+
+    const fetchDocuments = async () => {
+      try {
+        setDocumentsLoading(true)
+        const res = await fetch("/api/maricultor/documents", { credentials: "include", cache: "no-store" })
+        if (!res.ok) throw new Error("Erro ao carregar documentos")
+        const data = await res.json()
+        setDocuments(data.documents || [])
+      } catch (error) {
+        console.error("Erro ao carregar documentos do maricultor:", error)
+        setDocuments([])
+      } finally {
+        setDocumentsLoading(false)
+      }
+    }
+
+    fetchDocuments()
+  }, [user?.id])
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut()
@@ -292,7 +330,7 @@ export default function MaricultorDashboard() {
 
           <div className="flex items-center space-x-4">
             <span className="text-sm text-muted-foreground hidden sm:inline">
-              Olá, {profile?.full_name || user.user_metadata?.name || user.email}
+              Olá, {profile?.full_name || user.user_metadata?.name || "Maricultor"}
             </span>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -520,156 +558,6 @@ export default function MaricultorDashboard() {
                 </Button>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-6">
-            {/* Profile Card */}
-            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-emerald-50 via-teal-50/30 to-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-              <CardHeader className="relative z-10">
-                <div className="flex items-center space-x-2">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
-                    <User className="h-4 w-4 text-emerald-600" />
-                  </div>
-                  <CardTitle>Meu Perfil</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 relative z-10">
-                <div className="text-center">
-                  {profile?.logo_path ? (
-                    <div className="h-16 w-16 rounded-full overflow-hidden mx-auto mb-3 border-2 border-emerald-200 bg-white flex items-center justify-center">
-                      <img
-                        src={`/api/public/maricultor-logo?path=${encodeURIComponent(profile.logo_path)}`}
-                        alt="Logo"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <Fish className="h-8 w-8 text-primary" />
-                    </div>
-                  )}
-                  <h3 className="font-semibold">{profile?.full_name || user.user_metadata?.name || "Maricultor"}</h3>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
-                <div className="space-y-2 pt-2 border-t border-border/60">
-                  {profile?.contact_phone && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span>{profile.contact_phone}</span>
-                    </div>
-                  )}
-                  {(profile?.logradouro || profile?.cidade || profile?.cep) && (
-                    <div className="flex items-start gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground">
-                        {[
-                          [profile?.logradouro, profile?.numero].filter(Boolean).join(', '),
-                          profile?.cep,
-                          [profile?.cidade, profile?.estado].filter(Boolean).join(' - '),
-                        ].filter(Boolean).join(' · ')}
-                      </span>
-                    </div>
-                  )}
-                  {(profile?.company || user.user_metadata?.company) && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Building2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span className="text-muted-foreground">{profile?.company || user.user_metadata?.company}</span>
-                    </div>
-                  )}
-                  {profile?.specialties && (
-                    <div className="flex items-start gap-2 text-sm">
-                      <Fish className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground">{profile.specialties}</span>
-                    </div>
-                  )}
-                  {profile?.birth_date && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span>
-                        {(() => {
-                          const d = String(profile.birth_date).slice(0, 10)
-                          if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return profile.birth_date
-                          return `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}`
-                        })()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Mensalidades */}
-            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-amber-50 via-orange-50/30 to-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-              <CardHeader className="relative z-10">
-                <div className="flex items-center space-x-2">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-                    <DollarSign className="h-4 w-4 text-amber-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      Mensalidades
-                      {mensalidades.year != null && (
-                        <span className="text-base font-semibold text-amber-700/90">({mensalidades.year})</span>
-                      )}
-                    </CardTitle>
-                    <CardDescription className="mt-1">Gerencie suas mensalidades e pagamentos por ano</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {mensalidades.loading ? (
-                  <div className="flex flex-col items-center justify-center py-8 gap-3">
-                    <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
-                    <p className="text-sm text-muted-foreground">Carregando status...</p>
-                  </div>
-                ) : mensalidades.fee_exempt ? (
-                  <div className="text-center py-6">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-3">
-                      <CheckCircle className="h-7 w-7 text-amber-600" />
-                    </div>
-                    <p className="text-sm font-medium text-slate-700">{mensalidades.message || "Você é isento de mensalidade."}</p>
-                  </div>
-                ) : mensalidades.em_dia ? (
-                  <div className="text-center py-6">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100 mb-3">
-                      <CheckCircle className="h-7 w-7 text-emerald-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-emerald-800 mb-1">Em dia!</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Suas mensalidades de {mensalidades.year ?? "este ano"} estão em dia até o mês atual.
-                    </p>
-                  </div>
-                ) : (mensalidades.pending_months?.length ?? 0) > 0 ? (
-                  <div className="text-center py-6">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-3">
-                      <AlertCircle className="h-7 w-7 text-amber-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-700 mb-1">
-                      {mensalidades.pending_months.length} mês(es) pendente(s)
-                      {mensalidades.year != null && (
-                        <span className="font-normal text-slate-600"> em {mensalidades.year}</span>
-                      )}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {mensalidades.month_names && mensalidades.pending_months
-                        ? mensalidades.pending_months.map((m) => mensalidades.month_names![m - 1]).join(", ")
-                        : ""}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Entre em contato com a AMESP para regularizar.</p>
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 mb-3">
-                      <DollarSign className="h-7 w-7 text-slate-500" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Nenhuma mensalidade em aberto no momento.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
             {/* Atas e Documentos Institucionais */}
             <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-indigo-50 via-purple-50/30 to-white">
@@ -765,6 +653,202 @@ export default function MaricultorDashboard() {
                 </a>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Profile Card */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-emerald-50 via-teal-50/30 to-white">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+                    <User className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <CardTitle>Meu Perfil</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4 relative z-10">
+                <div className="text-center">
+                  {profile?.logo_path ? (
+                    <div className="h-16 w-16 rounded-full overflow-hidden mx-auto mb-3 border-2 border-emerald-200 bg-white flex items-center justify-center">
+                      <img
+                        src={`/api/public/maricultor-logo?path=${encodeURIComponent(profile.logo_path)}`}
+                        alt="Logo"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                      <Fish className="h-8 w-8 text-primary" />
+                    </div>
+                  )}
+                  <h3 className="font-semibold">{profile?.full_name || user.user_metadata?.name || "Maricultor"}</h3>
+                  <p className="text-sm text-muted-foreground">Acesso pelo telefone cadastrado</p>
+                </div>
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  {profile?.contact_phone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span>{profile.contact_phone}</span>
+                    </div>
+                  )}
+                  {(profile?.logradouro || profile?.cidade || profile?.cep) && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">
+                        {[
+                          [profile?.logradouro, profile?.numero].filter(Boolean).join(', '),
+                          profile?.cep,
+                          [profile?.cidade, profile?.estado].filter(Boolean).join(' - '),
+                        ].filter(Boolean).join(' · ')}
+                      </span>
+                    </div>
+                  )}
+                  {(profile?.company || user.user_metadata?.company) && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Building2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span className="text-muted-foreground">{profile?.company || user.user_metadata?.company}</span>
+                    </div>
+                  )}
+                  {profile?.specialties && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <Fish className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">{profile.specialties}</span>
+                    </div>
+                  )}
+                  {profile?.birth_date && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span>
+                        {(() => {
+                          const d = String(profile.birth_date).slice(0, 10)
+                          if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return profile.birth_date
+                          return `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}`
+                        })()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Mensalidades */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-amber-50 via-orange-50/30 to-white">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      Mensalidades
+                      {mensalidades.year != null && (
+                        <span className="text-base font-semibold text-amber-700/90">({mensalidades.year})</span>
+                      )}
+                    </CardTitle>
+                    <CardDescription className="mt-1">Gerencie suas mensalidades e pagamentos por ano</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {mensalidades.loading ? (
+                  <div className="flex flex-col items-center justify-center py-8 gap-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+                    <p className="text-sm text-muted-foreground">Carregando status...</p>
+                  </div>
+                ) : mensalidades.fee_exempt ? (
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-3">
+                      <CheckCircle className="h-7 w-7 text-amber-600" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-700">{mensalidades.message || "Você é isento de mensalidade."}</p>
+                  </div>
+                ) : mensalidades.em_dia ? (
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100 mb-3">
+                      <CheckCircle className="h-7 w-7 text-emerald-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-emerald-800 mb-1">Em dia!</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Suas mensalidades de {mensalidades.year ?? "este ano"} estão em dia até o mês atual.
+                    </p>
+                  </div>
+                ) : (mensalidades.pending_months?.length ?? 0) > 0 ? (
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 mb-3">
+                      <AlertCircle className="h-7 w-7 text-amber-600" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Que tal apoiar a AMESP este mês?</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 mb-3">
+                      <DollarSign className="h-7 w-7 text-slate-500" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Nenhuma mensalidade em aberto no momento.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Meus Documentos */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-sky-50 via-blue-50/30 to-white">
+              <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <CardHeader className="relative z-10">
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center">
+                    <Lock className="h-4 w-4 text-sky-600" />
+                  </div>
+                  <div>
+                    <CardTitle>Meus Documentos</CardTitle>
+                    <CardDescription className="mt-1">Visualização dos documentos cadastrados pela administração</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 relative z-10">
+                {documentsLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-5 w-5 animate-spin text-sky-600" />
+                  </div>
+                ) : documents.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Nenhum documento foi cadastrado para o seu perfil ainda.
+                  </p>
+                ) : (
+                  documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between gap-3 p-3 rounded-lg bg-white border border-sky-200/60"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm text-slate-900">{doc.type_label}</p>
+                        <p className="text-xs text-muted-foreground truncate">{doc.file_name}</p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0"
+                        asChild
+                      >
+                        <a
+                          href={`/api/maricultor/documents/${doc.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Visualizar documento"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver
+                        </a>
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
           </div>
         </div>
       </div>
