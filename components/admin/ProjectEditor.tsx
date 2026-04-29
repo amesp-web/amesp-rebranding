@@ -927,6 +927,7 @@ function BlockEditor({ block, onUpdate, onRemove, dragHandle }: { block: Block; 
 
 export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlocks: (blocks: Block[]) => void }) {
   const blocksContainerRef = useRef<HTMLDivElement>(null)
+  const [showFloatingBlocks, setShowFloatingBlocks] = useState(false)
 
   const addBlock = (type: BlockType) => {
     const newBlock: Block = {
@@ -974,15 +975,19 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <>
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
       {/* Painel de blocos disponíveis */}
-      <div className="lg:col-span-1">
-        <Card className="border-0 shadow-lg overflow-hidden max-w-xs sticky top-4 max-h-[calc(100vh-3rem)]">
+      <div
+        className="lg:col-span-1 self-start"
+        style={{ position: 'sticky', top: '96px', zIndex: 20 }}
+      >
+        <Card className="border-0 shadow-lg overflow-hidden max-w-xs max-h-[calc(100vh-7rem)]">
           <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 pb-4 rounded-t-2xl">
             <CardTitle className="text-lg font-bold text-white">Blocos Disponíveis</CardTitle>
             <p className="text-sm text-white/90">Clique para adicionar ao editor</p>
           </CardHeader>
-          <CardContent className="space-y-2 pt-4 pb-4 bg-gradient-to-br from-blue-50/30 via-white to-cyan-50/20 overflow-y-auto max-h-[calc(100vh-16rem)]">
+          <CardContent className="space-y-2 pt-4 pb-4 bg-gradient-to-br from-blue-50/30 via-white to-cyan-50/20 overflow-y-auto max-h-[calc(100vh-20rem)]">
           {BLOCK_TYPES.map((bt) => {
             const Icon = bt.icon
             return (
@@ -1034,6 +1039,43 @@ export function ProjectEditor({ blocks, setBlocks }: { blocks: Block[]; setBlock
         </Card>
       </div>
     </div>
+      <div className="fixed bottom-24 right-6 z-50">
+        {showFloatingBlocks && (
+          <Card className="mb-3 w-72 border-0 shadow-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 py-3">
+              <CardTitle className="text-sm font-bold text-white">Adicionar bloco</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-2 p-3 bg-white max-h-[60vh] overflow-y-auto">
+              {BLOCK_TYPES.map((bt) => {
+                const Icon = bt.icon
+                return (
+                  <button
+                    key={bt.type}
+                    type="button"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-md bg-white text-slate-900 text-sm font-medium flex items-center justify-start hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:border-blue-300 transition-all"
+                    onClick={() => {
+                      addBlock(bt.type)
+                      setShowFloatingBlocks(false)
+                    }}
+                  >
+                    <Icon className="mr-2 h-4 w-4 text-blue-600" />
+                    <span>{bt.label}</span>
+                  </button>
+                )
+              })}
+            </CardContent>
+          </Card>
+        )}
+        <Button
+          type="button"
+          onClick={() => setShowFloatingBlocks((open) => !open)}
+          className="h-12 rounded-full px-5 shadow-2xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-white hover:from-blue-700 hover:via-cyan-600 hover:to-teal-500"
+        >
+          <Plus className="mr-2 h-5 w-5" />
+          Adicionar bloco
+        </Button>
+      </div>
+    </>
   )
 }
 
