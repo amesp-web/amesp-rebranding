@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Download as DownloadIcon, FileText, ArrowLeft, Search, X } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { DownloadPreview } from "@/components/public/DownloadPreview"
 
 export default function DownloadsPublicPage() {
   const [downloads, setDownloads] = useState<any[]>([])
@@ -25,7 +26,6 @@ export default function DownloadsPublicPage() {
 
         if (res.ok) {
           const data = await res.json()
-          console.log('Downloads carregados:', data)
           setDownloads(data)
         } else {
           console.error('Erro ao buscar downloads - Status:', res.status)
@@ -149,7 +149,7 @@ export default function DownloadsPublicPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto items-stretch">
             {filteredDownloads.map((download: any, index: number) => {
               // Detectar tipo de manual baseado em palavras-chave no título/descrição
               const titleLower = download.title.toLowerCase()
@@ -199,43 +199,30 @@ export default function DownloadsPublicPage() {
               }
               
               return (
-                <Card key={download.id} className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br ${theme.gradient}`}>
+                <Card key={download.id} className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br h-full flex flex-col ${theme.gradient}`}>
                   <div className={`absolute inset-0 bg-gradient-to-br ${theme.hoverGradient} via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}></div>
                   
-                  <CardContent className="p-6 relative z-10">
-                    {/* Preview do PDF (mostra primeira página automaticamente) ou Ícone */}
-                    {download.file_name.toLowerCase().endsWith('.pdf') ? (
-                      <div className="mb-4 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300 bg-white relative" style={{ height: '320px' }}>
-                        <iframe
-                          src={`${download.file_url}#toolbar=0&navpanes=0&scrollbar=0&page=1&view=FitH&zoom=105`}
-                          className="w-full border-0 absolute"
-                          title={download.title}
-                          style={{ 
-                            pointerEvents: 'none',
-                            height: '400px',
-                            top: '-20px',
-                            left: '0'
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${theme.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                        <FileText className={`h-10 w-10 ${theme.iconColor}`} />
-                      </div>
-                    )}
+                  <CardContent className="p-6 relative z-10 flex flex-col flex-1 h-full">
+                    <DownloadPreview
+                      coverUrl={download.cover_url}
+                      coverUpdatedAt={download.updated_at}
+                      fileUrl={download.file_url}
+                      fileName={download.file_name}
+                      title={download.title}
+                      theme={{ iconBg: theme.iconBg, iconColor: theme.iconColor }}
+                    />
 
                     {/* Título */}
                     <h3 className="font-bold text-xl text-slate-900 mb-3 line-clamp-2 min-h-[3.5rem]">
                       {download.title}
                     </h3>
 
-                    {/* Descrição */}
-                    {download.description && (
-                      <p className="text-sm text-slate-600 line-clamp-3 mb-4 min-h-[4rem]">
-                        {download.description}
-                      </p>
-                    )}
+                    {/* Descrição — altura reservada mesmo sem texto */}
+                    <p className="text-sm text-slate-600 line-clamp-3 mb-4 min-h-[4rem]">
+                      {download.description || '\u00A0'}
+                    </p>
 
+                    <div className="mt-auto">
                     {/* Meta informações com estilo melhorado */}
                     <div className="flex items-center gap-4 text-xs font-medium text-slate-500 mb-5 pb-4 border-b border-slate-200">
                       <span className="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-lg">
@@ -260,6 +247,7 @@ export default function DownloadsPublicPage() {
                         Baixar Manual
                       </Button>
                     </a>
+                    </div>
                   </CardContent>
                 </Card>
               )

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Save, Upload, FileText, X } from "lucide-react"
+import { ArrowLeft, Save, Upload, FileText, X, ImageIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { createBrowserClient } from "@supabase/ssr"
@@ -15,8 +15,11 @@ export default function NewDownloadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedCover, setSelectedCover] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,6 +36,52 @@ export default function NewDownloadPage() {
       }
       setSelectedFile(file)
     }
+  }
+
+  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('A capa deve ser uma imagem (JPG, PNG ou WebP)')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Capa muito grande! Máximo: 5MB')
+      return
+    }
+
+    setSelectedCover(file)
+    setCoverPreview(URL.createObjectURL(file))
+  }
+
+  const clearCover = () => {
+    if (coverPreview) URL.revokeObjectURL(coverPreview)
+    setSelectedCover(null)
+    setCoverPreview(null)
+    if (coverInputRef.current) coverInputRef.current.value = ''
+  }
+
+  const uploadCover = async (file: File) => {
+    const fileName = `${Date.now()}-cover-${file.name.replace(/[^a-zA-Z0-9.-]/g, '-')}`
+    const filePath = `covers/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('downloads')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || 'image/jpeg',
+      })
+
+    if (uploadError) {
+      console.error('Erro no upload da capa:', uploadError)
+      throw new Error('Erro ao fazer upload da capa')
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('downloads').getPublicUrl(filePath)
+    return { publicUrl, fileName: file.name }
   }
 
   const handleSubmit = async () => {
@@ -70,6 +119,14 @@ export default function NewDownloadPage() {
         .from('downloads')
         .getPublicUrl(filePath)
 
+      let cover_url: string | null = null
+      let cover_file_name: string | null = null
+      if (selectedCover) {
+        const cover = await uploadCover(selectedCover)
+        cover_url = cover.publicUrl
+        cover_file_name = cover.fileName
+      }
+
       // 3. Criar registro no banco
       const res = await fetch('/api/admin/downloads', {
         method: 'POST',
@@ -79,7 +136,9 @@ export default function NewDownloadPage() {
           description: description.trim() || null,
           file_url: publicUrl,
           file_name: selectedFile.name,
-          file_size: selectedFile.size
+          file_size: selectedFile.size,
+          cover_url,
+          cover_file_name,
         })
       })
 
@@ -199,6 +258,67 @@ export default function NewDownloadPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedFile(null)}
+                    className="hover:bg-red-50 hover:text-red-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Capa personalizada */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Capa personalizada (opcional)</label>
+            <p className="text-xs text-muted-foreground mb-3">
+              Mesma área exibida hoje na página pública: altura de 320px e largura do card. Recomendado ~800×640px (proporção 4:3).
+            </p>
+            <input
+              ref={coverInputRef}
+              type="file"
+              onChange={handleCoverSelect}
+              className="hidden"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+            />
+
+            {!selectedCover ? (
+              <button
+                type="button"
+                onClick={() => coverInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-slate-300 rounded-xl p-6 hover:border-purple-400 hover:bg-purple-50/50 transition-all"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                    <ImageIcon className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-medium text-slate-900">Clique para enviar a capa</p>
+                    <p className="text-sm text-muted-foreground mt-1">JPG, PNG ou WebP (máx. 5MB)</p>
+                  </div>
+                </div>
+              </button>
+            ) : (
+              <div className="border-2 border-purple-200 rounded-xl overflow-hidden bg-white">
+                <div
+                  className="relative w-full overflow-hidden bg-slate-100"
+                  style={{ height: '320px' }}
+                >
+                  <img
+                    src={coverPreview || ''}
+                    alt="Prévia da capa"
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4 bg-purple-50/30">
+                  <div>
+                    <p className="font-medium text-slate-900">{selectedCover.name}</p>
+                    <p className="text-sm text-muted-foreground">{formatFileSize(selectedCover.size)}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={clearCover}
                     className="hover:bg-red-50 hover:text-red-600"
                   >
                     <X className="h-4 w-4" />

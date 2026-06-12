@@ -29,7 +29,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json(downloads || [])
+    return NextResponse.json(downloads || [], {
+      headers: {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
+    })
   } catch (error: any) {
     console.error('❌ Erro inesperado na API de downloads:', error)
     return NextResponse.json({ error: error.message || 'Erro inesperado' }, { status: 500 })
@@ -39,7 +43,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { title, description, file_url, file_name, file_size } = body
+    const { title, description, file_url, file_name, file_size, cover_url, cover_file_name } = body
 
     if (!title || !file_url || !file_name) {
       return NextResponse.json(
@@ -77,6 +81,8 @@ export async function POST(request: Request) {
         file_url,
         file_name,
         file_size: file_size || null,
+        cover_url: cover_url || null,
+        cover_file_name: cover_file_name || null,
         display_order: nextOrder,
         updated_at: new Date().toISOString()
       })
@@ -98,7 +104,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, title, description } = body
+    const { id, title, description, cover_url, cover_file_name } = body
 
     if (!id || !title) {
       return NextResponse.json(
@@ -119,13 +125,20 @@ export async function PUT(request: Request) {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
+    const updatePayload: Record<string, unknown> = {
+      title,
+      description: description || null,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (cover_url !== undefined) {
+      updatePayload.cover_url = cover_url || null
+      updatePayload.cover_file_name = cover_file_name || null
+    }
+
     const { data, error } = await supabase
       .from('downloads')
-      .update({
-        title,
-        description: description || null,
-        updated_at: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq('id', id)
       .select()
       .single()

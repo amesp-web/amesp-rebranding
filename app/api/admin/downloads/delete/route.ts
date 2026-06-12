@@ -21,10 +21,10 @@ export async function POST(request: Request) {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // Buscar o download para pegar o file_url e deletar do Storage
+    // Buscar o download para pegar URLs e deletar do Storage
     const { data: download, error: fetchError } = await supabase
       .from('downloads')
-      .select('file_url')
+      .select('file_url, cover_url')
       .eq('id', id)
       .single()
 
@@ -33,18 +33,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: fetchError.message }, { status: 500 })
     }
 
-    // Deletar arquivo do Storage
+    const pathsToRemove: string[] = []
+
     if (download?.file_url) {
       const filePath = download.file_url.split('/downloads/').pop()
-      if (filePath) {
-        const { error: storageError } = await supabase.storage
-          .from('downloads')
-          .remove([filePath])
+      if (filePath) pathsToRemove.push(filePath)
+    }
 
-        if (storageError) {
-          console.warn('⚠️ Erro ao deletar arquivo do Storage:', storageError)
-          // Continua mesmo se falhar o delete do Storage
-        }
+    if (download?.cover_url) {
+      const coverPath = download.cover_url.split('/downloads/').pop()
+      if (coverPath) pathsToRemove.push(coverPath)
+    }
+
+    if (pathsToRemove.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from('downloads')
+        .remove(pathsToRemove)
+
+      if (storageError) {
+        console.warn('⚠️ Erro ao deletar arquivos do Storage:', storageError)
       }
     }
 
