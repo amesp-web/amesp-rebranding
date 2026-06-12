@@ -193,7 +193,27 @@ function ChartTooltipContent({
               )}
             >
               {formatter && item?.value !== undefined && item.name ? (
-                formatter(item.value, item.name, item, index, item.payload)
+                (() => {
+                  const formatted = formatter(
+                    item.value,
+                    item.name,
+                    item,
+                    index,
+                    item.payload,
+                  )
+                  if (Array.isArray(formatted)) {
+                    const [formattedValue, formattedName] = formatted
+                    return (
+                      <div className="flex flex-1 justify-between gap-4 leading-none items-center">
+                        <span className="text-muted-foreground">{formattedName}</span>
+                        <span className="text-foreground font-mono font-medium tabular-nums">
+                          {formattedValue}
+                        </span>
+                      </div>
+                    )
+                  }
+                  return formatted
+                })()
               ) : (
                 <>
                   {itemConfig?.icon ? (
